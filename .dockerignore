@@ -1,0 +1,6 @@
+dist
+node_modules
+.git
+.claude
+attached_assets
+*.md

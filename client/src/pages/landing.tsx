@@ -53,7 +53,7 @@ export default function Landing() {
                 }}
                 className="text-sm px-4 py-2 bg-white text-black rounded-full font-medium hover:bg-slate-200 transition-colors"
               >
-                Get started
+                Talk to FLO
               </button>
             </div>
           </div>
@@ -62,7 +62,6 @@ export default function Landing() {
 
       {/* Hero */}
       <section className="relative pt-32 pb-24 lg:pt-44 lg:pb-32">
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-red-600/8 via-blue-600/6 to-transparent rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
@@ -111,13 +110,12 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Social proof strip */}
+      {/* Credential strip — no invented metrics */}
       <section className="border-y border-white/5 py-8">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex flex-wrap justify-center gap-x-12 gap-y-4 text-sm text-slate-500">
-            <span>Used by <strong className="text-slate-300">500+</strong> athletes</span>
             <span><strong className="text-slate-300">Red2Blue</strong> certified methodology</span>
-            <span><strong className="text-slate-300">24/7</strong> AI availability</span>
+            <span>Built by sports psychologists</span>
             <span><strong className="text-slate-300">GDPR</strong> compliant</span>
           </div>
         </div>
@@ -249,12 +247,12 @@ export default function Landing() {
                   key={tier}
                   className={`relative rounded-2xl p-6 flex flex-col ${
                     isPopular
-                      ? "bg-blue-600/10 border-2 border-blue-500/40 ring-1 ring-blue-500/20"
+                      ? "bg-white/[0.04] border-2 border-white/20"
                       : "bg-white/[0.02] border border-white/10"
                   }`}
                 >
                   {isPopular && (
-                    <div className="absolute -top-3 left-6 px-3 py-0.5 bg-blue-600 text-white text-xs font-medium rounded-full">
+                    <div className="absolute -top-3 left-6 px-3 py-0.5 bg-white text-black text-xs font-medium rounded-full">
                       Most popular
                     </div>
                   )}
@@ -275,7 +273,7 @@ export default function Landing() {
                   <ul className="space-y-3 mb-8 flex-1">
                     {config.features.map((feature) => (
                       <li key={feature} className="flex items-start gap-2.5 text-sm text-slate-300">
-                        <Check className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                        <Check className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" />
                         {feature}
                       </li>
                     ))}
@@ -291,7 +289,7 @@ export default function Landing() {
                     }}
                     className={`w-full py-3 rounded-xl text-sm font-medium transition-all ${
                       isPopular
-                        ? "bg-blue-600 text-white hover:bg-blue-500"
+                        ? "bg-white text-black hover:bg-slate-200"
                         : "bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10"
                     }`}
                   >
@@ -458,7 +456,7 @@ function SignInForm({ onBack }: { onBack: () => void }) {
 
         <p className="text-center text-sm text-slate-500 mt-6">
           Don't have an account?{" "}
-          <button onClick={onBack} className="text-blue-400 hover:text-blue-300">
+          <button onClick={onBack} className="text-slate-300 underline hover:text-white">
             Sign up
           </button>
         </p>

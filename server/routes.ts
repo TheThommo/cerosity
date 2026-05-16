@@ -27,7 +27,7 @@ debugLogger.success('stripe', 'Stripe initialized successfully');
 export async function registerRoutes(app: Express): Promise<Server> {
   debugLogger.success('routes', 'Starting route registration...');
   
-  // Enable trust proxy for Replit/production environments
+  // Enable trust proxy for Railway/production environments
   app.set('trust proxy', 1);
   
   // Session middleware with logging
@@ -451,7 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Document download routes for Free tier (path from env so it works off-Replit)
+  // Document download routes for Free tier (path from ASSETS_PATH env var)
   const assetsBasePath = process.env.ASSETS_PATH || process.env.PDF_ASSETS_PATH || "";
   const resolveAsset = (filename: string) => (assetsBasePath ? `${assetsBasePath.replace(/\/$/, "")}/${filename}` : null);
 
@@ -2113,6 +2113,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Admin user details error:', error);
       res.status(500).json({ message: 'Failed to fetch comprehensive user details' });
+    }
+  });
+
+  // DB Explorer — paginated table query
+  app.get("/api/admin/db-explorer/:table", requireAuth, requireAdmin, async (req, res) => {
+    const ALLOWED_TABLES = [
+      'users','assessments','mental_skills_x_checks','recognition_assessments',
+      'control_circles','what_if_planning','screw_up_cascade','priority_planning',
+      'pre_shot_routines','certification_progress','chat_sessions','user_coaching_profiles',
+      'ai_recommendations','coaching_insights','user_engagement_metrics','user_progress',
+      'daily_moods','daily_check_ins','user_goals','notifications','flo_subscriptions',
+      'techniques','scenarios','technique_progress','calendar_reminders',
+      'admin_audit_log','feature_flags'
+    ];
+    const table = req.params.table;
+    if (!ALLOWED_TABLES.includes(table)) {
+      return res.status(400).json({ message: 'Table not allowed' });
+    }
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit as string) || 50);
+    const offset = (page - 1) * limit;
+    const sortCol = req.query.sortCol as string | undefined;
+    const sortDir = (req.query.sortDir as string) === 'desc' ? 'DESC' : 'ASC';
+
+    try {
+      const { pool } = await import('./db');
+      const orderClause = sortCol ? `ORDER BY "${sortCol}" ${sortDir}` : 'ORDER BY id DESC';
+      const countResult = await pool.query(`SELECT COUNT(*) FROM "${table}"`);
+      const rowsResult = await pool.query(
+        `SELECT * FROM "${table}" ${orderClause} LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      );
+      res.json({
+        rows: rowsResult.rows,
+        total: parseInt(countResult.rows[0].count),
+        page,
+        limit,
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Feature flags — get
+  app.get("/api/admin/feature-flags", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { pool } = await import('./db');
+      const result = await pool.query('SELECT * FROM feature_flags ORDER BY flag_key');
+      res.json(result.rows);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Feature flags — update
+  app.post("/api/admin/feature-flags", requireAuth, requireAdmin, async (req, res) => {
+    const { flag_key, flag_value } = req.body;
+    if (typeof flag_key !== 'string' || typeof flag_value !== 'boolean') {
+      return res.status(400).json({ message: 'Invalid input' });
+    }
+    try {
+      const { pool } = await import('./db');
+      await pool.query(
+        `UPDATE feature_flags SET flag_value = $1, updated_by = $2, updated_at = now() WHERE flag_key = $3`,
+        [flag_value, (req as AuthRequest).userId, flag_key]
+      );
+      await pool.query(
+        `INSERT INTO admin_audit_log (admin_user_id, action, target_table, details) VALUES ($1, $2, $3, $4)`,
+        [(req as AuthRequest).userId, 'update_feature_flag', 'feature_flags', JSON.stringify({ flag_key, flag_value })]
+      );
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 

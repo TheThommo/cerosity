@@ -40,7 +40,6 @@ if (!sessionSecret) {
 }
 debugLogger.success('auth', 'SESSION_SECRET found and configured');
 
-// Check if running in production/Replit environment  
 const isProduction = process.env.NODE_ENV === 'production';
 
 export const sessionConfig = {
@@ -49,7 +48,7 @@ export const sessionConfig = {
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: isProduction, // Use HTTPS in production/Replit
+    secure: isProduction,
     httpOnly: true, // Prevent XSS access to session cookies
     maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
     sameSite: isProduction ? 'none' : 'lax', // Allow cross-site in iframe

@@ -3,14 +3,18 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-RUN echo "=== SOURCE CHECK ===" && head -3 client/src/pages/landing.tsx && grep -c "0a0a0f" client/src/pages/landing.tsx
-RUN npm run build
-RUN echo "=== BUILD OUTPUT ===" && ls -la dist/public/ && ls -la dist/public/assets/ && echo "=== DARK THEME CHECK ===" && grep -rl "0a0a0f" dist/public/assets/ || echo "NO DARK THEME FOUND IN BUILD OUTPUT"
+RUN rm -rf dist \
+    && echo "=== BUILDING $(date) ===" \
+    && npx vite build \
+    && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist \
+    && echo "=== VERIFY ===" \
+    && ls dist/public/assets/ \
+    && (grep -l "0a0a0f" dist/public/assets/*.js && echo "DARK THEME CONFIRMED" || echo "DARK THEME MISSING")
 
 FROM node:18-slim
 RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY --from=build /app/package.json /app/package-lock.json ./
 RUN npm ci
 COPY --from=build /app/dist ./dist
 ENV NODE_ENV=production

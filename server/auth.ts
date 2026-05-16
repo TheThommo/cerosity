@@ -41,7 +41,7 @@ if (!sessionSecret) {
 debugLogger.success('auth', 'SESSION_SECRET found and configured');
 
 // Check if running in production/Replit environment  
-const isProduction = process.env.NODE_ENV === 'production' || !!process.env.REPL_ID;
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const sessionConfig = {
   store: sessionStore,

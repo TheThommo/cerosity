@@ -6,9 +6,12 @@ RUN apt-get update \
 
 WORKDIR /app
 
-# Railway injects this at build time; also helps layer invalidation after NO_CACHE is removed.
+# Railway injects these at build time.
 ARG RAILWAY_GIT_COMMIT_SHA=unknown
 ENV RAILWAY_GIT_COMMIT_SHA=${RAILWAY_GIT_COMMIT_SHA}
+
+ARG VITE_STRIPE_PUBLIC_KEY
+ENV VITE_STRIPE_PUBLIC_KEY=${VITE_STRIPE_PUBLIC_KEY}
 
 COPY package.json package-lock.json ./
 RUN npm ci

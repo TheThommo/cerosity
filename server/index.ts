@@ -151,15 +151,15 @@ app.use((req, res, next) => {
       }
     });
 
-    const port = 5000;
+    const port = parseInt(process.env.PORT || '5000', 10);
     debugLogger.success('server', `Starting server on port ${port}...`);
-    
+
     server.listen({
       port,
       host: "0.0.0.0",
       reusePort: true,
     }, () => {
-      debugLogger.success('server', `🎉 Red2Blue server is now serving on port ${port}`);
+      debugLogger.success('server', `🎉 Cerosity server is now serving on port ${port}`);
       debugLogger.success('server', `Environment: ${isProduction ? 'production' : 'development'}`);
       debugLogger.success('server', `Health check: http://localhost:${port}/api/health`);
       debugLogger.success('server', `Diagnostics: http://localhost:${port}/api/diagnostics`);

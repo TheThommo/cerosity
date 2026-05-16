@@ -201,22 +201,27 @@ export default function Landing() {
               <FeatureCard
                 title="Breathing exercises, rendered"
                 description="When FLO recommends a 4-7-8 breathing technique, you get an interactive timer right in the conversation — not a paragraph of instructions."
+                accent="blue"
               />
               <FeatureCard
                 title="Remembers your context"
                 description="FLO knows your handicap, your triggers, your goals. Every conversation builds on the last. No starting from scratch."
+                accent="amber"
               />
               <FeatureCard
                 title="Mood & energy tracking"
                 description="Quick check-ins that surface patterns between your mental state and performance. See the correlation over time."
+                accent="red"
               />
               <FeatureCard
                 title="Voice coaching (coming)"
                 description="VAPI-powered voice sessions for on-course coaching. Like having your mental coach in your ear during a round."
+                accent="emerald"
               />
               <FeatureCard
                 title="Progress you can see"
                 description="Track your Red-to-Blue ratio over time. Watch your mental resilience score climb as you practice the techniques."
+                accent="violet"
               />
             </div>
           </div>
@@ -344,11 +349,33 @@ export default function Landing() {
   );
 }
 
-function FeatureCard({ title, description }: { title: string; description: string }) {
+function FeatureCard({ title, description, accent = "blue" }: { title: string; description: string; accent?: string }) {
+  const accentColors: Record<string, string> = {
+    blue: "bg-blue-500/10 border-blue-500/20",
+    amber: "bg-amber-500/10 border-amber-500/20",
+    red: "bg-red-500/10 border-red-500/20",
+    emerald: "bg-emerald-500/10 border-emerald-500/20",
+    violet: "bg-violet-500/10 border-violet-500/20",
+  };
+  const dotColors: Record<string, string> = {
+    blue: "bg-blue-400",
+    amber: "bg-amber-400",
+    red: "bg-red-400",
+    emerald: "bg-emerald-400",
+    violet: "bg-violet-400",
+  };
+
   return (
-    <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-      <h3 className="text-base font-semibold mb-2">{title}</h3>
-      <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+    <div className="group p-6 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 hover:-translate-y-0.5 transition-all duration-200">
+      <div className="flex items-start gap-4">
+        <div className={`w-8 h-8 rounded-lg ${accentColors[accent]} border flex items-center justify-center flex-shrink-0 mt-0.5`}>
+          <div className={`w-2 h-2 rounded-full ${dotColors[accent]}`} />
+        </div>
+        <div>
+          <h3 className="text-base font-semibold mb-1.5 group-hover:text-white transition-colors">{title}</h3>
+          <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -42,8 +42,10 @@ import AdminLogin from "@/pages/admin-login";
 import { AdminGuard } from "@/components/admin-guard";
 import DemoAccess from "@/pages/demo-access";
 import { canAccessDashboard } from "@/lib/permissions";
+import { isConsoleHost } from "./console/consoleRouting";
+import ConsoleApp from "./console/App.console";
 
-function Router() {
+function AppContent() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -164,6 +166,13 @@ function Router() {
       </div>
     </ErrorBoundary>
   );
+}
+
+function Router() {
+  if (isConsoleHost()) {
+    return <ConsoleApp />;
+  }
+  return <AppContent />;
 }
 
 function App() {

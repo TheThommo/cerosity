@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { debugLogger, runStartupDiagnostics, withErrorLogging } from "./debug";
 import { requireProductionEnv } from "./env";
+import { readDeployManifest } from "./deploy";
 
 const app = express();
 app.use(express.json());
@@ -77,6 +78,35 @@ app.use((req, res, next) => {
     
     debugLogger.log('server', 'success', `Environment detected: ${isProduction ? 'production' : 'development'}`);
     debugLogger.log('server', 'info', `Built version: ${isBuiltVersion}, NODE_ENV: ${process.env.NODE_ENV}, argv[1]: ${process.argv[1]}`);
+
+    // Must register before SPA static fallback (serveStatic uses app.use("*", ...)).
+    app.get('/api/health', async (_req, res) => {
+      const manifest = readDeployManifest();
+      const health = {
+        status: 'healthy' as const,
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'unknown',
+        uptime: process.uptime(),
+        commit: manifest?.commit ?? process.env.RAILWAY_GIT_COMMIT_SHA ?? null,
+        builtAt: manifest?.builtAt ?? null,
+        clientEntry: manifest?.clientEntry ?? null,
+        hasDarkTheme: manifest?.hasDarkTheme ?? null,
+        checks: {
+          database: false,
+          staticBundle: Boolean(manifest?.clientEntry),
+        },
+      };
+
+      try {
+        const { db } = await import('./db');
+        await db.execute('SELECT 1');
+        health.checks.database = true;
+      } catch {
+        debugLogger.warning('health', 'Database health check failed');
+      }
+
+      res.json(health);
+    });
     
     if (!isProduction) {
       debugLogger.success('server', 'Setting up Vite development server...');
@@ -107,48 +137,6 @@ app.use((req, res, next) => {
           res.status(500).json({ error: error.message });
         }
       })();
-    });
-
-    // Health check endpoint with comprehensive checks
-    app.get('/api/health', async (req, res) => {
-      try {
-        const health = {
-          status: 'healthy',
-          timestamp: new Date().toISOString(),
-          environment: process.env.NODE_ENV || 'unknown',
-          uptime: process.uptime(),
-          memory: process.memoryUsage(),
-          checks: {
-            database: false,
-            storage: false,
-            auth: false
-          }
-        };
-
-        // Quick health checks
-        try {
-          const { db } = await import('./db');
-          await db.execute('SELECT 1');
-          health.checks.database = true;
-        } catch (e) {
-          debugLogger.warning('health', 'Database health check failed');
-        }
-
-        try {
-          const { storage } = await import('./storage');
-          await storage.getUser(1);
-          health.checks.storage = true;
-        } catch (e) {
-          debugLogger.warning('health', 'Storage health check failed');
-        }
-
-        health.checks.auth = true; // Auth system is always available
-
-        res.json(health);
-      } catch (error: any) {
-        debugLogger.error('health', 'Health check failed', { error: error.message });
-        res.status(500).json({ status: 'unhealthy', error: error.message });
-      }
     });
 
     const port = parseInt(process.env.PORT || '5000', 10);

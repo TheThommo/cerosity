@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Separator } from "@/components/ui/separator";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import { CerosityLogo } from "@/components/cerosity-logo";
 
 export function Footer() {
@@ -23,10 +23,6 @@ export function Footer() {
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4" />
                 <span>info@cerosity.com</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4" />
-                <span>+971505283505</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4" />

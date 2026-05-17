@@ -1,8 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Loader2, Wind, Target, Eye, Flame, Brain } from "lucide-react";
+import { Send, Loader2, Wind, Target, Eye, Flame, Zap, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CerosityLogo } from "@/components/cerosity-logo";
+import { FloVoicePTT } from "@/components/flo-voice-ptt";
 
 interface Message {
   id: string;
@@ -16,7 +18,7 @@ const R2B_TOOLS = [
   { icon: Target, label: "Control Circles", prompt: "Help me identify what's in my control circle vs outside it" },
   { icon: Eye, label: "Visualization", prompt: "Guide me through a performance visualization exercise" },
   { icon: Flame, label: "Red→Blue Shift", prompt: "I'm in Red Head right now. Help me shift to Blue Head" },
-  { icon: Brain, label: "Pre-Performance", prompt: "Give me a 60-second pre-performance routine I can use now" },
+  { icon: Zap, label: "Pre-Performance", prompt: "Give me a 60-second pre-performance routine I can use now" },
 ];
 
 export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }) {
@@ -88,8 +90,8 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
     <div className="w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl shadow-blue-950/20">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900 to-blue-950/30">
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20">
-          <Brain className="w-5 h-5 text-white" />
+        <div className="w-10 h-10 rounded-full overflow-hidden shadow-lg shadow-blue-500/20">
+          <CerosityLogo size={40} />
         </div>
         <div>
           <h3 className="font-semibold text-white">FLO</h3>
@@ -122,8 +124,8 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
       <div className="h-[400px] overflow-y-auto p-5 space-y-4 bg-slate-950/50">
         {messages.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-2xl flex items-center justify-center border border-blue-500/10">
-              <Brain className="w-8 h-8 text-blue-400" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl overflow-hidden border border-blue-500/10">
+              <CerosityLogo size={64} />
             </div>
             <p className="text-white font-medium mb-2">What's on your mind?</p>
             <p className="text-sm text-slate-500 max-w-sm mx-auto">
@@ -167,7 +169,7 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
 
       {/* Input */}
       <div className="border-t border-slate-800 p-4 bg-slate-900">
-        <form onSubmit={handleSubmit} className="flex gap-2">
+        <form onSubmit={handleSubmit} className="flex gap-2 items-center">
           <Input
             ref={inputRef}
             value={inputValue}
@@ -176,6 +178,7 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
             disabled={isLoading}
             className="flex-1 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-blue-500"
           />
+          <FloVoicePTT compact />
           <Button
             type="submit"
             disabled={isLoading || !inputValue.trim()}

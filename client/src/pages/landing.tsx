@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Target, TrendingUp, Users, Shield, Check, Star, Mic, MessageCircle, Zap, Award } from "lucide-react";
+import { Target, TrendingUp, Users, Shield, Check, Star, Mic, MessageCircle, Zap, Award } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { FloChat } from "@/components/flo-chat";
@@ -188,7 +188,7 @@ export default function Landing() {
 
             <div className="bg-slate-900 rounded-2xl p-8 border border-slate-800 hover:border-purple-800 transition-colors">
               <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-5">
-                <Brain className="w-6 h-6 text-purple-400" />
+                <Zap className="w-6 h-6 text-purple-400" />
               </div>
               <h3 className="text-xl font-semibold text-white mb-3">Performance Equation</h3>
               <p className="text-slate-400 leading-relaxed">
@@ -914,10 +914,7 @@ function SignInForm({ onBack }: { onBack: () => void }) {
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      // Redirect to dashboard after successful login
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      setTimeout(() => { window.location.reload(); }, 1000);
     },
     onError: (error: any) => {
       toast({
@@ -934,84 +931,62 @@ function SignInForm({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-red-50 flex items-center justify-center px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+      <Card className="w-full max-w-md bg-slate-900 border-slate-800 shadow-2xl shadow-blue-950/20">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 gradient-red-blue rounded-full flex items-center justify-center">
-              <Brain className="text-white" size={24} />
+            <div className="w-12 h-12 rounded-full overflow-hidden">
+              <CerosityLogo size={48} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Cerosity</h1>
-              <p className="text-sm text-slate-500">AI Mental Coach</p>
+              <h1 className="text-2xl font-bold text-white">Cerosity</h1>
+              <p className="text-sm text-slate-400">AI Mental Performance</p>
             </div>
           </div>
-          <CardTitle>Welcome Back</CardTitle>
-          <CardDescription>Sign in to continue your mental performance journey</CardDescription>
+          <CardTitle className="text-white">Welcome Back</CardTitle>
+          <CardDescription className="text-slate-400">Sign in to continue your performance journey</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Email Address
-              </label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
               <input
                 type="email"
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your email"
               />
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
               <input
                 type="password"
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your password"
               />
             </div>
 
-
-
             <div className="flex space-x-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onBack}
-                className="flex-1"
-              >
+              <Button type="button" variant="outline" onClick={onBack}
+                className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800">
                 Back
               </Button>
-              <Button
-                type="submit"
-                disabled={loginMutation.isPending}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-              >
+              <Button type="submit" disabled={loginMutation.isPending}
+                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white">
                 {loginMutation.isPending ? "Signing In..." : "Sign In"}
               </Button>
             </div>
 
-            {/* Demo Credentials */}
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <p className="text-xs text-blue-700 text-center mb-2 font-medium">Demo Accounts for Testing:</p>
-              <div className="text-xs text-blue-600 space-y-1">
-                <p><strong>Premium:</strong> demo-premium@red2blue.com / Premium2024!</p>
-                <p><strong>Ultimate:</strong> demo-ultimate@red2blue.com / Ultimate2024!</p>
-              </div>
-            </div>
-
             <div className="text-center">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-500">
                 Don't have an account?{" "}
-                <button type="button" onClick={onBack} className="text-blue-600 hover:text-blue-700 font-medium">
+                <button type="button" onClick={onBack} className="text-blue-400 hover:text-blue-300 font-medium">
                   Sign up here
                 </button>
               </p>

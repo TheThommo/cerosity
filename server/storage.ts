@@ -1,19 +1,20 @@
-import { 
+import {
   users, assessments, chatSessions, userProgress, techniques, scenarios,
   preShotRoutines, mentalSkillsXChecks, controlCircles, userCoachingProfiles,
   aiRecommendations, coachingInsights, userEngagementMetrics, dailyMoods,
-  floSubscriptions, userGoals, notifications,
+  floSubscriptions, userGoals, notifications, leads, floBrainDocuments,
   type User, type InsertUser, type Assessment, type InsertAssessment,
   type ChatSession, type InsertChatSession, type UserProgress, type InsertUserProgress,
   type Technique, type InsertTechnique, type Scenario, type InsertScenario,
-  type PreShotRoutine, type InsertPreShotRoutine, type MentalSkillsXCheck, 
+  type PreShotRoutine, type InsertPreShotRoutine, type MentalSkillsXCheck,
   type InsertMentalSkillsXCheck, type ControlCircle, type InsertControlCircle,
   type UserCoachingProfile, type InsertUserCoachingProfile, type AiRecommendation,
   type InsertAiRecommendation, type CoachingInsight, type InsertCoachingInsight,
   type UserEngagementMetric, type InsertUserEngagementMetric, type DailyMood,
   type InsertDailyMood, type UserGoal, type InsertUserGoal,
   type FloSubscription, type InsertFloSubscription, type ChatLimitations,
-  type AdminStats, type PaymentRecord, type Notification, type InsertNotification
+  type AdminStats, type PaymentRecord, type Notification, type InsertNotification,
+  type Lead, type InsertLead, type FloBrainDocument, type InsertFloBrainDocument
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
@@ -117,6 +118,16 @@ export interface IStorage {
   getAdminStats(): Promise<AdminStats>;
   getAllUsers(filter?: string, search?: string): Promise<User[]>;
   getPaymentHistory(filter?: string): Promise<PaymentRecord[]>;
+
+  // Lead capture operations
+  captureLead(lead: InsertLead): Promise<Lead>;
+  getLeadByEmail(email: string): Promise<Lead | undefined>;
+  getAllLeads(): Promise<Lead[]>;
+
+  // FLO Brain document operations
+  getFloBrainDocuments(activeOnly?: boolean): Promise<FloBrainDocument[]>;
+  createFloBrainDocument(doc: InsertFloBrainDocument): Promise<FloBrainDocument>;
+  updateFloBrainDocument(id: number, updates: Partial<FloBrainDocument>): Promise<FloBrainDocument>;
 }
 
 export class MemStorage implements IStorage {
@@ -1178,6 +1189,13 @@ export class MemStorage implements IStorage {
     await this.ensureInitialized();
     this.userGoals.delete(id);
   }
+
+  async captureLead(_lead: InsertLead): Promise<Lead> { throw new Error("MemStorage: not implemented"); }
+  async getLeadByEmail(_email: string): Promise<Lead | undefined> { return undefined; }
+  async getAllLeads(): Promise<Lead[]> { return []; }
+  async getFloBrainDocuments(_activeOnly?: boolean): Promise<FloBrainDocument[]> { return []; }
+  async createFloBrainDocument(_doc: InsertFloBrainDocument): Promise<FloBrainDocument> { throw new Error("MemStorage: not implemented"); }
+  async updateFloBrainDocument(_id: number, _updates: Partial<FloBrainDocument>): Promise<FloBrainDocument> { throw new Error("MemStorage: not implemented"); }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1795,6 +1813,50 @@ export class DatabaseStorage implements IStorage {
   async checkFloAccessRenewal(userId: number): Promise<boolean> {
     const limitations = await this.getUserChatLimitations(userId);
     return limitations.canChat;
+  }
+
+  async captureLead(lead: InsertLead): Promise<Lead> {
+    const existing = await this.getLeadByEmail(lead.email);
+    if (existing) {
+      const [updated] = await db
+        .update(leads)
+        .set({ ...lead, updatedAt: new Date() })
+        .where(eq(leads.email, lead.email))
+        .returning();
+      return updated;
+    }
+    const [newLead] = await db.insert(leads).values(lead).returning();
+    return newLead;
+  }
+
+  async getLeadByEmail(email: string): Promise<Lead | undefined> {
+    const [lead] = await db.select().from(leads).where(eq(leads.email, email));
+    return lead || undefined;
+  }
+
+  async getAllLeads(): Promise<Lead[]> {
+    return db.select().from(leads).orderBy(desc(leads.createdAt));
+  }
+
+  async getFloBrainDocuments(activeOnly?: boolean): Promise<FloBrainDocument[]> {
+    if (activeOnly) {
+      return db.select().from(floBrainDocuments).where(eq(floBrainDocuments.isActive, true)).orderBy(desc(floBrainDocuments.updatedAt));
+    }
+    return db.select().from(floBrainDocuments).orderBy(desc(floBrainDocuments.updatedAt));
+  }
+
+  async createFloBrainDocument(doc: InsertFloBrainDocument): Promise<FloBrainDocument> {
+    const [newDoc] = await db.insert(floBrainDocuments).values(doc).returning();
+    return newDoc;
+  }
+
+  async updateFloBrainDocument(id: number, updates: Partial<FloBrainDocument>): Promise<FloBrainDocument> {
+    const [updated] = await db
+      .update(floBrainDocuments)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(floBrainDocuments.id, id))
+      .returning();
+    return updated;
   }
 }
 

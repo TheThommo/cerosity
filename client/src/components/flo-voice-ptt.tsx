@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Mic, MicOff, Phone, PhoneOff, Volume2 } from "lucide-react";
+import { Mic, MicOff, Phone, PhoneOff, Volume2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import Vapi from "@vapi-ai/web";
 
-type CallStatus = "idle" | "connecting" | "active" | "ending";
+type CallStatus = "idle" | "gate" | "connecting" | "active" | "ending";
 
 const VAPI_PUBLIC_KEY = import.meta.env.VITE_VAPI_PUBLIC_KEY || "";
 
@@ -60,6 +62,9 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
   const [volumeLevel, setVolumeLevel] = useState(0);
   const [transcript, setTranscript] = useState<string[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [gateName, setGateName] = useState("");
+  const [gateEmail, setGateEmail] = useState("");
+  const [gateSport, setGateSport] = useState("");
   const vapiRef = useRef<Vapi | null>(null);
 
   useEffect(() => {
@@ -132,13 +137,27 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
     setIsMuted(newMuted);
   }, [isMuted]);
 
+  const submitGateAndCall = useCallback(async () => {
+    if (!gateEmail.includes("@") || !gateName.trim()) return;
+    try {
+      await fetch("/api/capture-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: gateEmail, name: gateName, sportIndustry: gateSport, source: "Voice Call" }),
+      });
+    } catch {}
+    startCall();
+  }, [gateEmail, gateName, gateSport, startCall]);
+
   const toggleCall = useCallback(() => {
     if (callStatus === "idle") {
-      startCall();
+      setCallStatus("gate");
+    } else if (callStatus === "gate") {
+      setCallStatus("idle");
     } else if (callStatus === "active") {
       endCall();
     }
-  }, [callStatus, startCall, endCall]);
+  }, [callStatus, endCall]);
 
   if (!VAPI_PUBLIC_KEY) {
     return null;
@@ -146,27 +165,47 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     return (
-      <button
-        onClick={toggleCall}
-        disabled={callStatus === "connecting" || callStatus === "ending"}
-        className={cn(
-          "relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300",
-          "shadow-lg hover:shadow-xl transform hover:scale-105",
-          callStatus === "idle" && "bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600",
-          callStatus === "connecting" && "bg-yellow-500 animate-pulse",
-          callStatus === "active" && "bg-red-500 hover:bg-red-600",
-          callStatus === "ending" && "bg-slate-400"
+      <div className="relative">
+        <button
+          onClick={toggleCall}
+          disabled={callStatus === "connecting" || callStatus === "ending"}
+          className={cn(
+            "relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300",
+            "shadow-lg hover:shadow-xl transform hover:scale-105",
+            callStatus === "idle" && "bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600",
+            callStatus === "gate" && "bg-blue-600 ring-2 ring-blue-400",
+            callStatus === "connecting" && "bg-yellow-500 animate-pulse",
+            callStatus === "active" && "bg-red-500 hover:bg-red-600",
+            callStatus === "ending" && "bg-slate-400"
+          )}
+        >
+          {callStatus === "active" ? (
+            <PhoneOff className="w-6 h-6 text-white" />
+          ) : (
+            <Mic className="w-6 h-6 text-white" />
+          )}
+          {callStatus === "active" && (
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping" />
+          )}
+        </button>
+        {callStatus === "gate" && (
+          <div className="absolute bottom-full right-0 mb-3 w-72 bg-slate-900 border border-slate-700 rounded-xl p-4 shadow-2xl z-50">
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="text-sm font-semibold text-white">Talk to FLO</h4>
+              <button onClick={() => setCallStatus("idle")} className="text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
+            </div>
+            <p className="text-xs text-slate-400 mb-3">Quick intro before we connect you:</p>
+            <div className="space-y-2">
+              <Input value={gateName} onChange={(e) => setGateName(e.target.value)} placeholder="Your name *" className="bg-slate-800 border-slate-700 text-white text-sm h-9" />
+              <Input value={gateEmail} onChange={(e) => setGateEmail(e.target.value)} placeholder="Email *" type="email" className="bg-slate-800 border-slate-700 text-white text-sm h-9" />
+              <Input value={gateSport} onChange={(e) => setGateSport(e.target.value)} placeholder="Sport / area" className="bg-slate-800 border-slate-700 text-white text-sm h-9" />
+              <Button onClick={submitGateAndCall} disabled={!gateName.trim() || !gateEmail.includes("@")} className="w-full bg-blue-600 hover:bg-blue-500 text-sm h-9">
+                <Phone className="w-4 h-4 mr-2" /> Start Call
+              </Button>
+            </div>
+          </div>
         )}
-      >
-        {callStatus === "active" ? (
-          <PhoneOff className="w-6 h-6 text-white" />
-        ) : (
-          <Mic className="w-6 h-6 text-white" />
-        )}
-        {callStatus === "active" && (
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping" />
-        )}
-      </button>
+      </div>
     );
   }
 

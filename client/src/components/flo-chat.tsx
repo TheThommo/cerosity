@@ -36,6 +36,7 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
   }, [messages]);
 
   const userMessageCount = useRef(0);
+  const emailCaptured = useRef(false);
 
   const sendMessage = useCallback(async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
@@ -80,6 +81,18 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, floMessage]);
+
+      if (!emailCaptured.current && userMessageCount.current >= 5) {
+        const emailMatch = messageText.match(/[\w.+-]+@[\w-]+\.[\w.]+/);
+        if (emailMatch) {
+          emailCaptured.current = true;
+          fetch("/api/capture-lead", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: emailMatch[0], name: "", source: "Chat Funnel" }),
+          }).catch(() => {});
+        }
+      }
     } catch {
       setMessages((prev) => [
         ...prev,

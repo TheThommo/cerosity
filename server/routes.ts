@@ -7,6 +7,8 @@ import { storage } from "./storage";
 import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSchema, insertPreShotRoutineSchema, insertMentalSkillsXCheckSchema, insertControlCircleSchema, insertDailyMoodSchema, insertUserGoalSchema } from "@shared/schema";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest } from "./auth";
+import { sendLeadRegistrationEmail, sendAdminLeadNotification } from "./email";
+import { buildFloPrompt, clearBrainDocsCache } from "./flo-prompt";
 import { recommendationEngine } from "./recommendationEngine";
 import { debugLogger, withErrorLogging } from "./debug";
 
@@ -804,7 +806,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[LANDING-CHAT] msg #${count}: "${message.substring(0, 80)}"`);
 
-      // Build staged system prompt based on message count
       let salesDirective = '';
       if (count <= 1) {
         salesDirective = `This is the visitor's FIRST message. After helping them, naturally ask: "By the way — what's your name, and what sport or performance area do you focus on?" Frame it as needing to know to give better advice.`;
@@ -814,31 +815,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         salesDirective = `This is message ${count}. The visitor is engaged. Make a WARM close: say something like "I'd love to keep working with you on this. If you drop your email, I can send you a free Red2Blue starter guide and early access to the full platform. What's your best email?" If they've already given their email, just keep coaching — no repeated asks.`;
       }
 
-      const systemPrompt = `You are FLO — Cerosity's AI mental performance coach. You use the Red2Blue methodology (Red Head = overthinking/anxiety, Blue Head = calm/focused/present).
-
-Your personality: Direct, warm, no-nonsense. You're like a trusted coach — empathetic but push people to take action. Use short punchy sentences. No corporate speak. Light humour when appropriate.
-
-CURRENT COACHING CONTEXT:
-- This is a free landing page conversation (visitor not yet signed up)
-- Help them genuinely with whatever mental performance challenge they raise
-- Use Red2Blue concepts naturally: control circles, breathing, visualization, self-talk reframe
-${salesDirective ? `\nSALES STAGE INSTRUCTION:\n${salesDirective}` : ''}
-
-RULES:
-- Keep responses under 120 words
-- Always be genuinely helpful FIRST, sales second
-- Never be pushy or fake
-- If they share name/sport, acknowledge it and use their name going forward
-- Reference specific R2B techniques relevant to their situation
-
-USER'S MESSAGE: "${message.trim()}"
-
-Format your response as JSON:
-{
-  "message": "Your coaching response with natural sales weave",
-  "suggestions": ["2-3 follow-up prompts the user might want to ask"],
-  "urgencyLevel": "low"
-}`;
+      const systemPrompt = await buildFloPrompt({
+        userMessage: message.trim(),
+        salesDirective: salesDirective || undefined,
+      });
 
       const formattedHistory = history.slice(-8).map((msg: { role: string; content: string }) => ({
         role: msg.role === 'user' ? 'user' : 'model',
@@ -878,6 +858,95 @@ Format your response as JSON:
           });
         }
       }
+    }
+  });
+
+  // Lead capture endpoint (scope §4.1–§4.3)
+  app.post("/api/capture-lead", async (req, res) => {
+    try {
+      const { email, name, source, sportIndustry, businessName, country, phone } = req.body;
+
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        return res.status(400).json({ message: "Valid email required" });
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+      const leadSource = source || "Footer Form";
+
+      const lead = await storage.captureLead({
+        email: normalizedEmail,
+        name: name?.trim() || null,
+        source: leadSource,
+        agent: leadSource === "Chat Interview" ? "FLO" : leadSource,
+        sportIndustry: sportIndustry?.trim() || null,
+        businessName: businessName?.trim() || null,
+        country: country?.trim() || null,
+        phone: phone?.trim() || null,
+      });
+
+      sendLeadRegistrationEmail({ name: lead.name, email: lead.email, source: leadSource });
+      sendAdminLeadNotification({ name: lead.name, email: lead.email, source: leadSource, sportIndustry: lead.sportIndustry, businessName: lead.businessName });
+
+      console.log(`[LEAD] Captured: ${lead.email} via ${leadSource}`);
+      res.json({ success: true, leadId: lead.id });
+    } catch (error) {
+      console.error("[LEAD] Capture error:", error);
+      res.status(500).json({ message: "Failed to capture lead" });
+    }
+  });
+
+  // HQ Brain doc APIs (admin only)
+  app.get("/api/hq/flo-brain", requireAuth, requireAdmin, async (_req, res) => {
+    try {
+      const docs = await storage.getFloBrainDocuments();
+      res.json(docs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch brain docs" });
+    }
+  });
+
+  app.post("/api/hq/flo-brain", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { title, category, contentText } = req.body;
+      if (!title || !contentText) {
+        return res.status(400).json({ message: "Title and content required" });
+      }
+      const doc = await storage.createFloBrainDocument({
+        title,
+        category: category || "general",
+        contentText,
+        isActive: true,
+        version: 1,
+        uploadedBy: "admin",
+      });
+      clearBrainDocsCache();
+      console.log(`[FLO-BRAIN] Doc created: ${doc.title}`);
+      res.json(doc);
+    } catch (error) {
+      console.error("[FLO-BRAIN] Create error:", error);
+      res.status(500).json({ message: "Failed to create brain doc" });
+    }
+  });
+
+  app.patch("/api/hq/flo-brain/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const doc = await storage.updateFloBrainDocument(id, updates);
+      clearBrainDocsCache();
+      res.json(doc);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update brain doc" });
+    }
+  });
+
+  // Leads list for HQ console
+  app.get("/api/hq/leads", requireAuth, requireAdmin, async (_req, res) => {
+    try {
+      const allLeads = await storage.getAllLeads();
+      res.json(allLeads);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch leads" });
     }
   });
 

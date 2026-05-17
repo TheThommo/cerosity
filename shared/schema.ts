@@ -590,3 +590,55 @@ export interface ChatLimitations {
   subscriptionStatus: "free" | "premium_included" | "ultimate_included" | "annual_renewal" | "expired";
   renewalDate?: Date;
 }
+
+// Leads table (marketing lead capture)
+export const leads = pgTable("leads", {
+  id: serial("id").primaryKey(),
+  name: text("name"),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  businessName: text("business_name"),
+  country: text("country"),
+  stateRegion: text("state_region"),
+  zipCode: text("zip_code"),
+  sportIndustry: text("sport_industry"),
+  source: text("source").notNull().default("Footer Form"),
+  agent: text("agent"),
+  leadStatus: text("lead_status").notNull().default("New"),
+  notes: text("notes"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  stripePlan: text("stripe_plan"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertLeadSchema = createInsertSchema(leads).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Lead = typeof leads.$inferSelect;
+export type InsertLead = z.infer<typeof insertLeadSchema>;
+
+// FLO Brain documents (knowledge base for FLO coaching)
+export const floBrainDocuments = pgTable("flo_brain_documents", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  category: text("category").notNull().default("general"),
+  contentText: text("content_text").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  version: integer("version").notNull().default(1),
+  uploadedBy: text("uploaded_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertFloBrainDocumentSchema = createInsertSchema(floBrainDocuments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type FloBrainDocument = typeof floBrainDocuments.$inferSelect;
+export type InsertFloBrainDocument = z.infer<typeof insertFloBrainDocumentSchema>;

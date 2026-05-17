@@ -7,6 +7,7 @@ export interface ConsoleNavVisibility {
   subscriptions: boolean;
   coachingData: boolean;
   floChat: boolean;
+  floBrain: boolean;
   analytics: boolean;
   dbExplorer: boolean;
   settings: boolean;
@@ -29,6 +30,7 @@ export function consoleNav(role: string): ConsoleNavVisibility {
     subscriptions: hasMinLevel(role, 'admin'),
     coachingData: hasMinLevel(role, 'support'),
     floChat: hasMinLevel(role, 'admin'),
+    floBrain: hasMinLevel(role, 'admin'),
     analytics: hasMinLevel(role, 'read_only'),
     dbExplorer: hasMinLevel(role, 'owner'),
     settings: hasMinLevel(role, 'admin'),

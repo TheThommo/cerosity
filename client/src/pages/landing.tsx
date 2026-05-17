@@ -257,6 +257,106 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Trusted By */}
+      <section className="py-16 bg-slate-950 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <p className="text-sm uppercase tracking-widest text-slate-500 mb-3">Trusted across sport, business, military & healthcare</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-white">
+              Powered by <span className="text-blue-400">Gazing Red2Blue</span> methodology
+            </h2>
+          </div>
+          <div className="flex flex-wrap justify-center items-center gap-x-10 gap-y-6 max-w-5xl mx-auto">
+            {[
+              "AWS", "British Army", "All Blacks", "England Rugby", "NHS",
+              "Lloyds Banking Group", "Xerox", "Sage", "UPS", "OpenText",
+              "Ascential", "D2L", "Diebold Nixdorf", "Knoll"
+            ].map((name) => (
+              <span key={name} className="text-slate-500 font-semibold text-sm md:text-base tracking-wide hover:text-slate-300 transition-colors">
+                {name}
+              </span>
+            ))}
+          </div>
+          <p className="text-center text-sm text-slate-600 mt-8 max-w-2xl mx-auto">
+            Gazing concepts delivered across Business, Sport, Education, Healthcare, Military and Police sectors worldwide.
+          </p>
+        </div>
+      </section>
+
+      {/* Endorsements */}
+      <section className="py-20 bg-slate-900 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Endorsed by <span className="text-blue-400">elite performers</span>
+            </h2>
+            <p className="text-lg text-slate-400">Coaches, athletes, and leaders who trust Red2Blue methodology</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { name: "Brian Ashton", role: "England & Ireland Rugby Head Coach", desc: "English Rugby Union coach and former player. Head coach of England and Ireland national teams." },
+              { name: "Ashley Giles MBE", role: "England Cricketer & Red2Blue Coach", desc: "Former English first-class cricketer. Current Red2Blue coach." },
+              { name: "Alice Powell", role: "Professional Racing Driver", desc: "Trailblazing professional racing driver, currently racing in the W Series and the Jaguar I Pace eTrophy." },
+              { name: "Stuart Lancaster", role: "England Rugby Union Head Coach", desc: "Rugby Union coach. Head coach of the English National Rugby Union team from 2011 to 2015." },
+              { name: "Imogen Hall", role: "Elite Golfer, Faldo Series & WAGR", desc: "Dubai-based elite golfer committed to GCU. Faldo Series WAGR winner and top 10 finisher in the English Amateur." },
+              { name: "Adrian Larsson", role: "Elite Golfer & R2B Coach", desc: "Signed to DePaul Men's Golf. GEM Amateur Open and Junior Masters Invitational winner." },
+              { name: "Vicki Anstey", role: "Adventurer & Entrepreneur", desc: "Mid-Pacific ocean rower and entrepreneur." },
+              { name: "Darren Cassidy", role: "SVP EMEA, Xerox Corporation", desc: "Managing Director UK & Ireland and SVP EMEA Global Document Services, with global and US based experience in sales and leadership." },
+              { name: "Kerry Inscker", role: "Deputy CEO, Shaw Education Trust", desc: "Leads and manages academies in all phases, sectors and communities." },
+            ].map((person) => (
+              <div key={person.name} className="bg-slate-950 rounded-xl p-6 border border-slate-800 hover:border-slate-700 transition-colors">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-sm">
+                    {person.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white text-sm">{person.name}</h4>
+                    <p className="text-xs text-blue-400">{person.role}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-400 leading-relaxed">{person.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Programmes */}
+      <section className="py-20 bg-slate-950 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Our Programmes</h2>
+            <p className="text-lg text-slate-400">Three pathways to mental performance mastery</p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="bg-slate-900 rounded-2xl p-8 border border-slate-800 hover:border-blue-700 transition-colors">
+              <Badge className="mb-4 bg-blue-500/10 text-blue-300 border-blue-500/20">For Coaches</Badge>
+              <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Coach</h3>
+              <p className="text-slate-400 leading-relaxed">
+                Certification programme tailored for sports coaches, performance coaches, business coaches, executive coaches, life coaches and teachers.
+              </p>
+            </div>
+            <div className="bg-slate-900 rounded-2xl p-8 border border-slate-800 hover:border-indigo-700 transition-colors">
+              <Badge className="mb-4 bg-indigo-500/10 text-indigo-300 border-indigo-500/20">For Athletes</Badge>
+              <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Athlete</h3>
+              <p className="text-slate-400 leading-relaxed">
+                Work with the Red2Blue framework to develop mental skills needed to perform under pressure at critical moments. For individuals across all sports.
+              </p>
+            </div>
+            <div className="bg-slate-900 rounded-2xl p-8 border border-slate-800 hover:border-purple-700 transition-colors">
+              <Badge className="mb-4 bg-purple-500/10 text-purple-300 border-purple-500/20">For Organizations</Badge>
+              <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Academy</h3>
+              <p className="text-slate-400 leading-relaxed">
+                Companies, community groups, and sports teams adopt Red2Blue techniques to harness mental resilience and perform to their ability across sectors.
+              </p>
+            </div>
+          </div>
+          <p className="text-center text-sm text-slate-500 mt-8">
+            Booklets, lesson plans, mindset maps & tools included with all programmes.
+          </p>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing-section" className="py-20 bg-slate-950 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

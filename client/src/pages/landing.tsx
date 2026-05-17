@@ -249,6 +249,113 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Performance Equation */}
+      <section className="py-24 lg:py-32 border-t border-white/5 relative">
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold tracking-tight mb-4">
+              Performance = Structure + Skillset + Mindset
+            </h2>
+            <p className="text-lg text-slate-400">
+              Physical and technical skills change slowly. But mental attitudes can shift dramatically — session to session, hole to hole, point to point. That volatility is where the biggest gains hide.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="text-center p-8 rounded-2xl bg-white/[0.02] border border-white/5">
+              <div className="text-3xl font-bold bg-gradient-to-b from-red-400 to-red-600 bg-clip-text text-transparent mb-2">S</div>
+              <h3 className="text-lg font-semibold mb-2">Structure</h3>
+              <p className="text-sm text-slate-400">Game plans, routines, pre-performance rituals that anchor your process</p>
+            </div>
+            <div className="text-center p-8 rounded-2xl bg-white/[0.02] border border-white/5">
+              <div className="text-3xl font-bold bg-gradient-to-b from-slate-300 to-slate-500 bg-clip-text text-transparent mb-2">S</div>
+              <h3 className="text-lg font-semibold mb-2">Skillset</h3>
+              <p className="text-sm text-slate-400">Technical, tactical, physical — the capabilities you bring to competition</p>
+            </div>
+            <div className="text-center p-8 rounded-2xl bg-white/[0.03] border border-blue-500/15">
+              <div className="text-3xl font-bold bg-gradient-to-b from-blue-400 to-blue-600 bg-clip-text text-transparent mb-2">M</div>
+              <h3 className="text-lg font-semibold mb-2">Mindset</h3>
+              <p className="text-sm text-slate-400">The most inconsistent element — and the one FLO trains systematically</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CIA Framework */}
+      <section className="py-24 lg:py-32 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold tracking-tight mb-4">
+                The prime issue is control of attention
+              </h2>
+              <p className="text-lg text-slate-400 leading-relaxed mb-6">
+                We can only concentrate on one thing at a time. When pressure diverts attention — to past mistakes, future consequences, the crowd — concentration fragments and performance suffers.
+              </p>
+              <p className="text-slate-500 leading-relaxed">
+                FLO trains you to direct attention deliberately, using the CIA framework that underpins all Blue Head performance.
+              </p>
+            </div>
+            <div className="space-y-6">
+              <div className="flex items-center gap-6 p-6 rounded-2xl bg-gradient-to-r from-blue-500/[0.08] to-transparent border border-blue-500/10">
+                <div className="w-14 h-14 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl font-bold text-blue-400">C</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-400">Clarity</h3>
+                  <p className="text-sm text-slate-400">Am I clear about the task and the process I need to achieve it?</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-6 p-6 rounded-2xl bg-gradient-to-r from-blue-500/[0.06] to-transparent border border-blue-500/10">
+                <div className="w-14 h-14 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl font-bold text-blue-400">I</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-400">Intensity</h3>
+                  <p className="text-sm text-slate-400">Is my focus fully committed to this moment, this action, right now?</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-6 p-6 rounded-2xl bg-gradient-to-r from-blue-500/[0.04] to-transparent border border-blue-500/10">
+                <div className="w-14 h-14 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl font-bold text-blue-400">A</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-400">Accuracy</h3>
+                  <p className="text-sm text-slate-400">Without clarity, effort is wasted. Without intensity, execution drifts.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Who it's for */}
+      <section className="py-24 lg:py-32 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold tracking-tight mb-4">
+              Built for anyone who performs under pressure
+            </h2>
+            <p className="text-lg text-slate-400">
+              Red2Blue was developed for sport — but pressure is pressure. The framework applies wherever the mental component determines success or failure.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { title: "Golfers", desc: "Pre-shot routines, yips recovery, on-course mental resets between holes" },
+              { title: "Team athletes", desc: "Managing competitive pressure, half-time refocus, bouncing back from errors" },
+              { title: "Coaches", desc: "Red2Blue certified coaching tools, workshop frameworks, athlete mindset maps" },
+              { title: "Business leaders", desc: "High-stakes presentations, decision fatigue, sustained focus under deadline pressure" },
+            ].map((item) => (
+              <div key={item.title} className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
+                <h3 className="font-semibold mb-2">{item.title}</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section className="py-24 lg:py-32 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -270,7 +377,7 @@ export default function Landing() {
               />
               <FeatureCard
                 title="Remembers your context"
-                description="FLO knows your handicap, your triggers, your goals. Every conversation builds on the last. No starting from scratch."
+                description="FLO knows your sport, your triggers, your goals. Every conversation builds on the last. No starting from scratch."
                 accent="amber"
               />
               <FeatureCard
@@ -280,7 +387,7 @@ export default function Landing() {
               />
               <FeatureCard
                 title="Voice coaching (coming)"
-                description="VAPI-powered voice sessions for on-course coaching. Like having your mental coach in your ear during a round."
+                description="VAPI-powered voice sessions for real-time coaching. Like having your mental coach in your ear during competition."
                 accent="emerald"
               />
               <FeatureCard

@@ -789,7 +789,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }, 15000);
 
     try {
-      const { message, messageCount, conversationHistory } = req.body;
+      const { message, messageCount, conversationHistory, visitorName, visitorSport } = req.body;
 
       if (!message || typeof message !== 'string' || message.trim().length === 0) {
         clearTimeout(requestTimeout);
@@ -803,32 +803,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const count = typeof messageCount === 'number' ? messageCount : 1;
       const history = Array.isArray(conversationHistory) ? conversationHistory : [];
+      const name = typeof visitorName === 'string' ? visitorName.trim() : '';
+      const sport = typeof visitorSport === 'string' ? visitorSport.trim() : '';
 
-      console.log(`[LANDING-CHAT] msg #${count}: "${message.substring(0, 80)}"`);
+      console.log(`[LANDING-CHAT] msg #${count}: "${message.substring(0, 80)}" name=${name} sport=${sport}`);
 
       let salesDirective = '';
       if (count <= 1) {
-        salesDirective = `This is the visitor's FIRST message. After helping them, naturally ask: "By the way — what's your name, and what sport or performance area do you focus on?" Frame it as needing to know to give better advice.`;
-      } else if (count === 3) {
-        salesDirective = `This is message 3. You've been helpful. Now weave in a SOFT pitch: mention that Cerosity's full Red2Blue programme has helped athletes cut performance anxiety by 40%, and that there's a free trial available. Keep it natural — don't hard sell. Continue helping with their question.`;
-      } else if (count >= 5) {
-        salesDirective = `This is message ${count}. The visitor is engaged. Make a WARM close: say something like "I'd love to keep working with you on this. If you drop your email, I can send you a free Red2Blue starter guide and early access to the full platform. What's your best email?" If they've already given their email, just keep coaching — no repeated asks.`;
+        salesDirective = `This is the visitor's FIRST message. Be warm and human — respond to what they said. If they haven't shared their name or sport yet, naturally ask: "What's your name, and what sport or area are you in?" — frame it as needing context to coach properly.`;
+      } else if (count >= 2 && count <= 3) {
+        salesDirective = `Message ${count}. Focus on understanding their challenge. Ask good follow-up questions. Coach, don't pitch.`;
+      } else if (count >= 4 && count <= 5) {
+        salesDirective = `Message ${count}. Give specific R2B advice for their situation. You can mention one sentence that Cerosity has a full programme if relevant — but keep coaching as priority.`;
+      } else if (count === 6) {
+        salesDirective = `Message 6. You've built rapport. After answering their question, add a natural signup invitation: "Now that we've got to know each other a bit, sign up at cerosity.com so I can remember your game and we can keep building on this." One time only — don't push.`;
+      } else if (count > 6) {
+        salesDirective = `Message ${count}. Keep coaching. Do NOT repeat the signup ask. If they haven't signed up, that's fine — just be a great coach.`;
       }
 
       const systemPrompt = await buildFloPrompt({
-        userMessage: message.trim(),
-        salesDirective: salesDirective || undefined,
+        forChatApi: true,
+        visitorName: name || undefined,
+        sport: sport || undefined,
+        salesDirective,
       });
 
-      const formattedHistory = history.slice(-8).map((msg: { role: string; content: string }) => ({
+      const formattedHistory = history.slice(-12).map((msg: { role: string; content: string }) => ({
         role: msg.role === 'user' ? 'user' : 'model',
         parts: [{ text: msg.content }]
       }));
 
       const response = await getCoachingResponse(message.trim(), formattedHistory, {
-        latestAssessment: null,
-        recentProgress: [],
-        sport: "general",
+        sport: sport || "general",
         systemPromptOverride: systemPrompt
       });
 

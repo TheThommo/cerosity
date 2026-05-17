@@ -34,108 +34,61 @@ export async function getCoachingResponse(
     systemPromptOverride?: string;
   }
 ): Promise<CoachingResponse> {
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("[GEMINI] No API key — returning fallback");
+    return generateFallbackResponse(userMessage);
+  }
+
   try {
-    const sport = userContext?.sport || DEFAULT_SPORT;
-    // Build context-aware prompt that directly addresses the user's question
-    const contextInfo = conversationHistory.length > 0 ?
-      `Previous conversation context: ${JSON.stringify(conversationHistory.slice(-3))}` : '';
+    const systemPrompt = userContext?.systemPromptOverride || "";
 
-    const assessmentContext = userContext?.latestAssessment ?
-      `User's recent assessment results: ${JSON.stringify(userContext.latestAssessment)}` : '';
-
-    const directPrompt = userContext?.systemPromptOverride || `You are FLO, the Red2Blue AI mental performance coach. You are stern yet empathetic, with light humor when appropriate. You coach elite ${sport} professionals.
-
-PERSONALITY:
-- Direct and no-nonsense. You don't sugarcoat. If someone is making excuses, you call it out firmly but with care.
-- Empathetic — you understand the struggle, you've "seen it all." You validate feelings but don't let people wallow.
-- Light humor — brief, dry wit to defuse tension. Never sarcastic or mocking.
-- You speak like a respected coach who genuinely cares but demands accountability.
-- Short, punchy sentences. Every word earns its place.
-
-USER'S QUESTION: "${userMessage}"
-
-${contextInfo}
-${assessmentContext}
-
-RED2BLUE METHODOLOGY:
-- Red Head = reactive, stressed, "I can't" thinking
-- Blue Head = focused, confident, "do it" thinking
-- Performance Equation: Performance = Structure + Skillset + Mindset
-- CIA Framework: Clarity (know what you want), Intensity (commit fully), Accuracy (execute precisely)
-- STUCK model: Stop, Think, Understand, Choose, Know-how
-
-TECHNIQUES:
-- Control Circles: Inner (breathing, attitude, effort), Middle (strategy, ${sport === "golf" ? "shot selection" : "game management"}), Outer (weather, opponents, results). Focus only on Inner + Middle.
-- Box Breathing: In 4 → Hold 4 → Out 4 → Hold 4. Instant nervous system reset.
-- Pre-Performance Routine (25s): Setup (10s) → Visualize (6s) → Align & commit (4s) → Rehearse (3s) → Execute (2s)
-- 3-2-1 Focus Reset: 3 things you see, 2 you hear, 1 you feel. Stops overthinking.
-
-GREETING RULE:
-- If the user says "hi", "hello", "hey", or any short greeting, DO NOT lecture about methodology. Instead, respond like a real coach meeting someone: warm, confident, slightly challenging. Example: "Hey. Good to have you here. So tell me — what's the thing that's been sitting in your head lately? Performance pressure, focus issues, confidence wobble? Let's get into it."
-- Make them feel like they walked into a session with someone who gets it.
-
-RULES:
-- Never diagnose mental health conditions. If someone mentions self-harm, direct to helplines immediately.
-- Always bring it back to actionable next steps.
-- Keep responses concise — 3-5 sentences. No essays.
-- Sound human. No corporate speak. No "I'm here to help you develop your mental game using Red2Blue methodology" — that's a brochure, not a coach.
-
-RESPOND DIRECTLY TO THE USER'S QUESTION. If they ask about a specific technique like "control circles," explain that technique clearly. If they describe a problem, provide relevant solutions.
-
-Format your response as JSON:
-{
-  "message": "Direct answer to their question with practical Red2Blue advice",
-  "suggestions": ["2-3 specific actionable techniques"],
-  "redHeadIndicators": ["any stress/anxiety signs they mentioned"],
-  "blueHeadTechniques": ["relevant techniques for their situation"],
-  "urgencyLevel": "low|medium|high"
-}`;
-
-    const model = genAI.getGenerativeModel({ 
-      model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
+    const model = genAI.getGenerativeModel({
+      model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+      systemInstruction: systemPrompt,
       generationConfig: {
         maxOutputTokens: 800,
-        temperature: 0.6,
+        temperature: 0.7,
       },
     });
-    
-    // Add timeout wrapper with retries for reliability
-    const generateWithTimeout = async () => {
+
+    const validHistory = conversationHistory
+      .filter((msg: any) => msg.parts?.[0]?.text?.trim())
+      .slice(-12);
+    if (validHistory.length > 0 && validHistory[0].role !== "user") {
+      validHistory.shift();
+    }
+
+    const chat = model.startChat({ history: validHistory });
+
+    const sendWithTimeout = async () => {
       return Promise.race([
-        model.generateContent(directPrompt),
+        chat.sendMessage(userMessage),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Request timeout after 8 seconds')), 8000)
+          setTimeout(() => reject(new Error("Gemini timeout after 12s")), 12000)
         )
       ]);
     };
-    
-    const result = await generateWithTimeout() as any;
-    const response = await result.response;
-    const text = response.text();
-    
-    // Extract JSON from response
+
+    const result = await sendWithTimeout() as any;
+    const text = result.response.text();
+
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
       return {
-        message: parsed.message || "I understand you're facing a challenge. Let's work through this together with some practical Red2Blue techniques.",
-        suggestions: parsed.suggestions || ["Practice box breathing (4-4-4-4)", "Use your pre-shot routine", "Focus on what you can control"],
+        message: parsed.message || text,
+        suggestions: parsed.suggestions || [],
         redHeadIndicators: parsed.redHeadIndicators || [],
-        blueHeadTechniques: parsed.blueHeadTechniques || ["Box breathing", "Present moment awareness", "Control circles"],
-        urgencyLevel: parsed.urgencyLevel || "medium"
+        blueHeadTechniques: parsed.blueHeadTechniques || [],
+        urgencyLevel: parsed.urgencyLevel || "low"
       };
     }
-    
-    // Intelligent fallback based on user's question
-    const fallbackResponse = generateFallbackResponse(userMessage);
-    return fallbackResponse;
-    
-  } catch (error) {
-    console.error("Gemini coaching response error:", error);
-    
-    // Intelligent fallback based on user's question
-    const fallbackResponse = generateFallbackResponse(userMessage);
-    return fallbackResponse;
+
+    return { message: text.trim(), suggestions: [], urgencyLevel: "low" };
+
+  } catch (error: any) {
+    console.error("[GEMINI] Chat error:", error?.message || error);
+    return generateFallbackResponse(userMessage);
   }
 }
 
@@ -200,13 +153,26 @@ function generateFallbackResponse(userMessage: string): CoachingResponse {
     };
   }
   
-  // General response for unclear or broad questions
+  if (message.includes("putt") || message.includes("green") || message.includes("short game")) {
+    return {
+      message: "Putting is where the mental game shows up most — small margins, high pressure, lots of time to overthink. The key is your pre-putt routine. Same process every time: read, commit, execute. No second-guessing once you've picked your line. If you're missing putts you normally make, you're probably rushing or letting the last hole creep in. Box breathing before you step up, then trust your read.",
+      suggestions: [
+        "Build a 15-second pre-putt routine and never skip it",
+        "Use 3-2-1 Focus Reset between holes to clear your head",
+        "Practice pressure putts with consequences in training"
+      ],
+      redHeadIndicators: ["overthinking on greens"],
+      blueHeadTechniques: ["Pre-putt routine", "Commitment to line", "Present focus"],
+      urgencyLevel: "medium"
+    };
+  }
+
   return {
-    message: "I'm here to help you develop your mental game using Red2Blue methodology. Our goal is shifting from Red Head (stressed, reactive) to Blue Head (calm, focused) states. The foundation is always: breathing for instant calm, routines for consistency, and focusing only on what you can control. What specific mental game challenge would you like to work on?",
+    message: "Good question. Tell me a bit more about what's going on — what situation are you dealing with? The more specific you are, the more I can help. Are you struggling with pressure, focus, confidence, or something else?",
     suggestions: [
-      "Try box breathing (4-4-4-4) for immediate calm",
-      "Develop a consistent pre-performance routine",
-      "Use Control Circles to focus on what you can influence"
+      "Tell me about a recent performance that frustrated you",
+      "Ask about a specific technique like box breathing or control circles",
+      "Describe a pressure moment you want to handle better"
     ],
     redHeadIndicators: [],
     blueHeadTechniques: ["Box breathing", "Process focus", "Control awareness"],

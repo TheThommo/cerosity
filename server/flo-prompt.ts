@@ -83,10 +83,12 @@ export function clearBrainDocsCache() {
 }
 
 export async function buildFloPrompt(opts: {
-  userMessage: string;
+  userMessage?: string;
   sport?: string;
+  visitorName?: string;
   salesDirective?: string;
   assessmentContext?: string;
+  forChatApi?: boolean;
 }): Promise<string> {
   const brainDocs = await getActiveBrainDocs();
 
@@ -98,6 +100,10 @@ export async function buildFloPrompt(opts: {
 
   if (brainDocs) {
     layers.push("", "ADDITIONAL FLO BRAIN KNOWLEDGE:", brainDocs);
+  }
+
+  if (opts.visitorName) {
+    layers.push("", `VISITOR NAME: ${opts.visitorName}. Use their name occasionally — like a real coach would.`);
   }
 
   if (opts.sport && opts.sport !== "general") {
@@ -114,15 +120,12 @@ export async function buildFloPrompt(opts: {
 
   layers.push(
     "",
-    `USER'S MESSAGE: "${opts.userMessage}"`,
-    "",
-    `Format your response as JSON:
-{
-  "message": "Your coaching response",
-  "suggestions": ["2-3 follow-up prompts"],
-  "urgencyLevel": "low"
-}`
+    `RESPONSE FORMAT: Reply as JSON: { "message": "your response", "suggestions": ["2-3 follow-ups"], "urgencyLevel": "low" }`
   );
+
+  if (!opts.forChatApi && opts.userMessage) {
+    layers.push("", `USER'S MESSAGE: "${opts.userMessage}"`);
+  }
 
   return layers.join("\n");
 }

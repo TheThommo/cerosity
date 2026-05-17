@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 interface FloAvatarProps {
@@ -8,7 +9,8 @@ interface FloAvatarProps {
 }
 
 export function FloAvatar({ size = 40, variant = 'default', animated = true, className }: FloAvatarProps) {
-  const id = variant === 'mini' ? 'flo-m' : 'flo-d';
+  const reactId = useId();
+  const id = reactId.replace(/:/g, '');
 
   if (variant === 'mini') {
     return (

@@ -21,10 +21,53 @@ const R2B_TOOLS = [
   { icon: Zap, label: "Pre-Performance", prompt: "Give me a 60-second pre-performance routine I can use now" },
 ];
 
+const FLO_OPENER: Message = {
+  id: "flo-opener",
+  role: "flo",
+  content: "Hey — I'm FLO, your mental performance coach. What's your name, and what sport are you in?",
+  timestamp: new Date(),
+};
+
+function parseVisitorInfo(text: string, existing: { name: string; sport: string; email: string }) {
+  const updated = { ...existing };
+  const lower = text.toLowerCase();
+
+  if (!updated.name) {
+    const namePatterns = [
+      /(?:i'm|im|i am|my name is|name's|this is|call me)\s+([A-Z][a-z]+)/i,
+      /^([A-Z][a-z]{2,})\b/,
+    ];
+    for (const p of namePatterns) {
+      const m = text.match(p);
+      if (m) { updated.name = m[1]; break; }
+    }
+  }
+
+  if (!updated.sport) {
+    const sports = ["golf","tennis","cricket","football","soccer","rugby","swimming","athletics","boxing","mma","basketball","hockey","netball","rowing","cycling","triathlon","running","baseball","volleyball","badminton","squash","surfing","skiing","gymnastics","wrestling","sailing","equestrian","shooting","archery","fencing"];
+    for (const s of sports) {
+      if (lower.includes(s)) { updated.sport = s.charAt(0).toUpperCase() + s.slice(1); break; }
+    }
+  }
+
+  if (!updated.email) {
+    const em = text.match(/[\w.+-]+@[\w-]+\.[\w.]+/);
+    if (em) updated.email = em[0];
+  }
+
+  return updated;
+}
+
 export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([FLO_OPENER]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [visitor, setVisitor] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem("cerosity_visitor");
+      return saved ? JSON.parse(saved) : { name: "", sport: "", email: "" };
+    } catch { return { name: "", sport: "", email: "" }; }
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +86,12 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
 
     userMessageCount.current += 1;
 
+    const parsed = parseVisitorInfo(messageText, visitor);
+    if (parsed.name !== visitor.name || parsed.sport !== visitor.sport || parsed.email !== visitor.email) {
+      setVisitor(parsed);
+      try { sessionStorage.setItem("cerosity_visitor", JSON.stringify(parsed)); } catch {}
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -55,7 +104,7 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
     setIsLoading(true);
 
     try {
-      const allMessages = [...messages, userMessage];
+      const allMessages = [...messages, userMessage].filter(m => m.id !== "flo-opener");
       const conversationHistory = allMessages.map((m) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.content,
@@ -68,6 +117,8 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
           message: messageText.trim(),
           messageCount: userMessageCount.current,
           conversationHistory,
+          visitorName: parsed.name,
+          visitorSport: parsed.sport,
         }),
       });
 
@@ -82,16 +133,13 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
       };
       setMessages((prev) => [...prev, floMessage]);
 
-      if (!emailCaptured.current && userMessageCount.current >= 5) {
-        const emailMatch = messageText.match(/[\w.+-]+@[\w-]+\.[\w.]+/);
-        if (emailMatch) {
-          emailCaptured.current = true;
-          fetch("/api/capture-lead", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: emailMatch[0], name: "", source: "Chat Funnel" }),
-          }).catch(() => {});
-        }
+      if (!emailCaptured.current && parsed.email) {
+        emailCaptured.current = true;
+        fetch("/api/capture-lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: parsed.email, name: parsed.name, sportIndustry: parsed.sport, source: "Chat Funnel" }),
+        }).catch(() => {});
       }
     } catch {
       setMessages((prev) => [
@@ -106,7 +154,7 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, messages]);
+  }, [isLoading, messages, visitor]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -152,18 +200,6 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
 
       {/* Messages */}
       <div ref={messagesContainerRef} className="h-[400px] overflow-y-auto p-5 space-y-4 bg-slate-950/50">
-        {messages.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full overflow-hidden border border-blue-500/10">
-              <FloAvatar size={64} />
-            </div>
-            <p className="text-white font-medium mb-2">What's on your mind?</p>
-            <p className="text-sm text-slate-500 max-w-sm mx-auto">
-              Ask about pressure, focus, confidence — or tap a tool above to start a guided exercise.
-            </p>
-          </div>
-        )}
-
         {messages.map((message) => (
           <div
             key={message.id}

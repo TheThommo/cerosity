@@ -50,12 +50,12 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 gradient-red-blue rounded-full flex items-center justify-center mb-4 mx-auto animate-pulse">
-            <div className="w-8 h-8 bg-white rounded-full"></div>
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center mb-4 mx-auto animate-pulse">
+            <div className="w-8 h-8 bg-slate-950 rounded-full"></div>
           </div>
-          <p className="text-gray-600">Loading Cerosity...</p>
+          <p className="text-slate-400">Loading Cerosity...</p>
         </div>
       </div>
     );

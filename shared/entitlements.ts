@@ -28,7 +28,7 @@ export const TIER_PRICING: Record<SubscriptionTier, TierPricing> = {
   flo: {
     name: "FLO Subscription",
     tagline: "Your AI mental coach, unlimited",
-    price: 20,
+    price: 30,
     interval: "month",
     features: [
       "Unlimited FLO conversations",

@@ -12,6 +12,7 @@ import { Footer } from "@/components/footer";
 import { StableSignUpForm } from "@/components/stable-signup-form";
 import { CerosityLogo } from "@/components/cerosity-logo";
 import { FloVoicePTT } from "@/components/flo-voice-ptt";
+import { FloAvatar } from "@/components/flo-avatar";
 import Checkout from "./checkout";
 
 export default function Landing() {
@@ -105,6 +106,11 @@ export default function Landing() {
           <p className="text-lg text-slate-400 mb-12 max-w-xl mx-auto">
             Stern when you need it. Empathetic always. Talk to her — right now.
           </p>
+
+          {/* FLO Avatar */}
+          <div className="mb-8">
+            <FloAvatar size={120} variant="default" animated />
+          </div>
 
           {/* Voice PTT — The Hero Element */}
           <div className="mb-12">
@@ -294,21 +300,20 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { name: "Brian Ashton", role: "England & Ireland Rugby Head Coach", desc: "English Rugby Union coach and former player. Head coach of England and Ireland national teams." },
-              { name: "Ashley Giles MBE", role: "England Cricketer & Red2Blue Coach", desc: "Former English first-class cricketer. Current Red2Blue coach." },
-              { name: "Alice Powell", role: "Professional Racing Driver", desc: "Trailblazing professional racing driver, currently racing in the W Series and the Jaguar I Pace eTrophy." },
-              { name: "Stuart Lancaster", role: "England Rugby Union Head Coach", desc: "Rugby Union coach. Head coach of the English National Rugby Union team from 2011 to 2015." },
-              { name: "Imogen Hall", role: "Elite Golfer, Faldo Series & WAGR", desc: "Dubai-based elite golfer committed to GCU. Faldo Series WAGR winner and top 10 finisher in the English Amateur." },
-              { name: "Adrian Larsson", role: "Elite Golfer & R2B Coach", desc: "Signed to DePaul Men's Golf. GEM Amateur Open and Junior Masters Invitational winner." },
-              { name: "Vicki Anstey", role: "Adventurer & Entrepreneur", desc: "Mid-Pacific ocean rower and entrepreneur." },
-              { name: "Darren Cassidy", role: "SVP EMEA, Xerox Corporation", desc: "Managing Director UK & Ireland and SVP EMEA Global Document Services, with global and US based experience in sales and leadership." },
-              { name: "Kerry Inscker", role: "Deputy CEO, Shaw Education Trust", desc: "Leads and manages academies in all phases, sectors and communities." },
+              { name: "Brian Ashton", role: "England & Ireland Rugby Head Coach", desc: "English Rugby Union coach and former player. Head coach of England and Ireland national teams.", img: "/endorsers/brian-ashton.png" },
+              { name: "Ashley Giles MBE", role: "England Cricketer & Red2Blue Coach", desc: "Former English first-class cricketer. Current Red2Blue coach.", img: "/endorsers/ashley-giles.png" },
+              { name: "Alice Powell", role: "Professional Racing Driver", desc: "Trailblazing professional racing driver, currently racing in the W Series and the Jaguar I Pace eTrophy.", img: "/endorsers/alice-powell.png" },
+              { name: "Vicki Anstey", role: "Adventurer & Entrepreneur", desc: "Mid-Pacific ocean rower and entrepreneur.", img: "/endorsers/vicki-anstey.png" },
+              { name: "Imogen Hall", role: "Elite Golfer, Faldo Series & WAGR", desc: "Dubai-based elite golfer committed to GCU. Faldo Series WAGR winner and top 10 finisher in the English Amateur.", img: "/endorsers/imogen-hall.png" },
+              { name: "James Newman", role: "Head Teacher, Epsom & Ewell High School", desc: "Head teacher of a co-educational academy for children from ages 11-18.", img: "/endorsers/james-newman.png" },
+              { name: "Kerry Inscker", role: "Deputy CEO, Shaw Education Trust", desc: "Leads and manages academies in all phases, sectors and communities.", img: "/endorsers/kerry-inscker.png" },
+              { name: "Darren Cassidy", role: "SVP EMEA, Xerox Corporation", desc: "Managing Director UK & Ireland and SVP EMEA Global Document Services, with global and US based experience in sales and leadership.", img: "/endorsers/darren-cassidy.png" },
+              { name: "Stuart Lancaster", role: "England Rugby Union Head Coach", desc: "Rugby Union coach. Head coach of the English National Rugby Union team from 2011 to 2015.", img: "/endorsers/stuart-lancaster.png" },
+              { name: "Adrian Larsson", role: "Elite Golfer & R2B Coach", desc: "Signed to DePaul Men's Golf. GEM Amateur Open and Junior Masters Invitational winner.", img: "/endorsers/adrian-larsson.png" },
             ].map((person) => (
               <div key={person.name} className="bg-slate-950 rounded-xl p-6 border border-slate-800 hover:border-slate-700 transition-colors">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-sm">
-                    {person.name.split(' ').map(n => n[0]).join('')}
-                  </div>
+                  <img src={person.img} alt={person.name} className="w-12 h-12 rounded-full object-cover border-2 border-slate-700" />
                   <div>
                     <h4 className="font-semibold text-white text-sm">{person.name}</h4>
                     <p className="text-xs text-blue-400">{person.role}</p>
@@ -329,26 +334,35 @@ export default function Landing() {
             <p className="text-lg text-slate-400">Three pathways to mental performance mastery</p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="bg-slate-900 rounded-2xl p-8 border border-slate-800 hover:border-blue-700 transition-colors">
-              <Badge className="mb-4 bg-blue-500/10 text-blue-300 border-blue-500/20">For Coaches</Badge>
-              <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Coach</h3>
-              <p className="text-slate-400 leading-relaxed">
-                Certification programme tailored for sports coaches, performance coaches, business coaches, executive coaches, life coaches and teachers.
-              </p>
+            <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-blue-700 transition-colors">
+              <img src="/programmes/coach.png" alt="Red2Blue Coach certification" className="w-full h-48 object-cover" />
+              <div className="p-8">
+                <Badge className="mb-4 bg-blue-500/10 text-blue-300 border-blue-500/20">For Coaches</Badge>
+                <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Coach</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  Certification programme tailored for sports coaches, performance coaches, business coaches, executive coaches, life coaches and teachers.
+                </p>
+              </div>
             </div>
-            <div className="bg-slate-900 rounded-2xl p-8 border border-slate-800 hover:border-indigo-700 transition-colors">
-              <Badge className="mb-4 bg-indigo-500/10 text-indigo-300 border-indigo-500/20">For Athletes</Badge>
-              <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Athlete</h3>
-              <p className="text-slate-400 leading-relaxed">
-                Work with the Red2Blue framework to develop mental skills needed to perform under pressure at critical moments. For individuals across all sports.
-              </p>
+            <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-indigo-700 transition-colors">
+              <img src="/programmes/athlete.png" alt="Red2Blue Athlete programme" className="w-full h-48 object-cover" />
+              <div className="p-8">
+                <Badge className="mb-4 bg-indigo-500/10 text-indigo-300 border-indigo-500/20">For Athletes</Badge>
+                <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Athlete</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  Work with the Red2Blue framework to develop mental skills needed to perform under pressure at critical moments. For individuals across all sports.
+                </p>
+              </div>
             </div>
-            <div className="bg-slate-900 rounded-2xl p-8 border border-slate-800 hover:border-purple-700 transition-colors">
-              <Badge className="mb-4 bg-purple-500/10 text-purple-300 border-purple-500/20">For Organizations</Badge>
-              <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Academy</h3>
-              <p className="text-slate-400 leading-relaxed">
-                Companies, community groups, and sports teams adopt Red2Blue techniques to harness mental resilience and perform to their ability across sectors.
-              </p>
+            <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-purple-700 transition-colors">
+              <img src="/programmes/academy.png" alt="Red2Blue Academy programme" className="w-full h-48 object-cover" />
+              <div className="p-8">
+                <Badge className="mb-4 bg-purple-500/10 text-purple-300 border-purple-500/20">For Organizations</Badge>
+                <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Academy</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  Companies, community groups, and sports teams adopt Red2Blue techniques to harness mental resilience and perform to their ability across sectors.
+                </p>
+              </div>
             </div>
           </div>
           <p className="text-center text-sm text-slate-500 mt-8">
@@ -431,8 +445,8 @@ export default function Landing() {
                 <CardTitle className="text-2xl text-white">FLO Coach</CardTitle>
                 <CardDescription className="text-base text-slate-400">Try FLO and experience AI mental performance coaching firsthand.</CardDescription>
                 <div className="text-3xl font-bold mt-4 text-white">Free</div>
-                <p className="text-sm text-slate-400 mt-1">Unlimited FLO: $20/mo or $200/yr</p>
-                <p className="text-xs text-green-400 font-medium mt-1">Save 17% with annual ($200/yr vs $240)</p>
+                <p className="text-sm text-slate-400 mt-1">Unlimited FLO: $30/mo or $25/mo annually</p>
+                <p className="text-xs text-green-400 font-medium mt-1">Save 17% with annual commitment ($300/yr vs $360)</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-3">

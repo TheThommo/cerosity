@@ -6,7 +6,7 @@ interface CerosityLogoProps {
 export function CerosityLogo({ size = 24, className = "" }: CerosityLogoProps) {
   return (
     <img
-      src="/favicon.png"
+      src="/cerosity-logo.png"
       alt="Cerosity Logo"
       width={size}
       height={size}

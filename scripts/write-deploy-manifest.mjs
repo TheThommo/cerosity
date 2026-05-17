@@ -11,7 +11,7 @@ const hasDarkTheme = readdirSync(assetsDir)
   .filter((name) => name.startsWith("index-") && (name.endsWith(".js") || name.endsWith(".css")))
   .some((name) => {
     const content = readFileSync(join(assetsDir, name), "utf8");
-    return content.includes("030712") || content.includes("0a0a0f");
+    return content.includes("020617") || content.includes("0f172a") || content.includes("030712") || content.includes("0a0a0f");
   });
 
 writeFileSync(

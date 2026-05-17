@@ -155,7 +155,7 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
           callStatus === "idle" && "bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600",
           callStatus === "connecting" && "bg-yellow-500 animate-pulse",
           callStatus === "active" && "bg-red-500 hover:bg-red-600",
-          callStatus === "ending" && "bg-gray-400"
+          callStatus === "ending" && "bg-slate-400"
         )}
       >
         {callStatus === "active" ? (
@@ -202,7 +202,7 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
             callStatus === "idle" && "bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-600 hover:scale-105",
             callStatus === "connecting" && "bg-gradient-to-br from-yellow-400 to-orange-500 animate-pulse",
             callStatus === "active" && "bg-gradient-to-br from-red-500 to-rose-600 hover:from-red-400 hover:to-rose-500",
-            callStatus === "ending" && "bg-gray-400 cursor-not-allowed"
+            callStatus === "ending" && "bg-slate-400 cursor-not-allowed"
           )}
         >
           {callStatus === "idle" && <Mic className="w-10 h-10 text-white" />}
@@ -215,7 +215,7 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
       {/* Status */}
       <div className="text-center">
         {callStatus === "idle" && (
-          <p className="text-sm font-medium text-gray-400">Tap to talk with FLO</p>
+          <p className="text-sm font-medium text-slate-400">Tap to talk with FLO</p>
         )}
         {callStatus === "connecting" && (
           <p className="text-sm font-medium text-yellow-400 animate-pulse">Connecting...</p>
@@ -229,7 +229,7 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
           </div>
         )}
         {callStatus === "ending" && (
-          <p className="text-sm font-medium text-gray-500">Ending call...</p>
+          <p className="text-sm font-medium text-slate-500">Ending call...</p>
         )}
       </div>
 
@@ -240,7 +240,7 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
             "px-4 py-2 rounded-full text-sm font-medium transition-all",
             isMuted
               ? "bg-red-500/20 text-red-400 border border-red-500/30"
-              : "bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700"
+              : "bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700"
           )}
         >
           {isMuted ? "Unmute" : "Mute"}
@@ -248,11 +248,11 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
       )}
 
       {transcript.length > 0 && callStatus === "active" && (
-        <div className="w-full max-w-sm bg-gray-900/50 backdrop-blur rounded-lg p-3 border border-gray-700/50 max-h-32 overflow-y-auto">
+        <div className="w-full max-w-sm bg-slate-900/50 backdrop-blur rounded-lg p-3 border border-slate-700/50 max-h-32 overflow-y-auto">
           {transcript.map((line, i) => (
             <p key={i} className={cn(
               "text-xs leading-relaxed",
-              line.startsWith("FLO") ? "text-blue-300" : "text-gray-400"
+              line.startsWith("FLO") ? "text-blue-300" : "text-slate-400"
             )}>
               {line}
             </p>

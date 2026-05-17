@@ -805,6 +805,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[LANDING-CHAT] Processing message: "${message.substring(0, 100)}..."`);
 
+      const normalised = message.trim().toLowerCase().replace(/[^a-z]/g, '');
+      const GREETING_WORDS = ['hi', 'hey', 'hello', 'yo', 'sup', 'hiya', 'howdy'];
+      if (GREETING_WORDS.includes(normalised) || normalised.length <= 3) {
+        clearTimeout(requestTimeout);
+        const greetings = [
+          "Hey. Good to have you here. So tell me — what's been sitting in your head? Performance pressure, focus issues, confidence wobble? Let's get into it.",
+          "Hey there. I'm FLO — your mental performance coach. No small talk. What's the thing that's been bugging you lately? Let's work on it right now.",
+          "Hey. Welcome in. I don't do warm-ups — tell me what's going on. Pressure before a big moment? Can't stop overthinking? Let me help.",
+        ];
+        return res.json({
+          message: greetings[Math.floor(Math.random() * greetings.length)],
+          suggestions: ["Tell me about a pressure situation you're facing", "Ask me about box breathing for instant calm", "Try saying: 'I choke under pressure — help'"],
+          urgencyLevel: "low"
+        });
+      }
+
       // Use the Gemini AI for responses with lightweight context (no user = default golf)
       const response = await getCoachingResponse(message.trim(), [], {
         latestAssessment: null,

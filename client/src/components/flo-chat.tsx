@@ -35,8 +35,12 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
     }
   }, [messages]);
 
+  const userMessageCount = useRef(0);
+
   const sendMessage = useCallback(async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
+
+    userMessageCount.current += 1;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -50,10 +54,20 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
     setIsLoading(true);
 
     try {
+      const allMessages = [...messages, userMessage];
+      const conversationHistory = allMessages.map((m) => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.content,
+      }));
+
       const response = await fetch("/api/landing-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: messageText.trim() }),
+        body: JSON.stringify({
+          message: messageText.trim(),
+          messageCount: userMessageCount.current,
+          conversationHistory,
+        }),
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -79,7 +93,7 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [isLoading, messages]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {

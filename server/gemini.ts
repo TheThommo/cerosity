@@ -28,18 +28,19 @@ export async function getCoachingResponse(
     latestAssessment?: any;
     recentProgress?: any[];
     sport?: string;
+    systemPromptOverride?: string;
   }
 ): Promise<CoachingResponse> {
   try {
     const sport = userContext?.sport || DEFAULT_SPORT;
     // Build context-aware prompt that directly addresses the user's question
-    const contextInfo = conversationHistory.length > 0 ? 
+    const contextInfo = conversationHistory.length > 0 ?
       `Previous conversation context: ${JSON.stringify(conversationHistory.slice(-3))}` : '';
-    
-    const assessmentContext = userContext?.latestAssessment ? 
+
+    const assessmentContext = userContext?.latestAssessment ?
       `User's recent assessment results: ${JSON.stringify(userContext.latestAssessment)}` : '';
 
-    const directPrompt = `You are FLO, the Red2Blue AI mental performance coach. You are stern yet empathetic, with light humor when appropriate. You coach elite ${sport} professionals.
+    const directPrompt = userContext?.systemPromptOverride || `You are FLO, the Red2Blue AI mental performance coach. You are stern yet empathetic, with light humor when appropriate. You coach elite ${sport} professionals.
 
 PERSONALITY:
 - Direct and no-nonsense. You don't sugarcoat. If someone is making excuses, you call it out firmly but with care.

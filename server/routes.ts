@@ -778,58 +778,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Landing page chat for non-authenticated users with optimized performance
+  // Landing page chat — FLO sales funnel with staged prompts per §8.2
   app.post("/api/landing-chat", async (req, res) => {
-    // Set timeout for the entire request
     const requestTimeout = setTimeout(() => {
       if (!res.headersSent) {
-        res.status(408).json({ 
-          message: "I'm having trouble connecting right now. Please try your question again." 
-        });
+        res.status(408).json({ message: "I'm having trouble connecting right now. Please try your question again." });
       }
-    }, 10000); // 10 second timeout
+    }, 15000);
 
     try {
-      const { message } = req.body;
-      
+      const { message, messageCount, conversationHistory } = req.body;
+
       if (!message || typeof message !== 'string' || message.trim().length === 0) {
         clearTimeout(requestTimeout);
         return res.status(400).json({ message: "Please provide a valid message" });
       }
 
-      // Limit message length to prevent abuse
       if (message.length > 500) {
         clearTimeout(requestTimeout);
         return res.status(400).json({ message: "Message too long. Please keep it under 500 characters." });
       }
 
-      console.log(`[LANDING-CHAT] Processing message: "${message.substring(0, 100)}..."`);
+      const count = typeof messageCount === 'number' ? messageCount : 1;
+      const history = Array.isArray(conversationHistory) ? conversationHistory : [];
 
-      const normalised = message.trim().toLowerCase().replace(/[^a-z]/g, '');
-      const GREETING_WORDS = ['hi', 'hey', 'hello', 'yo', 'sup', 'hiya', 'howdy'];
-      if (GREETING_WORDS.includes(normalised) || normalised.length <= 3) {
-        clearTimeout(requestTimeout);
-        const greetings = [
-          "Hey. Good to have you here. So tell me — what's been sitting in your head? Performance pressure, focus issues, confidence wobble? Let's get into it.",
-          "Hey there. I'm FLO — your mental performance coach. No small talk. What's the thing that's been bugging you lately? Let's work on it right now.",
-          "Hey. Welcome in. I don't do warm-ups — tell me what's going on. Pressure before a big moment? Can't stop overthinking? Let me help.",
-        ];
-        return res.json({
-          message: greetings[Math.floor(Math.random() * greetings.length)],
-          suggestions: ["Tell me about a pressure situation you're facing", "Ask me about box breathing for instant calm", "Try saying: 'I choke under pressure — help'"],
-          urgencyLevel: "low"
-        });
+      console.log(`[LANDING-CHAT] msg #${count}: "${message.substring(0, 80)}"`);
+
+      // Build staged system prompt based on message count
+      let salesDirective = '';
+      if (count <= 1) {
+        salesDirective = `This is the visitor's FIRST message. After helping them, naturally ask: "By the way — what's your name, and what sport or performance area do you focus on?" Frame it as needing to know to give better advice.`;
+      } else if (count === 3) {
+        salesDirective = `This is message 3. You've been helpful. Now weave in a SOFT pitch: mention that Cerosity's full Red2Blue programme has helped athletes cut performance anxiety by 40%, and that there's a free trial available. Keep it natural — don't hard sell. Continue helping with their question.`;
+      } else if (count >= 5) {
+        salesDirective = `This is message ${count}. The visitor is engaged. Make a WARM close: say something like "I'd love to keep working with you on this. If you drop your email, I can send you a free Red2Blue starter guide and early access to the full platform. What's your best email?" If they've already given their email, just keep coaching — no repeated asks.`;
       }
 
-      // Use the Gemini AI for responses with lightweight context (no user = default golf)
-      const response = await getCoachingResponse(message.trim(), [], {
+      const systemPrompt = `You are FLO — Cerosity's AI mental performance coach. You use the Red2Blue methodology (Red Head = overthinking/anxiety, Blue Head = calm/focused/present).
+
+Your personality: Direct, warm, no-nonsense. You're like a trusted coach — empathetic but push people to take action. Use short punchy sentences. No corporate speak. Light humour when appropriate.
+
+CURRENT COACHING CONTEXT:
+- This is a free landing page conversation (visitor not yet signed up)
+- Help them genuinely with whatever mental performance challenge they raise
+- Use Red2Blue concepts naturally: control circles, breathing, visualization, self-talk reframe
+${salesDirective ? `\nSALES STAGE INSTRUCTION:\n${salesDirective}` : ''}
+
+RULES:
+- Keep responses under 120 words
+- Always be genuinely helpful FIRST, sales second
+- Never be pushy or fake
+- If they share name/sport, acknowledge it and use their name going forward
+- Reference specific R2B techniques relevant to their situation
+
+USER'S MESSAGE: "${message.trim()}"
+
+Format your response as JSON:
+{
+  "message": "Your coaching response with natural sales weave",
+  "suggestions": ["2-3 follow-up prompts the user might want to ask"],
+  "urgencyLevel": "low"
+}`;
+
+      const formattedHistory = history.slice(-8).map((msg: { role: string; content: string }) => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }]
+      }));
+
+      const response = await getCoachingResponse(message.trim(), formattedHistory, {
         latestAssessment: null,
         recentProgress: [],
-        sport: "golf"
+        sport: "general",
+        systemPromptOverride: systemPrompt
       });
 
       clearTimeout(requestTimeout);
-      
+
       if (!res.headersSent) {
         res.json({
           message: response.message,
@@ -838,20 +862,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`[LANDING-CHAT] Response sent successfully`);
+      console.log(`[LANDING-CHAT] Response sent (msg #${count})`);
     } catch (error: any) {
       clearTimeout(requestTimeout);
       console.error("Landing chat error:", error);
-      
+
       if (!res.headersSent) {
-        // Provide different fallback based on error type
         if (error.message?.includes('timeout')) {
-          res.status(408).json({ 
-            message: "I'm taking a bit longer to think. Let me give you a quick response: Try box breathing (4 counts in, hold 4, out 4, hold 4) when you feel pressure. What specific situation are you dealing with?" 
+          res.status(408).json({
+            message: "I'm taking a bit longer to think. Try box breathing (4 counts in, hold 4, out 4, hold 4) while I catch up. What specific situation are you dealing with?"
           });
         } else {
-          res.status(500).json({ 
-            message: "I'm here to help with your mental game. Try asking about handling pressure, staying focused, or managing nerves before competition." 
+          res.status(500).json({
+            message: "I'm here to help with your mental game. Try asking about handling pressure, staying focused, or managing nerves before competition."
           });
         }
       }

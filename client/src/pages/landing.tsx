@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Target, TrendingUp, Users, Shield, Check, Star, Mic, MessageCircle, Zap, Award } from "lucide-react";
+import { Target, TrendingUp, Users, Shield, Check, Star, Mic, MessageCircle, Zap, Award, BookOpen, Crosshair } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { FloChat } from "@/components/flo-chat";
@@ -301,15 +301,14 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               { name: "Brian Ashton", role: "England & Ireland Rugby Head Coach", desc: "English Rugby Union coach and former player. Head coach of England and Ireland national teams.", img: "/endorsers/brian-ashton.png" },
-              { name: "Ashley Giles MBE", role: "England Cricketer & Red2Blue Coach", desc: "Former English first-class cricketer. Current Red2Blue coach.", img: "/endorsers/ashley-giles.png" },
-              { name: "Alice Powell", role: "Professional Racing Driver", desc: "Trailblazing professional racing driver, currently racing in the W Series and the Jaguar I Pace eTrophy.", img: "/endorsers/alice-powell.png" },
-              { name: "Vicki Anstey", role: "Adventurer & Entrepreneur", desc: "Mid-Pacific ocean rower and entrepreneur.", img: "/endorsers/vicki-anstey.png" },
-              { name: "Imogen Hall", role: "Elite Golfer, Faldo Series & WAGR", desc: "Dubai-based elite golfer committed to GCU. Faldo Series WAGR winner and top 10 finisher in the English Amateur.", img: "/endorsers/imogen-hall.png" },
-              { name: "James Newman", role: "Head Teacher, Epsom & Ewell High School", desc: "Head teacher of a co-educational academy for children from ages 11-18.", img: "/endorsers/james-newman.png" },
-              { name: "Kerry Inscker", role: "Deputy CEO, Shaw Education Trust", desc: "Leads and manages academies in all phases, sectors and communities.", img: "/endorsers/kerry-inscker.png" },
-              { name: "Darren Cassidy", role: "SVP EMEA, Xerox Corporation", desc: "Managing Director UK & Ireland and SVP EMEA Global Document Services, with global and US based experience in sales and leadership.", img: "/endorsers/darren-cassidy.png" },
+              { name: "Ashley Giles MBE", role: "England Cricketer & Red2Blue Coach", desc: "Former English first-class cricketer. Current Red2Blue coach.", img: "/endorsers/adrian-larsson.png" },
+              { name: "Alice Powell", role: "Professional Racing Driver", desc: "Trailblazing professional racing driver, currently racing in the W Series and the Jaguar I Pace eTrophy.", img: "/endorsers/ashley-giles.png" },
+              { name: "Vicki Anstey", role: "Adventurer & Entrepreneur", desc: "Mid-Pacific ocean rower and entrepreneur.", img: "/endorsers/alice-powell.png" },
+              { name: "Imogen Hall", role: "Elite Golfer, Faldo Series & WAGR", desc: "Dubai-based elite golfer committed to GCU. Faldo Series WAGR winner and top 10 finisher in the English Amateur.", img: "/endorsers/kerry-inscker.png" },
+              { name: "James Newman", role: "Head Teacher, Epsom & Ewell High School", desc: "Head teacher of a co-educational academy for children from ages 11-18.", img: "/endorsers/vicki-anstey.png" },
+              { name: "Kerry Inscker", role: "Deputy CEO, Shaw Education Trust", desc: "Leads and manages academies in all phases, sectors and communities.", img: "/endorsers/imogen-hall.png" },
               { name: "Stuart Lancaster", role: "England Rugby Union Head Coach", desc: "Rugby Union coach. Head coach of the English National Rugby Union team from 2011 to 2015.", img: "/endorsers/stuart-lancaster.png" },
-              { name: "Adrian Larsson", role: "Elite Golfer & R2B Coach", desc: "Signed to DePaul Men's Golf. GEM Amateur Open and Junior Masters Invitational winner.", img: "/endorsers/adrian-larsson.png" },
+              { name: "Adrian Larsson", role: "Elite Golfer & R2B Coach", desc: "Signed to DePaul Men's Golf. GEM Amateur Open and Junior Masters Invitational winner.", img: "/endorsers/darren-cassidy.png" },
             ].map((person) => (
               <div key={person.name} className="bg-slate-950 rounded-xl p-6 border border-slate-800 hover:border-slate-700 transition-colors">
                 <div className="flex items-center gap-3 mb-3">
@@ -335,7 +334,7 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-blue-700 transition-colors">
-              <img src="/programmes/coach.png" alt="Red2Blue Coach certification" className="w-full h-48 object-cover" />
+              <img src="/programmes/athlete.png" alt="Red2Blue Coach certification" className="w-full h-48 object-cover" />
               <div className="p-8">
                 <Badge className="mb-4 bg-blue-500/10 text-blue-300 border-blue-500/20">For Coaches</Badge>
                 <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Coach</h3>
@@ -345,7 +344,7 @@ export default function Landing() {
               </div>
             </div>
             <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-indigo-700 transition-colors">
-              <img src="/programmes/athlete.png" alt="Red2Blue Athlete programme" className="w-full h-48 object-cover" />
+              <img src="/programmes/coach.png" alt="Red2Blue Athlete programme" className="w-full h-48 object-cover" />
               <div className="p-8">
                 <Badge className="mb-4 bg-indigo-500/10 text-indigo-300 border-indigo-500/20">For Athletes</Badge>
                 <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Athlete</h3>
@@ -384,27 +383,34 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
               <div className="w-12 h-12 mx-auto mb-4 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20">
-                <Target className="w-6 h-6 text-blue-400" />
+                <Crosshair className="w-6 h-6 text-blue-400" />
               </div>
-              <h4 className="font-semibold text-white mb-2">Red2Blue Mindset Map</h4>
-              <p className="text-sm text-slate-400">The complete visual framework — STUCK model, CIA framework, Control Circles, and the Recognise → Accept → Choose pathway.</p>
+              <h4 className="font-semibold text-white mb-2">Ability to Focus</h4>
+              <p className="text-sm text-slate-400">Complete guide to building unshakeable concentration under pressure. Techniques used by elite athletes worldwide.</p>
             </div>
             <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
               <div className="w-12 h-12 mx-auto mb-4 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20">
-                <TrendingUp className="w-6 h-6 text-indigo-400" />
+                <Target className="w-6 h-6 text-indigo-400" />
               </div>
-              <h4 className="font-semibold text-white mb-2">What Ifs Workbook</h4>
-              <p className="text-sm text-slate-400">Structured journal to reframe negative scenarios into actionable strategies. Turn doubt into preparation.</p>
+              <h4 className="font-semibold text-white mb-2">Master Your Moment</h4>
+              <p className="text-sm text-slate-400">By Cero Golf — how to own the critical moments that define performance. Mental tools for when it matters most.</p>
             </div>
             <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
               <div className="w-12 h-12 mx-auto mb-4 bg-purple-500/10 rounded-xl flex items-center justify-center border border-purple-500/20">
-                <Award className="w-6 h-6 text-purple-400" />
+                <Zap className="w-6 h-6 text-purple-400" />
               </div>
-              <h4 className="font-semibold text-white mb-2">Recognition Template</h4>
-              <p className="text-sm text-slate-400">Build your personal Red and Blue indicators. Know exactly when you're diverted vs on task — and how to shift.</p>
+              <h4 className="font-semibold text-white mb-2">Pre-Shot Routine</h4>
+              <p className="text-sm text-slate-400">Mindset for the Moment — a structured pre-performance routine to lock in focus and execute with confidence.</p>
+            </div>
+            <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 bg-green-500/10 rounded-xl flex items-center justify-center border border-green-500/20">
+                <BookOpen className="w-6 h-6 text-green-400" />
+              </div>
+              <h4 className="font-semibold text-white mb-2">Motivation & Inspiration</h4>
+              <p className="text-sm text-slate-400">Stories, frameworks, and practical exercises to build lasting motivation and find your competitive drive.</p>
             </div>
           </div>
 

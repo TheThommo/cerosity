@@ -357,6 +357,60 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Free Downloads CTA */}
+      <section className="py-20 bg-slate-900 border-t border-slate-800">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-green-500/10 text-green-300 border-green-500/20 px-4 py-1">Free Resources</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Download Free Red2Blue Tools
+            </h2>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+              Get started with proven mental performance resources. Mindset maps, recognition templates, lesson plans and more — free with your account.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20">
+                <Target className="w-6 h-6 text-blue-400" />
+              </div>
+              <h4 className="font-semibold text-white mb-2">Red2Blue Mindset Map</h4>
+              <p className="text-sm text-slate-400">The complete visual framework — STUCK model, CIA framework, Control Circles, and the Recognise → Accept → Choose pathway.</p>
+            </div>
+            <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20">
+                <TrendingUp className="w-6 h-6 text-indigo-400" />
+              </div>
+              <h4 className="font-semibold text-white mb-2">What Ifs Workbook</h4>
+              <p className="text-sm text-slate-400">Structured journal to reframe negative scenarios into actionable strategies. Turn doubt into preparation.</p>
+            </div>
+            <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 bg-purple-500/10 rounded-xl flex items-center justify-center border border-purple-500/20">
+                <Award className="w-6 h-6 text-purple-400" />
+              </div>
+              <h4 className="font-semibold text-white mb-2">Recognition Template</h4>
+              <p className="text-sm text-slate-400">Build your personal Red and Blue indicators. Know exactly when you're diverted vs on task — and how to shift.</p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <Button
+              size="lg"
+              onClick={() => {
+                window.scrollTo(0, 0);
+                setSelectedTier('free');
+                setShowSignUp(true);
+              }}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-10 py-6 text-lg"
+            >
+              Create Free Account to Download
+            </Button>
+            <p className="text-sm text-slate-500 mt-4">No credit card required. Instant access to all free resources.</p>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing-section" className="py-20 bg-slate-950 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

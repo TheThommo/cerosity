@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Loader2, Wind, Target, Eye, Flame, Zap, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CerosityLogo } from "@/components/cerosity-logo";
+import { FloAvatar } from "@/components/flo-avatar";
 import { FloVoicePTT } from "@/components/flo-voice-ptt";
 
 interface Message {
@@ -26,10 +26,13 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages]);
 
   const sendMessage = useCallback(async (messageText: string) => {
@@ -90,8 +93,8 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
     <div className="w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl shadow-blue-950/20">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900 to-blue-950/30">
-        <div className="w-10 h-10 rounded-full overflow-hidden shadow-lg shadow-blue-500/20">
-          <CerosityLogo size={40} />
+        <div className="w-10 h-10 rounded-full overflow-hidden shadow-lg shadow-blue-500/20 flex-shrink-0">
+          <FloAvatar size={40} variant="mini" />
         </div>
         <div>
           <h3 className="font-semibold text-white">FLO</h3>
@@ -121,11 +124,11 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
       </div>
 
       {/* Messages */}
-      <div className="h-[400px] overflow-y-auto p-5 space-y-4 bg-slate-950/50">
+      <div ref={messagesContainerRef} className="h-[400px] overflow-y-auto p-5 space-y-4 bg-slate-950/50">
         {messages.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl overflow-hidden border border-blue-500/10">
-              <CerosityLogo size={64} />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full overflow-hidden border border-blue-500/10">
+              <FloAvatar size={64} />
             </div>
             <p className="text-white font-medium mb-2">What's on your mind?</p>
             <p className="text-sm text-slate-500 max-w-sm mx-auto">
@@ -137,11 +140,16 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
         {messages.map((message) => (
           <div
             key={message.id}
-            className={cn("flex w-full", message.role === "user" ? "justify-end" : "justify-start")}
+            className={cn("flex w-full gap-2", message.role === "user" ? "justify-end" : "justify-start")}
           >
+            {message.role === "flo" && (
+              <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mt-1">
+                <FloAvatar size={28} variant="mini" />
+              </div>
+            )}
             <div
               className={cn(
-                "max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed",
+                "max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed",
                 message.role === "user"
                   ? "bg-blue-600 text-white rounded-br-md"
                   : "bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-md"
@@ -164,7 +172,6 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
           </div>
         )}
 
-        <div ref={chatEndRef} />
       </div>
 
       {/* Input */}

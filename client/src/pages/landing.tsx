@@ -4,13 +4,14 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Target, TrendingUp, Users, Shield, Check, Star } from "lucide-react";
+import { Brain, Target, TrendingUp, Users, Shield, Check, Star, Mic, MessageCircle, Zap, Award } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { StableChat as LandingChat } from "@/components/stable-chat";
 import { Footer } from "@/components/footer";
 import { StableSignUpForm } from "@/components/stable-signup-form";
 import { CerosityLogo } from "@/components/cerosity-logo";
+import { FloVoicePTT } from "@/components/flo-voice-ptt";
 import Checkout from "./checkout";
 
 export default function Landing() {
@@ -52,31 +53,30 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-red-50">
+    <div className="min-h-screen bg-gray-950">
       {/* Header */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-gray-950/90 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center border border-gray-700">
                 <CerosityLogo size={24} />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Cerosity</h1>
-                <p className="text-xs text-gray-500">AI Golf Mental Coach</p>
+                <h1 className="text-xl font-bold text-white">Cerosity</h1>
+                <p className="text-xs text-gray-400">AI Mental Performance</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => setShowSignIn(true)} className="text-gray-600">
+              <Button variant="ghost" onClick={() => setShowSignIn(true)} className="text-gray-300 hover:text-white">
                 Sign In
               </Button>
               <Button onClick={() => {
-                // Scroll to pricing section instead of direct signup
                 const pricingSection = document.getElementById('pricing-section');
                 if (pricingSection) {
                   pricingSection.scrollIntoView({ behavior: 'smooth' });
                 }
-              }} className="bg-blue-600 hover:bg-blue-700">
+              }} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white border-0">
                 Get Started
               </Button>
             </div>
@@ -84,219 +84,210 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* AI Chat Hero Section */}
-      <section className="pt-12 pb-16 bg-gradient-to-br from-blue-50 via-white to-red-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4">
-              AI-Powered Golf Mental Performance
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Meet Flo - Your
-              <span className="bg-gradient-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
-                {" "}AI Mental Coach
-              </span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Get instant AI coaching. Ask about handling pressure on the course, improving focus during your round, or any mental golf game challenge.
-            </p>
+      {/* Hero — FLO Voice Centerpiece */}
+      <section className="relative pt-20 pb-24 overflow-hidden">
+        {/* Ambient background effects */}
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-950/30 via-gray-950 to-gray-950" />
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-3xl" />
+        <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-indigo-600/5 rounded-full blur-2xl" />
+        <div className="absolute top-40 right-1/4 w-[300px] h-[300px] bg-purple-600/5 rounded-full blur-2xl" />
+
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Badge className="mb-6 bg-blue-500/10 text-blue-300 border-blue-500/20 px-4 py-1">
+            Agentic AI Coaching — Voice + Chat
+          </Badge>
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
+            Meet <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">FLO</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-300 mb-4 max-w-2xl mx-auto font-light">
+            Your AI mental performance coach.
+          </p>
+          <p className="text-lg text-gray-400 mb-12 max-w-xl mx-auto">
+            Stern when you need it. Empathetic always. Talk to her — right now.
+          </p>
+
+          {/* Voice PTT — The Hero Element */}
+          <div className="mb-12">
+            <FloVoicePTT />
           </div>
 
-          {/* AI Chat Widget */}
-          <div className="max-w-4xl mx-auto mb-12" id="main-chat-widget">
+          {/* Secondary: Text chat option */}
+          <div className="flex items-center justify-center gap-6 text-sm text-gray-500 mb-8">
+            <span className="flex items-center gap-2">
+              <Mic className="w-4 h-4 text-blue-400" />
+              Voice coaching
+            </span>
+            <span className="w-px h-4 bg-gray-700" />
+            <span className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-indigo-400" />
+              Text chat below
+            </span>
+          </div>
+
+          <Button
+            size="lg"
+            onClick={() => {
+              const chatSection = document.getElementById('chat-section');
+              if (chatSection) chatSection.scrollIntoView({ behavior: 'smooth' });
+            }}
+            variant="ghost"
+            className="text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500"
+          >
+            Or type to FLO instead
+          </Button>
+        </div>
+      </section>
+
+      {/* Text Chat Section */}
+      <section id="chat-section" className="py-16 bg-gray-900/50 border-t border-gray-800">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-semibold text-white mb-2">Chat with FLO</h2>
+            <p className="text-gray-400">Ask about pressure, focus, confidence — anything mental performance.</p>
+          </div>
+          <div id="main-chat-widget">
             <LandingChat isInlineWidget={true} />
           </div>
-          
-          <div className="text-center">
-            <p className="text-lg text-gray-700 mb-8">
-              <strong>Start chatting instantly</strong> or sign up for full access to personalized golf coaching
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                onClick={() => {
-                  const pricingSection = document.getElementById('pricing-section');
-                  if (pricingSection) {
-                    pricingSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
-              >
-                Start Your Journey
-              </Button>
-            </div>
-          </div>
         </div>
       </section>
 
 
 
-      {/* What is Red2Blue Section */}
-      <section className="py-16 bg-gradient-to-r from-red-50 via-white to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              What is Red2Blue?
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              The proven methodology that transforms your mental golf game from reactive stress to peak golf performance
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left side - Image */}
-            <div className="flex justify-center">
-              <div className="relative">
-                <img 
-                  src="/mindset-map.png" 
-                  alt="Red2Blue Mindset Map - transformation from Red Head reactive state to Blue Head peak performance state" 
-                  className="w-full max-w-lg rounded-lg shadow-lg"
-                />
-              </div>
-            </div>
-
-            {/* Right side - Explanation */}
-            <div className="space-y-6">
-              <div className="bg-red-100 rounded-lg p-6 border-l-4 border-red-500">
-                <h3 className="text-xl font-semibold text-red-800 mb-3 flex items-center">
-                  <span className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold mr-3">R</span>
-                  Red Head State
-                </h3>
-                <p className="text-red-700">
-                  <strong>Reactive • Stressed • Overwhelmed</strong><br/>
-                  When you're in "Red Head," you're caught in doubt, negative self-talk, and reactive thinking. 
-                  Your mind is cluttered with "I CAN'T" thoughts that hurt your golf performance.
-                </p>
-              </div>
-
-              <div className="flex justify-center">
-                <div className="text-2xl font-bold text-gray-500">↓ TRANSFORM ↓</div>
-              </div>
-
-              <div className="bg-blue-100 rounded-lg p-6 border-l-4 border-blue-500">
-                <h3 className="text-xl font-semibold text-blue-800 mb-3 flex items-center">
-                  <span className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-3">B</span>
-                  Blue Head State
-                </h3>
-                <p className="text-blue-700">
-                  <strong>Focused • Confident • In Control</strong><br/>
-                  In "Blue Head," you operate with trust, clear intent, and focused attention. 
-                  You're in the zone with "DO IT" confidence that drives peak golf performance.
-                </p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h4 className="font-semibold text-gray-900 mb-2">The Science Behind It</h4>
-                <p className="text-gray-600 text-sm">
-                  Red2Blue is based on proven sports psychology principles used by elite golfers worldwide. 
-                  Our AI coach Flo uses these techniques to help you recognize your mental state and shift 
-                  from reactive stress to focused golf performance in real-time.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 bg-white">
+      {/* What Makes FLO Different */}
+      <section className="py-20 bg-gray-950 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Everything You Need for Golf Mental Excellence
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Not another chatbot. A <span className="text-blue-400">real coach</span>.
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Comprehensive tools and methodologies designed for golfers seeking peak performance
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+              FLO uses the Red2Blue methodology — proven sports psychology trusted by elite athletes worldwide.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <Target className="w-12 h-12 text-blue-600 mb-4" />
-                <CardTitle>R2B Methodology</CardTitle>
-                <CardDescription>
-                  Proven Red Head to Blue Head transformation techniques
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center"><Check className="w-4 h-4 text-green-500 mr-2" />Mental Skills X-Check</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-green-500 mr-2" />Control Circles</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-green-500 mr-2" />Pre-Shot Routines</li>
-                </ul>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+            <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800 hover:border-blue-800 transition-colors">
+              <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center mb-5">
+                <Zap className="w-6 h-6 text-red-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Red Head → Blue Head</h3>
+              <p className="text-gray-400 leading-relaxed">
+                Reactive stress, doubt, "I can't" thinking — FLO recognizes when you're in Red Head and shifts you to focused, confident Blue Head state.
+              </p>
+            </div>
 
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <Brain className="w-12 h-12 text-purple-600 mb-4" />
-                <CardTitle>AI-Powered Coaching</CardTitle>
-                <CardDescription>
-                  Personalized guidance from Flo, your AI mental coach
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center"><Check className="w-4 h-4 text-green-500 mr-2" />Real-time analysis</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-green-500 mr-2" />Custom recommendations</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-green-500 mr-2" />Progress tracking</li>
-                </ul>
-              </CardContent>
-            </Card>
+            <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800 hover:border-indigo-800 transition-colors">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-5">
+                <Mic className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Voice-First Coaching</h3>
+              <p className="text-gray-400 leading-relaxed">
+                Talk to FLO like you'd talk to a real coach. She listens, responds in real-time, and gives you techniques you can use immediately.
+              </p>
+            </div>
 
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <TrendingUp className="w-12 h-12 text-green-600 mb-4" />
-                <CardTitle>Performance Analytics</CardTitle>
-                <CardDescription>
-                  Deep insights into your mental performance patterns
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center"><Check className="w-4 h-4 text-green-500 mr-2" />Assessment tracking</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-green-500 mr-2" />Trend analysis</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-green-500 mr-2" />Goal setting</li>
-                </ul>
-              </CardContent>
-            </Card>
+            <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800 hover:border-purple-800 transition-colors">
+              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-5">
+                <Brain className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Performance Equation</h3>
+              <p className="text-gray-400 leading-relaxed">
+                Structure + Skillset + Mindset = Performance. FLO works across all three pillars to build complete mental resilience.
+              </p>
+            </div>
+          </div>
+
+          {/* Red2Blue Visual */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="flex justify-center">
+              <img
+                src="/mindset-map.png"
+                alt="Red2Blue Mindset Map"
+                className="w-full max-w-md rounded-2xl shadow-2xl border border-gray-800"
+              />
+            </div>
+            <div className="space-y-6">
+              <div className="bg-red-950/30 rounded-xl p-6 border border-red-900/30">
+                <h3 className="text-lg font-semibold text-red-300 mb-2 flex items-center gap-3">
+                  <span className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center text-red-400 font-bold text-sm">R</span>
+                  Red Head
+                </h3>
+                <p className="text-red-200/70">Reactive. Stressed. "I can't." Doubt spirals and overthinking that kill performance.</p>
+              </div>
+              <div className="flex justify-center">
+                <div className="text-lg font-bold text-gray-600 flex items-center gap-2">
+                  <span className="w-8 h-px bg-gradient-to-r from-red-500 to-blue-500" />
+                  FLO transforms you
+                  <span className="w-8 h-px bg-gradient-to-r from-red-500 to-blue-500" />
+                </div>
+              </div>
+              <div className="bg-blue-950/30 rounded-xl p-6 border border-blue-900/30">
+                <h3 className="text-lg font-semibold text-blue-300 mb-2 flex items-center gap-3">
+                  <span className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center text-blue-400 font-bold text-sm">B</span>
+                  Blue Head
+                </h3>
+                <p className="text-blue-200/70">Focused. Confident. "Do it." Clear intent, trust your training, execute.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Who It's For */}
+      <section className="py-20 bg-gray-900 border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-white mb-4">Built for performers who refuse to settle</h2>
+            <p className="text-gray-400">FLO coaches across every high-performance domain.</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: Target, label: "Golfers", desc: "Tour pros to weekend warriors" },
+              { icon: Award, label: "Team Athletes", desc: "Football, rugby, cricket" },
+              { icon: Users, label: "Coaches", desc: "Amplify your 1-on-1 impact" },
+              { icon: TrendingUp, label: "Business Leaders", desc: "Boardroom performance" },
+            ].map((item) => (
+              <div key={item.label} className="text-center p-6 bg-gray-950 rounded-xl border border-gray-800">
+                <item.icon className="w-8 h-8 text-blue-400 mx-auto mb-3" />
+                <h4 className="font-semibold text-white mb-1">{item.label}</h4>
+                <p className="text-xs text-gray-500">{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing-section" className="py-16 bg-gray-50">
+      <section id="pricing-section" className="py-20 bg-gray-950 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-white mb-4">
               Choose Your Training Level
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-400">
               Professional mental performance coaching for every level
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {/* Tier 1: FLO Resilience Coach */}
-            <Card className="border-2 border-gray-200">
+            <Card className="border border-gray-800 bg-gray-900">
               <CardHeader>
-                <Badge variant="outline" className="w-fit mb-2">Universal Access</Badge>
-                <CardTitle className="text-2xl">FLO Resilience Coach</CardTitle>
-                <CardDescription className="text-base">Foundational emotional intelligence training for daily mental toughness.</CardDescription>
-                <div className="text-3xl font-bold mt-4">$9.90<span className="text-lg font-normal text-gray-500">/mo</span></div>
-                <p className="text-sm text-gray-600 mt-1">Billed annually at $99. For the individual user.</p>
-                <p className="text-xs text-green-600 font-medium mt-1">Save 17% with annual billing (2 months free)</p>
+                <Badge variant="outline" className="w-fit mb-2 border-gray-600 text-gray-300">Universal Access</Badge>
+                <CardTitle className="text-2xl text-white">FLO Resilience Coach</CardTitle>
+                <CardDescription className="text-base text-gray-400">Foundational emotional intelligence training for daily mental toughness.</CardDescription>
+                <div className="text-3xl font-bold mt-4 text-white">$9.90<span className="text-lg font-normal text-gray-500">/mo</span></div>
+                <p className="text-sm text-gray-400 mt-1">Billed annually at $99. For the individual user.</p>
+                <p className="text-xs text-green-400 font-medium mt-1">Save 17% with annual billing (2 months free)</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-3">
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Full access to <strong>FLO</strong>, your EQ AI Coach.</span></li>
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Basic <strong>Mental Resilience Assessment</strong> (Initial).</span></li>
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Unlimited chat & support from FLO.</span></li>
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Core Red2Blue concept PDFs (Moment, Focus).</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Full access to <strong className="text-white">FLO</strong>, your EQ AI Coach.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Basic <strong className="text-white">Mental Resilience Assessment</strong>.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Unlimited voice & chat coaching.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Core Red2Blue concept library.</span></li>
                 </ul>
-                <Button variant="outline" className="w-full" onClick={() => {
+                <Button variant="outline" className="w-full border-gray-600 text-gray-300 hover:bg-gray-800" onClick={() => {
                   window.scrollTo(0, 0);
                   setSelectedTier('free');
                   setShowSignUp(true);
@@ -307,31 +298,31 @@ export default function Landing() {
             </Card>
 
             {/* Tier 2: Elite Digital Coaching - BEST VALUE */}
-            <Card className="border-4 border-indigo-500 relative transform scale-105 shadow-xl">
+            <Card className="border-2 border-indigo-500 bg-gray-900 relative transform scale-105 shadow-xl shadow-indigo-500/10">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <Badge className="bg-indigo-600 text-white px-4 py-1 text-sm font-bold">BEST VALUE</Badge>
               </div>
               <CardHeader className="pt-6">
-                <Badge variant="outline" className="w-fit mb-2 border-indigo-500 text-indigo-700">Digital Mastery</Badge>
-                <CardTitle className="text-2xl">Elite Digital Coaching</CardTitle>
-                <CardDescription className="text-base">Complete mindset transformation with full methodology and advanced analytics.</CardDescription>
+                <Badge variant="outline" className="w-fit mb-2 border-indigo-500 text-indigo-300">Digital Mastery</Badge>
+                <CardTitle className="text-2xl text-white">Elite Digital Coaching</CardTitle>
+                <CardDescription className="text-base text-gray-400">Complete mindset transformation with full methodology and advanced analytics.</CardDescription>
                 <div className="flex items-baseline space-x-2 mt-4">
-                  <span className="text-3xl font-bold">$590</span>
+                  <span className="text-3xl font-bold text-white">$590</span>
                   <span className="text-lg font-normal text-gray-500">one-time</span>
                 </div>
-                <p className="text-sm text-indigo-600 font-medium mt-1">One-time payment, lifetime access to content. Plus $99/yr renewal after Year 1.</p>
+                <p className="text-sm text-indigo-400 font-medium mt-1">One-time payment, lifetime access. Plus $99/yr renewal after Year 1.</p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-indigo-50 p-3 rounded-lg mb-4">
-                  <p className="text-sm font-medium text-indigo-800">Includes Everything in FLO Coach (Tier 1)</p>
+                <div className="bg-indigo-950/50 p-3 rounded-lg mb-4 border border-indigo-800/30">
+                  <p className="text-sm font-medium text-indigo-300">Includes Everything in FLO Coach (Tier 1)</p>
                 </div>
                 <ul className="space-y-3">
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Complete <strong>Red2Blue Certification Track</strong>.</span></li>
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Advanced, personalized performance analytics.</span></li>
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Custom mental training programs (AI-driven).</span></li>
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Priority technical support channel.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Complete <strong className="text-white">Red2Blue Certification Track</strong>.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Advanced, personalized performance analytics.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Custom mental training programs (AI-driven).</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Priority technical support channel.</span></li>
                 </ul>
-                <Button className="w-full bg-indigo-600 hover:bg-indigo-700" onClick={() => {
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-500" onClick={() => {
                   setLocation('/checkout?tier=premium');
                 }}>
                   Get Elite Digital
@@ -340,26 +331,26 @@ export default function Landing() {
             </Card>
 
             {/* Tier 3: Master Human Coaching */}
-            <Card className="border-2 border-purple-500 relative">
+            <Card className="border border-purple-800 bg-gray-900 relative">
               <CardHeader>
-                <Badge variant="outline" className="w-fit mb-2 border-purple-500 text-purple-700">Elite Partnership</Badge>
-                <CardTitle className="text-2xl">Master Human Coaching</CardTitle>
-                <CardDescription className="text-base">Premium AI integration plus dedicated 1-on-1 human coaching for the fastest results.</CardDescription>
-                <div className="text-3xl font-bold mt-4">$2,290<span className="text-lg font-normal text-gray-500"> one-time</span></div>
-                <p className="text-sm text-purple-600 font-medium mt-1">One-time payment, lifetime access to content. Plus $99/yr renewal after Year 1.</p>
+                <Badge variant="outline" className="w-fit mb-2 border-purple-500 text-purple-300">Elite Partnership</Badge>
+                <CardTitle className="text-2xl text-white">Master Human Coaching</CardTitle>
+                <CardDescription className="text-base text-gray-400">Premium AI integration plus dedicated 1-on-1 human coaching for the fastest results.</CardDescription>
+                <div className="text-3xl font-bold mt-4 text-white">$2,290<span className="text-lg font-normal text-gray-500"> one-time</span></div>
+                <p className="text-sm text-purple-400 font-medium mt-1">One-time payment, lifetime access. Plus $99/yr renewal after Year 1.</p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-purple-50 p-3 rounded-lg mb-4">
-                  <p className="text-sm font-medium text-purple-800">Includes Everything in Elite Digital (Tier 2)</p>
+                <div className="bg-purple-950/50 p-3 rounded-lg mb-4 border border-purple-800/30">
+                  <p className="text-sm font-medium text-purple-300">Includes Everything in Elite Digital (Tier 2)</p>
                 </div>
                 <ul className="space-y-3">
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Dedicated <strong>Master Red2Blue Coach</strong> matching.</span></li>
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Five <strong>1-on-1 Private F2F/Virtual</strong> sessions.</span></li>
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Exclusive <strong>VIP Support</strong> and direct communication.</span></li>
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Custom integration data pipeline.</span></li>
-                  <li className="flex items-start text-base"><Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" /><span>Official Athlete Certification hard copy.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Dedicated <strong className="text-white">Master Red2Blue Coach</strong> matching.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Five <strong className="text-white">1-on-1 Private F2F/Virtual</strong> sessions.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Exclusive <strong className="text-white">VIP Support</strong> and direct communication.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Custom integration data pipeline.</span></li>
+                  <li className="flex items-start text-base text-gray-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Official Athlete Certification hard copy.</span></li>
                 </ul>
-                <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={() => {
+                <Button className="w-full bg-purple-600 hover:bg-purple-500" onClick={() => {
                   setLocation('/checkout?tier=ultimate');
                 }}>
                   Get Master Coaching
@@ -370,18 +361,18 @@ export default function Landing() {
 
           {/* Enterprise CTA Block */}
           <div className="mt-16 max-w-4xl mx-auto">
-            <Card className="border-2 border-gray-300 bg-gradient-to-br from-gray-50 to-white">
+            <Card className="border border-gray-700 bg-gray-900">
               <CardContent className="text-center py-12 px-6">
-                <Users className="w-16 h-16 text-gray-600 mx-auto mb-6" />
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                <Users className="w-16 h-16 text-gray-400 mx-auto mb-6" />
+                <h3 className="text-2xl font-bold text-white mb-4">
                   Need a Bespoke Solution for your Team or Organization?
                 </h3>
-                <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-                  If you are a company, school, or sports academy, please contact our Partnerships Team to design a custom, institution-wide licensing offering.
+                <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
+                  Companies, schools, and sports academies — contact our Partnerships Team for custom institutional licensing.
                 </p>
-                <Button 
-                  size="lg" 
-                  className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3"
+                <Button
+                  size="lg"
+                  className="bg-white hover:bg-gray-100 text-gray-900 px-8 py-3"
                   onClick={() => {
                     window.location.href = 'mailto:partnerships@cerosity.com?subject=Enterprise Inquiry';
                   }}
@@ -395,35 +386,25 @@ export default function Landing() {
       </section>
 
       {/* Privacy Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gray-900 border-t border-gray-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Shield className="w-16 h-16 text-blue-600 mx-auto mb-6" />
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Privacy is Protected</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            We use enterprise-grade security and never share your personal performance data. 
-            All assessments and coaching sessions are completely confidential and encrypted.
+          <Shield className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-3">Your Privacy is Protected</h2>
+          <p className="text-gray-400 mb-8 max-w-lg mx-auto">
+            Enterprise-grade encryption. Your performance data is never shared.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+          <div className="grid grid-cols-3 gap-6 text-center max-w-md mx-auto">
             <div>
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Shield className="w-6 h-6 text-green-600" />
-              </div>
-              <h4 className="font-semibold">Encrypted Storage</h4>
-              <p className="text-sm text-gray-600">Bank-level encryption</p>
+              <Shield className="w-5 h-5 text-green-400 mx-auto mb-2" />
+              <p className="text-xs text-gray-400">Encrypted</p>
             </div>
             <div>
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-              <h4 className="font-semibold">No Data Sharing</h4>
-              <p className="text-sm text-gray-600">Your data stays private</p>
+              <Users className="w-5 h-5 text-blue-400 mx-auto mb-2" />
+              <p className="text-xs text-gray-400">Private</p>
             </div>
             <div>
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Check className="w-6 h-6 text-purple-600" />
-              </div>
-              <h4 className="font-semibold">GDPR Compliant</h4>
-              <p className="text-sm text-gray-600">Full privacy rights</p>
+              <Check className="w-5 h-5 text-purple-400 mx-auto mb-2" />
+              <p className="text-xs text-gray-400">GDPR</p>
             </div>
           </div>
         </div>

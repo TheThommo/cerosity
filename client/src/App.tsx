@@ -79,6 +79,8 @@ function AppContent() {
           <Route path="/cookie-policy" component={CookiePolicy} />
           <Route path="/data-processing" component={DataProcessing} />
           <Route path="/acceptable-use" component={AcceptableUse} />
+          <Route path="/help" component={Help} />
+          <Route path="/community">{() => <Community userId={0} />}</Route>
           <Route component={Landing} />
         </Switch>
       </ErrorBoundary>

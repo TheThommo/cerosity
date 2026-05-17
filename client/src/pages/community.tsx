@@ -7,6 +7,8 @@ import { CoachingAnimations } from "@/components/coaching-animations";
 import { Users, Trophy, TrendingUp, Calendar, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Footer } from "@/components/footer";
+import { CerosityLogo } from "@/components/cerosity-logo";
 
 interface CommunityProps {
   userId: number;
@@ -16,25 +18,25 @@ export default function Community({ userId }: CommunityProps) {
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(true);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Back Button */}
         <div className="mb-6">
-          <Link href="/dashboard">
-            <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+          <Link href={userId ? "/dashboard" : "/"}>
+            <Button variant="ghost" className="text-slate-400 hover:text-white">
               <ArrowLeft size={18} className="mr-2" />
-              Back to Dashboard
+              {userId ? "Back to Dashboard" : "Back to Home"}
             </Button>
           </Link>
         </div>
-        
+
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl font-bold text-white mb-4">
             Red2Blue Community
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Connect with fellow elite performers, track your progress, and stay motivated 
+          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+            Connect with fellow elite performers, track your progress, and stay motivated
             through friendly competition and shared mindset excellence.
           </p>
         </div>
@@ -53,27 +55,29 @@ export default function Community({ userId }: CommunityProps) {
 
           <TabsContent value="leaderboard" className="space-y-6">
             <CommunityLeaderboard userId={userId} />
-            
-            <Card className="bg-gradient-to-r from-blue-50 to-purple-50">
+
+            <Card className="bg-slate-900 border-slate-800">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Calendar className="w-5 h-5 text-blue-600" />
+                  <Calendar className="w-5 h-5 text-blue-400" />
                   <span>Daily Mindset Challenge</span>
                 </CardTitle>
                 <CardDescription>
-                  Join thousands of golfers practicing 5 minutes of mindset training daily
+                  Join thousands of performers practicing 5 minutes of mindset training daily
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center p-6">
-                  <div className="text-4xl mb-4">🎯</div>
-                  <h3 className="text-lg font-semibold mb-2">Today's Focus: Pressure Response</h3>
-                  <p className="text-gray-600 mb-4">
+                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">Today's Focus: Pressure Response</h3>
+                  <p className="text-slate-400 mb-4">
                     Practice the box breathing technique before a challenging shot or situation.
                     Visualize yourself staying calm and executing perfectly under pressure.
                   </p>
-                  <div className="bg-white rounded-lg p-4 border border-blue-200">
-                    <p className="text-sm text-blue-800 font-medium">
+                  <div className="bg-slate-800 rounded-lg p-4 border border-blue-800/30">
+                    <p className="text-sm text-blue-200 font-medium">
                       "The mind is everything. What you think you become." - Buddha
                     </p>
                   </div>
@@ -95,6 +99,8 @@ export default function Community({ userId }: CommunityProps) {
           onComplete={() => setShowWelcomeAnimation(false)}
         />
       )}
+
+      <Footer />
     </div>
   );
 }

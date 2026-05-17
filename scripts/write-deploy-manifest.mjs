@@ -9,7 +9,10 @@ const clientEntry = jsMatch?.[1] ?? null;
 const assetsDir = join(publicDir, "assets");
 const hasDarkTheme = readdirSync(assetsDir)
   .filter((name) => name.startsWith("index-") && name.endsWith(".js"))
-  .some((name) => readFileSync(join(assetsDir, name), "utf8").includes("0a0a0f"));
+  .some((name) => {
+    const content = readFileSync(join(assetsDir, name), "utf8");
+    return content.includes("030712") || content.includes("0a0a0f");
+  });
 
 writeFileSync(
   join(publicDir, "deploy.json"),

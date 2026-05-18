@@ -167,11 +167,18 @@ function generateFallbackResponse(userMessage: string): CoachingResponse {
     };
   }
 
+  if (/^(hi|hello|hey|yo|sup|hiya)\b/i.test(message.trim())) {
+    return {
+      message: "Hey — I'm FLO. What sport are you in, and what's the main thing on your mind right now?",
+      suggestions: [],
+      urgencyLevel: "low"
+    };
+  }
+
   return {
-    message: "Good question. Tell me a bit more about what's going on — what situation are you dealing with? The more specific you are, the more I can help. Are you struggling with pressure, focus, confidence, or something else?",
+    message: "Tell me more about what's happening — the more specific you are, the more I can help. Pressure before competition? Focus dropping mid-round? Confidence after a bad result?",
     suggestions: [
       "Tell me about a recent performance that frustrated you",
-      "Ask about a specific technique like box breathing or control circles",
       "Describe a pressure moment you want to handle better"
     ],
     redHeadIndicators: [],

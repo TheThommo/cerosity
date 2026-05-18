@@ -60,7 +60,6 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
   const [volumeLevel, setVolumeLevel] = useState(0);
   const [transcript, setTranscript] = useState<string[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [voiceError, setVoiceError] = useState("");
   const vapiRef = useRef<Vapi | null>(null);
 
   useEffect(() => {
@@ -101,7 +100,6 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
 
     vapi.on("error", (error: any) => {
       console.error("[FLO-VOICE] Error:", error);
-      setVoiceError("Voice connection failed. Try again.");
       setCallStatus("idle");
     });
 
@@ -136,7 +134,6 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
 
   const toggleCall = useCallback(() => {
     if (callStatus === "idle") {
-      setVoiceError("");
       let visitor = { name: "", email: "", sport: "" };
       try {
         const saved = sessionStorage.getItem("cerosity_visitor");
@@ -151,7 +148,7 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
         }).catch(() => {});
         startCall();
       } else {
-        setVoiceError("Tell me your name and email in the chat first, then tap to talk.");
+        startCall();
       }
     } else if (callStatus === "active") {
       endCall();
@@ -193,11 +190,6 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping" />
           )}
         </button>
-        {voiceError && (
-          <div className="absolute bottom-full right-0 mb-2 w-56 bg-slate-800 border border-slate-700 rounded-lg p-2 shadow-lg z-50">
-            <p className="text-xs text-amber-400">{voiceError}</p>
-          </div>
-        )}
       </div>
     );
   }

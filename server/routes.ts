@@ -808,9 +808,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[LANDING-CHAT] msg #${count}: "${message.substring(0, 80)}" name=${name} sport=${sport}`);
 
+      if (count === 1 && /^(hi|hello|hey|yo|sup|hiya)\s*[!.?]*$/i.test(message.trim())) {
+        clearTimeout(requestTimeout);
+        return res.json({
+          message: "Hey — I'm FLO. What sport are you in, and what's the main thing on your mind right now?",
+          suggestions: [],
+          urgencyLevel: "low",
+        });
+      }
+
       let salesDirective = '';
       if (count <= 1) {
-        salesDirective = `This is the visitor's FIRST message. Be warm and human — respond to what they said. If they haven't shared their name or sport yet, naturally ask: "What's your name, and what sport or area are you in?" — frame it as needing context to coach properly.`;
+        salesDirective = `This is the visitor's FIRST message. Be warm and human — respond to what they said. If they already shared their sport or problem, coach on it. If not, naturally ask what sport they're in and what's on their mind. Don't survey them — weave it into conversation.`;
       } else if (count >= 2 && count <= 3) {
         salesDirective = `Message ${count}. Focus on understanding their challenge. Ask good follow-up questions. Coach, don't pitch.`;
       } else if (count >= 4 && count <= 5) {

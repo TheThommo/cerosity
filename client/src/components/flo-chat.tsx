@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Loader2, Wind, Target, Eye, Flame, Zap, Mic } from "lucide-react";
+import { Send, Loader2, Wind, Target, Eye, Flame, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FloAvatar } from "@/components/flo-avatar";
 import { FloVoicePTT } from "@/components/flo-voice-ptt";
@@ -20,13 +20,6 @@ const R2B_TOOLS = [
   { icon: Flame, label: "Red→Blue Shift", prompt: "I'm in Red Head right now. Help me shift to Blue Head" },
   { icon: Zap, label: "Pre-Performance", prompt: "Give me a 60-second pre-performance routine I can use now" },
 ];
-
-const FLO_OPENER: Message = {
-  id: "flo-opener",
-  role: "flo",
-  content: "Hey — I'm FLO, your mental performance coach. What's your name, and what sport are you in?",
-  timestamp: new Date(),
-};
 
 function parseVisitorInfo(text: string, existing: { name: string; sport: string; email: string }) {
   const updated = { ...existing };
@@ -59,7 +52,7 @@ function parseVisitorInfo(text: string, existing: { name: string; sport: string;
 }
 
 export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }) {
-  const [messages, setMessages] = useState<Message[]>([FLO_OPENER]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [visitor, setVisitor] = useState(() => {
@@ -104,7 +97,7 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
     setIsLoading(true);
 
     try {
-      const allMessages = [...messages, userMessage].filter(m => m.id !== "flo-opener");
+      const allMessages = [...messages, userMessage];
       const conversationHistory = allMessages.map((m) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.content,
@@ -200,6 +193,11 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
 
       {/* Messages */}
       <div ref={messagesContainerRef} className="h-[400px] overflow-y-auto p-5 space-y-4 bg-slate-950/50">
+        {messages.length === 0 && !isLoading && (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <p className="text-sm text-slate-500">Ask about pressure, focus, confidence…</p>
+          </div>
+        )}
         {messages.map((message) => (
           <div
             key={message.id}

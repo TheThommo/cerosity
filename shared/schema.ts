@@ -630,6 +630,30 @@ export const floBrainDocuments = pgTable("flo_brain_documents", {
   isActive: boolean("is_active").notNull().default(true),
   version: integer("version").notNull().default(1),
   uploadedBy: text("uploaded_by"),
+  sourceType: text("source_type").notNull().default("text"),
+  sourceFilename: text("source_filename"),
+  contentCharCount: integer("content_char_count"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// FLO Sport Contexts (HQ-managed sport-specific coaching context)
+export const floSportContexts = pgTable("flo_sport_contexts", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").unique().notNull(),
+  displayName: text("display_name").notNull(),
+  contextText: text("context_text").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Athlete Profiles (structured data FLO learns from)
+export const athleteProfiles = pgTable("athlete_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").unique().notNull(),
+  achievements: jsonb("achievements").notNull().default([]),
+  challenges: jsonb("challenges").notNull().default([]),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -642,3 +666,21 @@ export const insertFloBrainDocumentSchema = createInsertSchema(floBrainDocuments
 
 export type FloBrainDocument = typeof floBrainDocuments.$inferSelect;
 export type InsertFloBrainDocument = z.infer<typeof insertFloBrainDocumentSchema>;
+
+export const insertFloSportContextSchema = createInsertSchema(floSportContexts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type FloSportContext = typeof floSportContexts.$inferSelect;
+export type InsertFloSportContext = z.infer<typeof insertFloSportContextSchema>;
+
+export const insertAthleteProfileSchema = createInsertSchema(athleteProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type AthleteProfile = typeof athleteProfiles.$inferSelect;
+export type InsertAthleteProfile = z.infer<typeof insertAthleteProfileSchema>;

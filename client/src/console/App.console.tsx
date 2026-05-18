@@ -12,6 +12,7 @@ const Subscriptions = lazy(() => import('./pages/Subscriptions'));
 const CoachingData = lazy(() => import('./pages/CoachingData'));
 const FloChat = lazy(() => import('./pages/FloChat'));
 const FloBrainDocs = lazy(() => import('./pages/FloBrainDocs'));
+const FloSportContexts = lazy(() => import('./pages/FloSportContexts'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const DBExplorer = lazy(() => import('./pages/DBExplorer'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -50,6 +51,7 @@ function ConsoleRouter() {
                 <Route path="/console/coaching" component={CoachingData} />
                 <Route path="/console/flo" component={FloChat} />
                 <Route path="/console/flo-brain" component={FloBrainDocs} />
+                <Route path="/console/flo-sports" component={FloSportContexts} />
                 <Route path="/console/analytics" component={Analytics} />
                 <Route path="/console/db" component={DBExplorer} />
                 <Route path="/console/settings" component={Settings} />

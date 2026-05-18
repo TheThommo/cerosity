@@ -8,9 +8,14 @@ import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSche
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest } from "./auth";
 import { sendLeadRegistrationEmail, sendAdminLeadNotification } from "./email";
-import { buildFloPrompt, clearBrainDocsCache } from "./flo-prompt";
+import { buildFloPrompt, clearBrainDocsCache, clearSportContextCache } from "./flo-prompt";
+import { formatAthleteContextForPrompt } from "./flo-athlete-context";
 import { recommendationEngine } from "./recommendationEngine";
 import { debugLogger, withErrorLogging } from "./debug";
+import multer from "multer";
+import * as pdfParse from "pdf-parse";
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
 // Fix: Use testing keys (the env variables are swapped - "public" contains secret key)
 const stripeSecretKey = process.env.TESTING_VITE_STRIPE_PUBLIC_KEY || process.env.STRIPE_SECRET_KEY;
@@ -933,6 +938,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isActive: true,
         version: 1,
         uploadedBy: "admin",
+        sourceType: "text",
+        contentCharCount: contentText.length,
       });
       clearBrainDocsCache();
       console.log(`[FLO-BRAIN] Doc created: ${doc.title}`);
@@ -952,6 +959,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(doc);
     } catch (error) {
       res.status(500).json({ message: "Failed to update brain doc" });
+    }
+  });
+
+  // PDF upload for FLO Brain
+  app.post("/api/hq/flo-brain/upload", requireAuth, requireAdmin, upload.single("file"), async (req: any, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+      if (req.file.mimetype !== "application/pdf") return res.status(400).json({ message: "Only PDF files accepted" });
+
+      const parsed = await pdfParse(req.file.buffer);
+      const contentText = parsed.text.trim();
+      if (!contentText) return res.status(400).json({ message: "Could not extract text from PDF" });
+
+      const title = req.body.title || req.file.originalname.replace(/\.pdf$/i, "");
+      const category = req.body.category || "general";
+
+      const doc = await storage.createFloBrainDocument({
+        title,
+        category,
+        contentText,
+        isActive: true,
+        version: 1,
+        uploadedBy: "admin",
+        sourceType: "pdf",
+        sourceFilename: req.file.originalname,
+        contentCharCount: contentText.length,
+      });
+      clearBrainDocsCache();
+      console.log(`[FLO-BRAIN] PDF ingested: ${doc.title} (${contentText.length} chars)`);
+      res.json(doc);
+    } catch (error) {
+      console.error("[FLO-BRAIN] PDF upload error:", error);
+      res.status(500).json({ message: "Failed to process PDF" });
+    }
+  });
+
+  // HQ Sport Contexts CRUD
+  app.get("/api/hq/flo-sports", requireAuth, requireAdmin, async (_req, res) => {
+    try {
+      const contexts = await storage.getFloSportContexts();
+      res.json(contexts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sport contexts" });
+    }
+  });
+
+  app.post("/api/hq/flo-sports", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { slug, displayName, contextText } = req.body;
+      if (!slug || !displayName || !contextText) return res.status(400).json({ message: "slug, displayName, contextText required" });
+      const ctx = await storage.createFloSportContext({ slug, displayName, contextText, isActive: true });
+      clearSportContextCache();
+      console.log(`[FLO-SPORTS] Context created: ${ctx.slug}`);
+      res.json(ctx);
+    } catch (error) {
+      console.error("[FLO-SPORTS] Create error:", error);
+      res.status(500).json({ message: "Failed to create sport context" });
+    }
+  });
+
+  app.patch("/api/hq/flo-sports/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const ctx = await storage.updateFloSportContext(id, req.body);
+      clearSportContextCache();
+      res.json(ctx);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update sport context" });
+    }
+  });
+
+  // Athlete Profile API (authenticated, own user only)
+  app.get("/api/athlete-profile", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const profile = await storage.getAthleteProfile(userId);
+      const goals = await storage.getUserGoals(userId);
+
+      const shortTerm = goals.filter(g => g.category === "short_term");
+      const mediumTerm = goals.filter(g => g.category === "medium_term");
+      const longTerm = goals.filter(g => g.category === "long_term");
+
+      res.json({
+        bio: user.bio || "",
+        achievements: profile?.achievements || [],
+        challenges: profile?.challenges || [],
+        goals: { shortTerm, mediumTerm, longTerm },
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch athlete profile" });
+    }
+  });
+
+  app.patch("/api/athlete-profile", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { bio, achievements, challenges } = req.body;
+
+      if (bio !== undefined) {
+        await storage.updateUser(userId, { bio });
+      }
+
+      if (achievements !== undefined || challenges !== undefined) {
+        const updates: any = {};
+        if (achievements !== undefined) updates.achievements = achievements;
+        if (challenges !== undefined) updates.challenges = challenges;
+        await storage.upsertAthleteProfile(userId, updates);
+      }
+
+      const user = await storage.getUser(userId);
+      const profile = await storage.getAthleteProfile(userId);
+      const goals = await storage.getUserGoals(userId);
+
+      res.json({
+        bio: user?.bio || "",
+        achievements: profile?.achievements || [],
+        challenges: profile?.challenges || [],
+        goals: {
+          shortTerm: goals.filter(g => g.category === "short_term"),
+          mediumTerm: goals.filter(g => g.category === "medium_term"),
+          longTerm: goals.filter(g => g.category === "long_term"),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update athlete profile" });
     }
   });
 
@@ -1615,11 +1750,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: new Date().toISOString()
       };
 
+      const user = await storage.getUser(userId);
       const latestAssessment = await storage.getLatestAssessment(userId);
-      const recentProgress = await storage.getUserProgress(userId, 7);
-      const sport = (req.user as any)?.sport ?? "golf";
-      const userContext = { latestAssessment, recentProgress, sport };
-      const aiResponse = await getCoachingResponse(message, messages, userContext);
+      const sport = user?.sport ?? "golf";
+
+      const athleteProfile = await storage.getAthleteProfile(userId);
+      const goals = await storage.getUserGoals(userId);
+      const athleteContext = user ? formatAthleteContextForPrompt(user, athleteProfile, goals) : "";
+
+      let assessmentContext = "";
+      if (latestAssessment) {
+        assessmentContext = `Latest X-Check: Intensity ${latestAssessment.intensityScore ?? 0}/100, Decision Making ${latestAssessment.decisionMakingScore ?? 0}/100, Diversions ${latestAssessment.diversionsScore ?? 0}/100, Execution ${latestAssessment.executionScore ?? 0}/100, Total ${latestAssessment.totalScore ?? 0}/400`;
+      }
+
+      const systemPrompt = await buildFloPrompt({
+        forChatApi: true,
+        sport,
+        athleteContext: athleteContext || undefined,
+        assessmentContext: assessmentContext || undefined,
+      });
+
+      const formattedHistory = messages.slice(-12).map((msg: any) => ({
+        role: msg.role === "user" ? "user" : "model",
+        parts: [{ text: msg.content }]
+      }));
+
+      const aiResponse = await getCoachingResponse(message, formattedHistory, {
+        sport,
+        systemPromptOverride: systemPrompt,
+      });
       const assistantMessage = {
         role: "assistant", 
         content: aiResponse.message,

@@ -10,6 +10,9 @@ interface BrainDoc {
   isActive: boolean;
   version: number;
   uploadedBy: string | null;
+  sourceType: string;
+  sourceFilename: string | null;
+  contentCharCount: number | null;
   createdAt: string;
 }
 
@@ -22,6 +25,7 @@ export default function FloBrainDocs() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', category: 'general', contentText: '' });
   const [saving, setSaving] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
 
   async function fetchDocs() {
     try {
@@ -53,6 +57,24 @@ export default function FloBrainDocs() {
     }
   }
 
+  async function handlePdfUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !file.name.endsWith('.pdf')) return;
+    setUploadingPdf(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/hq/flo-brain/upload', { method: 'POST', body: formData, credentials: 'include' });
+      if (!res.ok) throw new Error(await res.text());
+      fetchDocs();
+    } catch (err) {
+      console.error('PDF upload failed', err);
+    } finally {
+      setUploadingPdf(false);
+      e.target.value = '';
+    }
+  }
+
   async function toggleActive(doc: BrainDoc) {
     try {
       await apiRequest('PATCH', `/api/hq/flo-brain/${doc.id}`, { isActive: !doc.isActive });
@@ -73,12 +95,18 @@ export default function FloBrainDocs() {
           <h1 style={{ fontSize: 20, fontWeight: 700, color: theme.text.primary, margin: 0 }}>FLO Brain Documents</h1>
           <p style={{ fontSize: 13, color: theme.text.muted, marginTop: 4 }}>Knowledge base that shapes FLO's coaching responses</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          style={{ padding: '8px 16px', background: theme.brand.blue, color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-        >
-          {showForm ? 'Cancel' : '+ Add Document'}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <label style={{ padding: '8px 16px', background: theme.surfaces.raised, color: theme.text.secondary, border: `1px solid ${theme.border.default}`, borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: uploadingPdf ? 0.6 : 1 }}>
+            {uploadingPdf ? 'Uploading...' : 'Upload PDF'}
+            <input type="file" accept=".pdf" onChange={handlePdfUpload} style={{ display: 'none' }} disabled={uploadingPdf} />
+          </label>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            style={{ padding: '8px 16px', background: theme.brand.blue, color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+          >
+            {showForm ? 'Cancel' : '+ Add Document'}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -135,8 +163,9 @@ export default function FloBrainDocs() {
                 <h3 style={{ fontSize: 15, fontWeight: 600, color: theme.text.primary, margin: 0 }}>{doc.title}</h3>
                 <div style={{ display: 'flex', gap: 8, marginTop: 6, fontSize: 11 }}>
                   <span style={{ padding: '2px 8px', background: theme.surfaces.base, borderRadius: 4, color: theme.text.muted }}>{doc.category}</span>
+                  {doc.sourceType === 'pdf' && <span style={{ padding: '2px 8px', background: '#7c3aed22', borderRadius: 4, color: '#a78bfa' }}>PDF</span>}
                   <span style={{ color: theme.text.muted }}>v{doc.version}</span>
-                  <span style={{ color: theme.text.muted }}>{doc.contentText.length.toLocaleString()} chars</span>
+                  <span style={{ color: theme.text.muted }}>{(doc.contentCharCount || doc.contentText.length).toLocaleString()} chars</span>
                 </div>
               </div>
               <button

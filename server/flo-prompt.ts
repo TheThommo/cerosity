@@ -1,6 +1,6 @@
 import { db } from "./db";
-import { floBrainDocuments } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { floBrainDocuments, floSportContexts } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
 
 const FLO_PERSONA = `You are FLO, the Red2Blue mental performance coach on the Cerosity platform. First contact for visitors via web chat and optional voice. You coach athletes and serious performers on pressure, focus, confidence, and pre-performance routines.
 
@@ -88,13 +88,17 @@ async function getActiveBrainDocs(): Promise<string> {
       .from(floBrainDocuments)
       .where(eq(floBrainDocuments.isActive, true));
 
+    const MAX_BRAIN_CHARS = 90000;
     const combined = docs
       .map((d) => `[${d.category.toUpperCase()}] ${d.title}:\n${d.contentText}`)
       .join("\n\n---\n\n");
 
-    const trimmed = combined.slice(0, 8000);
-    brainDocsCache = { content: trimmed, fetchedAt: Date.now() };
-    return trimmed;
+    const totalChars = combined.length;
+    const content = totalChars > MAX_BRAIN_CHARS ? combined.slice(0, MAX_BRAIN_CHARS) : combined;
+    console.log(`[FLO-PROMPT] Brain docs loaded: ${docs.length} docs, ${totalChars} chars${totalChars > MAX_BRAIN_CHARS ? ` (trimmed to ${MAX_BRAIN_CHARS})` : ""}`);
+
+    brainDocsCache = { content, fetchedAt: Date.now() };
+    return content;
   } catch (error) {
     console.error("[FLO-PROMPT] Failed to load brain docs:", error);
     return "";
@@ -105,12 +109,38 @@ export function clearBrainDocsCache() {
   brainDocsCache = null;
 }
 
+let sportContextCache: Map<string, { text: string; fetchedAt: number }> = new Map();
+
+async function getSportContext(slug: string): Promise<string> {
+  const cached = sportContextCache.get(slug);
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) return cached.text;
+
+  try {
+    const [ctx] = await db
+      .select({ contextText: floSportContexts.contextText })
+      .from(floSportContexts)
+      .where(and(eq(floSportContexts.slug, slug.toLowerCase()), eq(floSportContexts.isActive, true)));
+
+    const text = ctx?.contextText || "";
+    sportContextCache.set(slug, { text, fetchedAt: Date.now() });
+    return text;
+  } catch (error) {
+    console.error("[FLO-PROMPT] Failed to load sport context:", error);
+    return "";
+  }
+}
+
+export function clearSportContextCache() {
+  sportContextCache.clear();
+}
+
 export async function buildFloPrompt(opts: {
   userMessage?: string;
   sport?: string;
   visitorName?: string;
   salesDirective?: string;
   assessmentContext?: string;
+  athleteContext?: string;
   forChatApi?: boolean;
 }): Promise<string> {
   const brainDocs = await getActiveBrainDocs();
@@ -130,7 +160,16 @@ export async function buildFloPrompt(opts: {
   }
 
   if (opts.sport && opts.sport !== "general") {
-    layers.push("", `ATHLETE CONTEXT: Primary sport is ${opts.sport}.`);
+    const sportCtx = await getSportContext(opts.sport);
+    if (sportCtx) {
+      layers.push("", `SPORT-SPECIFIC CONTEXT (${opts.sport}):\n${sportCtx}`);
+    } else {
+      layers.push("", `ATHLETE CONTEXT: Primary sport is ${opts.sport}.`);
+    }
+  }
+
+  if (opts.athleteContext) {
+    layers.push("", opts.athleteContext);
   }
 
   if (opts.assessmentContext) {

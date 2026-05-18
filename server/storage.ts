@@ -14,7 +14,10 @@ import {
   type InsertDailyMood, type UserGoal, type InsertUserGoal,
   type FloSubscription, type InsertFloSubscription, type ChatLimitations,
   type AdminStats, type PaymentRecord, type Notification, type InsertNotification,
-  type Lead, type InsertLead, type FloBrainDocument, type InsertFloBrainDocument
+  type Lead, type InsertLead, type FloBrainDocument, type InsertFloBrainDocument,
+  floSportContexts, athleteProfiles,
+  type FloSportContext, type InsertFloSportContext,
+  type AthleteProfile, type InsertAthleteProfile
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
@@ -128,6 +131,16 @@ export interface IStorage {
   getFloBrainDocuments(activeOnly?: boolean): Promise<FloBrainDocument[]>;
   createFloBrainDocument(doc: InsertFloBrainDocument): Promise<FloBrainDocument>;
   updateFloBrainDocument(id: number, updates: Partial<FloBrainDocument>): Promise<FloBrainDocument>;
+
+  // Sport context operations
+  getFloSportContexts(activeOnly?: boolean): Promise<FloSportContext[]>;
+  getFloSportContextBySlug(slug: string): Promise<FloSportContext | undefined>;
+  createFloSportContext(ctx: InsertFloSportContext): Promise<FloSportContext>;
+  updateFloSportContext(id: number, updates: Partial<FloSportContext>): Promise<FloSportContext>;
+
+  // Athlete profile operations
+  getAthleteProfile(userId: number): Promise<AthleteProfile | undefined>;
+  upsertAthleteProfile(userId: number, updates: Partial<InsertAthleteProfile>): Promise<AthleteProfile>;
 }
 
 export class MemStorage implements IStorage {
@@ -1196,6 +1209,12 @@ export class MemStorage implements IStorage {
   async getFloBrainDocuments(_activeOnly?: boolean): Promise<FloBrainDocument[]> { return []; }
   async createFloBrainDocument(_doc: InsertFloBrainDocument): Promise<FloBrainDocument> { throw new Error("MemStorage: not implemented"); }
   async updateFloBrainDocument(_id: number, _updates: Partial<FloBrainDocument>): Promise<FloBrainDocument> { throw new Error("MemStorage: not implemented"); }
+  async getFloSportContexts(_activeOnly?: boolean): Promise<FloSportContext[]> { return []; }
+  async getFloSportContextBySlug(_slug: string): Promise<FloSportContext | undefined> { return undefined; }
+  async createFloSportContext(_ctx: InsertFloSportContext): Promise<FloSportContext> { throw new Error("MemStorage: not implemented"); }
+  async updateFloSportContext(_id: number, _updates: Partial<FloSportContext>): Promise<FloSportContext> { throw new Error("MemStorage: not implemented"); }
+  async getAthleteProfile(_userId: number): Promise<AthleteProfile | undefined> { return undefined; }
+  async upsertAthleteProfile(_userId: number, _updates: Partial<InsertAthleteProfile>): Promise<AthleteProfile> { throw new Error("MemStorage: not implemented"); }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1857,6 +1876,51 @@ export class DatabaseStorage implements IStorage {
       .where(eq(floBrainDocuments.id, id))
       .returning();
     return updated;
+  }
+
+  async getFloSportContexts(activeOnly?: boolean): Promise<FloSportContext[]> {
+    if (activeOnly) {
+      return db.select().from(floSportContexts).where(eq(floSportContexts.isActive, true)).orderBy(floSportContexts.slug);
+    }
+    return db.select().from(floSportContexts).orderBy(floSportContexts.slug);
+  }
+
+  async getFloSportContextBySlug(slug: string): Promise<FloSportContext | undefined> {
+    const [ctx] = await db.select().from(floSportContexts).where(eq(floSportContexts.slug, slug.toLowerCase()));
+    return ctx || undefined;
+  }
+
+  async createFloSportContext(ctx: InsertFloSportContext): Promise<FloSportContext> {
+    const [newCtx] = await db.insert(floSportContexts).values({ ...ctx, slug: ctx.slug.toLowerCase() }).returning();
+    return newCtx;
+  }
+
+  async updateFloSportContext(id: number, updates: Partial<FloSportContext>): Promise<FloSportContext> {
+    const [updated] = await db
+      .update(floSportContexts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(floSportContexts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getAthleteProfile(userId: number): Promise<AthleteProfile | undefined> {
+    const [profile] = await db.select().from(athleteProfiles).where(eq(athleteProfiles.userId, userId));
+    return profile || undefined;
+  }
+
+  async upsertAthleteProfile(userId: number, updates: Partial<InsertAthleteProfile>): Promise<AthleteProfile> {
+    const existing = await this.getAthleteProfile(userId);
+    if (existing) {
+      const [updated] = await db
+        .update(athleteProfiles)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(athleteProfiles.userId, userId))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(athleteProfiles).values({ userId, ...updates }).returning();
+    return created;
   }
 }
 

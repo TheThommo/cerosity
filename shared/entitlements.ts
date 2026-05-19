@@ -39,12 +39,12 @@ export const TIER_PRICING: Record<SubscriptionTier, TierPricing> = {
     ],
   },
   premium: {
-    name: "Premium",
+    name: "Elite Digital Coaching",
     tagline: "Complete digital transformation",
     price: 590,
     interval: "one-time",
     features: [
-      "Everything in FLO Only",
+      "Everything in FLO Subscription",
       "Red2Blue Certification Track",
       "Advanced performance analytics",
       "Custom mental training programs",
@@ -52,12 +52,12 @@ export const TIER_PRICING: Record<SubscriptionTier, TierPricing> = {
     ],
   },
   ultimate: {
-    name: "Ultimate",
+    name: "Master Human Coaching",
     tagline: "AI + Human elite coaching",
-    price: 1999,
+    price: 2290,
     interval: "one-time",
     features: [
-      "Everything in Premium",
+      "Everything in Elite Digital",
       "Dedicated human R2B Coach",
       "5x private 1-on-1 sessions",
       "VIP direct communication",

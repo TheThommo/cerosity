@@ -82,8 +82,9 @@ export default function Checkout({ tier, onBack }: CheckoutProps) {
   const [loading, setLoading] = useState(true);
 
   const tierInfo = {
-    premium: { amount: 490, name: "Premium Access", description: "Complete AI coaching with all features" },
-    ultimate: { amount: 2190, name: "Ultimate Access", description: "AI + Human coaching with personal sessions" }
+    flo: { amount: 30, name: "FLO Subscription", description: "Unlimited AI mental performance coaching" },
+    premium: { amount: 590, name: "Elite Digital Coaching", description: "Complete AI coaching with all features" },
+    ultimate: { amount: 2290, name: "Master Human Coaching", description: "AI + Human coaching with personal sessions" }
   };
 
   const currentTier = tierInfo[tier as keyof typeof tierInfo];
@@ -114,12 +115,12 @@ export default function Checkout({ tier, onBack }: CheckoutProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 gradient-red-blue rounded-full flex items-center justify-center mb-4 mx-auto animate-pulse">
-            <Brain className="text-white" size={32} />
+          <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mb-4 mx-auto animate-pulse border border-blue-500/30">
+            <Brain className="text-blue-400" size={32} />
           </div>
-          <p className="text-gray-600">Setting up your payment...</p>
+          <p className="text-slate-400">Setting up your payment...</p>
         </div>
       </div>
     );
@@ -127,14 +128,14 @@ export default function Checkout({ tier, onBack }: CheckoutProps) {
 
   if (!clientSecret) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Card className="w-full max-w-md bg-slate-900 border-slate-800">
           <CardHeader>
-            <CardTitle className="text-red-600">Payment Setup Error</CardTitle>
+            <CardTitle className="text-red-400">Payment Setup Error</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">Unable to initialize payment. Please try again.</p>
-            <Button onClick={onBack} variant="outline" className="w-full">
+            <p className="text-slate-400 mb-4">Unable to initialize payment. Please try again.</p>
+            <Button onClick={onBack} variant="outline" className="w-full border-slate-700 text-slate-300 hover:bg-slate-800">
               <ArrowLeft className="mr-2" size={16} />
               Back to Pricing
             </Button>
@@ -145,27 +146,27 @@ export default function Checkout({ tier, onBack }: CheckoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-slate-950">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 gradient-red-blue rounded-full flex items-center justify-center">
-              <Brain className="text-white" size={32} />
+            <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center border border-blue-500/30">
+              <Brain className="text-blue-400" size={32} />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Purchase</h1>
-          <p className="text-gray-600">Secure your Red2Blue {currentTier.name}</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Complete Your Purchase</h1>
+          <p className="text-slate-400">Secure your {currentTier.name}</p>
         </div>
 
-        <Card className="mb-6">
+        <Card className="mb-6 bg-slate-900 border-slate-800">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-white">
               <span>{currentTier.name}</span>
-              <span className="text-2xl font-bold text-blue-600">${currentTier.amount}</span>
+              <span className="text-2xl font-bold text-blue-400">${currentTier.amount}</span>
             </CardTitle>
-            <p className="text-gray-600">{currentTier.description}</p>
-            <p className="text-sm text-green-600 font-medium">One-time payment • Lifetime access • No recurring fees</p>
+            <p className="text-slate-400">{currentTier.description}</p>
+            <p className="text-sm text-green-400 font-medium">{tier === 'flo' ? 'Monthly subscription • Cancel anytime' : 'One-time payment • Lifetime access • No recurring fees'}</p>
           </CardHeader>
           <CardContent>
             <Elements stripe={stripePromise} options={{ clientSecret }}>
@@ -179,15 +180,15 @@ export default function Checkout({ tier, onBack }: CheckoutProps) {
         </Card>
 
         <div className="text-center">
-          <Button onClick={onBack} variant="ghost" className="text-gray-600">
+          <Button onClick={onBack} variant="ghost" className="text-slate-400 hover:text-white">
             <ArrowLeft className="mr-2" size={16} />
             Back to Pricing
           </Button>
         </div>
 
         {/* Security Notice */}
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>🔒 Payments are securely processed by Stripe</p>
+        <div className="mt-8 text-center text-sm text-slate-500">
+          <p>Payments are securely processed by Stripe</p>
           <p>Your payment information is never stored on our servers</p>
         </div>
       </div>

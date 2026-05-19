@@ -4,15 +4,13 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Target, TrendingUp, Users, Shield, Check, Star, Mic, MessageCircle, Zap, Award, BookOpen, Crosshair } from "lucide-react";
+import { Target, TrendingUp, Users, Shield, Check, Star, Mic, Zap, Award, BookOpen, Crosshair, GraduationCap, Building2, Trophy } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { FloChat } from "@/components/flo-chat";
 import { Footer } from "@/components/footer";
 import { StableSignUpForm } from "@/components/stable-signup-form";
 import { CerosityLogo } from "@/components/cerosity-logo";
-import { FloVoicePTT } from "@/components/flo-voice-ptt";
-import { FloAvatar } from "@/components/flo-avatar";
 import Checkout from "./checkout";
 
 export default function Landing() {
@@ -60,9 +58,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center border border-slate-700">
-                <CerosityLogo size={24} />
-              </div>
+              <CerosityLogo size={36} />
               <div>
                 <h1 className="text-xl font-bold text-white">Cerosity</h1>
                 <p className="text-xs text-slate-400">AI Mental Performance</p>
@@ -85,74 +81,48 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero — FLO Voice Centerpiece */}
-      <section className="relative pt-20 pb-24 overflow-hidden">
+      {/* Hero — Chat-First */}
+      <section className="relative pt-16 pb-20 overflow-hidden">
         {/* Ambient background effects */}
         <div className="absolute inset-0 bg-gradient-to-b from-blue-950/30 via-slate-950 to-slate-950" />
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-3xl" />
         <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-indigo-600/5 rounded-full blur-2xl" />
         <div className="absolute top-40 right-1/4 w-[300px] h-[300px] bg-purple-600/5 rounded-full blur-2xl" />
 
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Badge className="mb-6 bg-blue-500/10 text-blue-300 border-blue-500/20 px-4 py-1">
-            Agentic AI Coaching — Voice + Chat
-          </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
-            Meet <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">FLO</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-slate-300 mb-4 max-w-2xl mx-auto font-light">
-            Your AI mental performance coach.
-          </p>
-          <p className="text-lg text-slate-400 mb-12 max-w-xl mx-auto">
-            Stern when you need it. Empathetic always. Talk to her — right now.
-          </p>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left — Copy */}
+            <div className="text-center lg:text-left">
+              <Badge className="mb-6 bg-blue-500/10 text-blue-300 border-blue-500/20 px-4 py-1">
+                Agentic AI Coaching — Voice + Chat
+              </Badge>
+              <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
+                Meet <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">FLO</span>
+              </h1>
+              <p className="text-xl md:text-2xl text-slate-300 mb-4 max-w-lg font-light">
+                Your AI mental performance coach.
+              </p>
+              <p className="text-lg text-slate-400 mb-8 max-w-lg">
+                Stern when you need it. Empathetic always. Talk to her — right now.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    const pricingSection = document.getElementById('pricing-section');
+                    if (pricingSection) pricingSection.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-8"
+                >
+                  Get Started Free
+                </Button>
+              </div>
+            </div>
 
-          {/* FLO Avatar */}
-          <div className="mb-8">
-            <FloAvatar size={120} variant="default" animated />
-          </div>
-
-          {/* Voice PTT — The Hero Element */}
-          <div className="mb-12">
-            <FloVoicePTT />
-          </div>
-
-          {/* Secondary: Text chat option */}
-          <div className="flex items-center justify-center gap-6 text-sm text-slate-500 mb-8">
-            <span className="flex items-center gap-2">
-              <Mic className="w-4 h-4 text-blue-400" />
-              Voice coaching
-            </span>
-            <span className="w-px h-4 bg-slate-700" />
-            <span className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-indigo-400" />
-              Text chat below
-            </span>
-          </div>
-
-          <Button
-            size="lg"
-            onClick={() => {
-              const chatSection = document.getElementById('chat-section');
-              if (chatSection) chatSection.scrollIntoView({ behavior: 'smooth' });
-            }}
-            variant="ghost"
-            className="text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500"
-          >
-            Or type to FLO instead
-          </Button>
-        </div>
-      </section>
-
-      {/* Text Chat Section */}
-      <section id="chat-section" className="py-16 bg-slate-900/50 border-t border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-semibold text-white mb-2">Chat with FLO</h2>
-            <p className="text-slate-400">Ask about pressure, focus, confidence — anything mental performance.</p>
-          </div>
-          <div id="main-chat-widget">
-            <FloChat isInlineWidget={true} />
+            {/* Right — Chat widget */}
+            <div id="main-chat-widget">
+              <FloChat isInlineWidget={true} />
+            </div>
           </div>
         </div>
       </section>
@@ -246,18 +216,28 @@ export default function Landing() {
             <h2 className="text-3xl font-bold text-white mb-4">Built for performers who refuse to settle</h2>
             <p className="text-slate-400">FLO coaches across every high-performance domain.</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {[
-              { icon: Target, label: "Golfers", desc: "Tour pros to weekend warriors" },
-              { icon: Award, label: "Team Athletes", desc: "Football, rugby, cricket" },
-              { icon: Users, label: "Coaches", desc: "Amplify your 1-on-1 impact" },
-              { icon: TrendingUp, label: "Business Leaders", desc: "Boardroom performance" },
+              { icon: Target, label: "Individual Athletes", desc: "Golfers, tennis players, runners — own your mental game" },
+              { icon: Award, label: "Team Athletes", desc: "Football, rugby, cricket — perform under team pressure" },
+              { icon: Users, label: "Coaches", desc: "Amplify your 1-on-1 and group coaching impact" },
+              { icon: Trophy, label: "Academies", desc: "Sport academies building mentally resilient athletes" },
+              { icon: GraduationCap, label: "Schools & Universities", desc: "Student-athlete mental performance programmes" },
+              { icon: Building2, label: "Clubs", desc: "Golf clubs, sports clubs — member mental performance" },
             ].map((item) => (
-              <div key={item.label} className="text-center p-6 bg-slate-950 rounded-xl border border-slate-800">
+              <button
+                key={item.label}
+                onClick={() => {
+                  window.scrollTo(0, 0);
+                  setSelectedTier('free');
+                  setShowSignUp(true);
+                }}
+                className="text-center p-6 bg-slate-950 rounded-xl border border-slate-800 hover:border-blue-600 transition-colors cursor-pointer"
+              >
                 <item.icon className="w-8 h-8 text-blue-400 mx-auto mb-3" />
                 <h4 className="font-semibold text-white mb-1">{item.label}</h4>
                 <p className="text-xs text-slate-500">{item.desc}</p>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -443,23 +423,21 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            {/* Tier 1: Free — Try FLO */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {/* Tier 1: Free */}
             <Card className="border border-slate-800 bg-slate-900">
               <CardHeader>
                 <Badge variant="outline" className="w-fit mb-2 border-slate-600 text-slate-300">Start Free</Badge>
-                <CardTitle className="text-2xl text-white">FLO Coach</CardTitle>
-                <CardDescription className="text-base text-slate-400">Try FLO and experience AI mental performance coaching firsthand.</CardDescription>
-                <div className="text-3xl font-bold mt-4 text-white">Free</div>
-                <p className="text-sm text-slate-400 mt-1">Unlimited FLO: $30/mo or $25/mo annually</p>
-                <p className="text-xs text-green-400 font-medium mt-1">Save 17% with annual commitment ($300/yr vs $360)</p>
+                <CardTitle className="text-xl text-white">Free</CardTitle>
+                <CardDescription className="text-sm text-slate-400">Try FLO and experience AI mental performance coaching.</CardDescription>
+                <div className="text-3xl font-bold mt-4 text-white">$0</div>
+                <p className="text-sm text-slate-500 mt-1">No credit card required</p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Access to <strong className="text-white">FLO</strong>, your AI mental performance coach.</span></li>
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Voice & chat coaching sessions.</span></li>
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Core Red2Blue concept library.</span></li>
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Basic Mental Resilience Assessment.</span></li>
+                <ul className="space-y-2">
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>6 FLO messages per session</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Basic mental state assessment</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Red2Blue concept overview</span></li>
                 </ul>
                 <Button variant="outline" className="w-full border-slate-600 text-slate-300 hover:bg-slate-800" onClick={() => {
                   window.scrollTo(0, 0);
@@ -471,30 +449,57 @@ export default function Landing() {
               </CardContent>
             </Card>
 
-            {/* Tier 2: Elite Digital Coaching - BEST VALUE */}
-            <Card className="border-2 border-indigo-500 bg-slate-900 relative transform scale-105 shadow-xl shadow-indigo-500/10">
+            {/* Tier 2: FLO Subscription */}
+            <Card className="border border-blue-800 bg-slate-900">
+              <CardHeader>
+                <Badge variant="outline" className="w-fit mb-2 border-blue-500 text-blue-300">AI Coach</Badge>
+                <CardTitle className="text-xl text-white">FLO</CardTitle>
+                <CardDescription className="text-sm text-slate-400">Unlimited AI mental performance coaching with memory.</CardDescription>
+                <div className="flex items-baseline space-x-1 mt-4">
+                  <span className="text-3xl font-bold text-white">$30</span>
+                  <span className="text-sm text-slate-500">/month</span>
+                </div>
+                <p className="text-xs text-green-400 font-medium mt-1">$25/mo annually — save 17%</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-2">
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Unlimited FLO conversations</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Personalized coaching memory</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Voice & chat sessions</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Daily mood tracking & analytics</span></li>
+                </ul>
+                <Button className="w-full bg-blue-600 hover:bg-blue-500" onClick={() => {
+                  setLocation('/checkout?tier=flo');
+                }}>
+                  Subscribe to FLO
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Tier 3: Elite Digital Coaching - BEST VALUE */}
+            <Card className="border-2 border-indigo-500 bg-slate-900 relative shadow-xl shadow-indigo-500/10">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <Badge className="bg-indigo-600 text-white px-4 py-1 text-sm font-bold">BEST VALUE</Badge>
               </div>
               <CardHeader className="pt-6">
                 <Badge variant="outline" className="w-fit mb-2 border-indigo-500 text-indigo-300">Digital Mastery</Badge>
-                <CardTitle className="text-2xl text-white">Elite Digital Coaching</CardTitle>
-                <CardDescription className="text-base text-slate-400">Complete mindset transformation with full methodology and advanced analytics.</CardDescription>
-                <div className="flex items-baseline space-x-2 mt-4">
+                <CardTitle className="text-xl text-white">Elite Digital</CardTitle>
+                <CardDescription className="text-sm text-slate-400">Complete mindset transformation with certification and analytics.</CardDescription>
+                <div className="flex items-baseline space-x-1 mt-4">
                   <span className="text-3xl font-bold text-white">$590</span>
-                  <span className="text-lg font-normal text-slate-500">one-time</span>
+                  <span className="text-sm text-slate-500">one-time</span>
                 </div>
-                <p className="text-sm text-indigo-400 font-medium mt-1">One-time payment, lifetime access. Plus $99/yr renewal after Year 1.</p>
+                <p className="text-xs text-indigo-400 font-medium mt-1">Lifetime access + $99/yr renewal after Year 1</p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-indigo-950/50 p-3 rounded-lg mb-4 border border-indigo-800/30">
-                  <p className="text-sm font-medium text-indigo-300">Includes Everything in FLO Coach (Tier 1)</p>
+                <div className="bg-indigo-950/50 p-2 rounded-lg border border-indigo-800/30">
+                  <p className="text-xs font-medium text-indigo-300">Everything in FLO, plus:</p>
                 </div>
-                <ul className="space-y-3">
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Complete <strong className="text-white">Red2Blue Certification Track</strong>.</span></li>
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Advanced, personalized performance analytics.</span></li>
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Custom mental training programs (AI-driven).</span></li>
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Priority technical support channel.</span></li>
+                <ul className="space-y-2">
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Red2Blue Certification Track</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Advanced performance analytics</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Custom AI training programs</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Priority support</span></li>
                 </ul>
                 <Button className="w-full bg-indigo-600 hover:bg-indigo-500" onClick={() => {
                   setLocation('/checkout?tier=premium');
@@ -504,25 +509,27 @@ export default function Landing() {
               </CardContent>
             </Card>
 
-            {/* Tier 3: Master Human Coaching */}
-            <Card className="border border-purple-800 bg-slate-900 relative">
+            {/* Tier 4: Master Human Coaching */}
+            <Card className="border border-purple-800 bg-slate-900">
               <CardHeader>
                 <Badge variant="outline" className="w-fit mb-2 border-purple-500 text-purple-300">Elite Partnership</Badge>
-                <CardTitle className="text-2xl text-white">Master Human Coaching</CardTitle>
-                <CardDescription className="text-base text-slate-400">Premium AI integration plus dedicated 1-on-1 human coaching for the fastest results.</CardDescription>
-                <div className="text-3xl font-bold mt-4 text-white">$2,290<span className="text-lg font-normal text-slate-500"> one-time</span></div>
-                <p className="text-sm text-purple-400 font-medium mt-1">One-time payment, lifetime access. Plus $99/yr renewal after Year 1.</p>
+                <CardTitle className="text-xl text-white">Master</CardTitle>
+                <CardDescription className="text-sm text-slate-400">AI + dedicated 1-on-1 human coaching for fastest results.</CardDescription>
+                <div className="flex items-baseline space-x-1 mt-4">
+                  <span className="text-3xl font-bold text-white">$2,290</span>
+                  <span className="text-sm text-slate-500">one-time</span>
+                </div>
+                <p className="text-xs text-purple-400 font-medium mt-1">Lifetime access + $99/yr renewal after Year 1</p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-purple-950/50 p-3 rounded-lg mb-4 border border-purple-800/30">
-                  <p className="text-sm font-medium text-purple-300">Includes Everything in Elite Digital (Tier 2)</p>
+                <div className="bg-purple-950/50 p-2 rounded-lg border border-purple-800/30">
+                  <p className="text-xs font-medium text-purple-300">Everything in Elite Digital, plus:</p>
                 </div>
-                <ul className="space-y-3">
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Dedicated <strong className="text-white">Master Red2Blue Coach</strong> matching.</span></li>
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Five <strong className="text-white">1-on-1 Private F2F/Virtual</strong> sessions.</span></li>
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Exclusive <strong className="text-white">VIP Support</strong> and direct communication.</span></li>
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Custom integration data pipeline.</span></li>
-                  <li className="flex items-start text-base text-slate-300"><Check className="w-5 h-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><span>Official Athlete Certification hard copy.</span></li>
+                <ul className="space-y-2">
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Dedicated Master R2B Coach</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>5x private 1-on-1 sessions</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>VIP direct communication</span></li>
+                  <li className="flex items-start text-sm text-slate-300"><Check className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /><span>Official Athlete Certification</span></li>
                 </ul>
                 <Button className="w-full bg-purple-600 hover:bg-purple-500" onClick={() => {
                   setLocation('/checkout?tier=ultimate');
@@ -1072,6 +1079,7 @@ function SignInFormContent({ onBack, onBackToLanding }: { onBack: () => void; on
 }
 
 function SignInForm({ onBack }: { onBack: () => void }) {
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: "",
@@ -1086,9 +1094,9 @@ function SignInForm({ onBack }: { onBack: () => void }) {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({
         title: "Welcome back!",
-        description: "You have successfully signed in.",
+        description: "Redirecting to your dashboard...",
       });
-      setTimeout(() => { window.location.reload(); }, 1000);
+      setTimeout(() => { setLocation('/'); }, 500);
     },
     onError: (error: any) => {
       toast({
@@ -1109,9 +1117,7 @@ function SignInForm({ onBack }: { onBack: () => void }) {
       <Card className="w-full max-w-md bg-slate-900 border-slate-800 shadow-2xl shadow-blue-950/20">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 rounded-full overflow-hidden">
-              <CerosityLogo size={48} />
-            </div>
+            <CerosityLogo size={48} />
             <div>
               <h1 className="text-2xl font-bold text-white">Cerosity</h1>
               <p className="text-sm text-slate-400">AI Mental Performance</p>
@@ -1121,6 +1127,27 @@ function SignInForm({ onBack }: { onBack: () => void }) {
           <CardDescription className="text-slate-400">Sign in to continue your performance journey</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Google SSO */}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full mb-4 border-slate-700 text-slate-300 hover:bg-slate-800 flex items-center justify-center gap-2"
+            onClick={() => {
+              toast({
+                title: "Google Sign-In",
+                description: "Google SSO is being configured. Please use email sign-in for now.",
+              });
+            }}
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Sign in with Google
+          </Button>
+
+          <div className="relative mb-4">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-700" /></div>
+            <div className="relative flex justify-center text-xs"><span className="bg-slate-900 px-2 text-slate-500">or sign in with email</span></div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
@@ -1146,22 +1173,19 @@ function SignInForm({ onBack }: { onBack: () => void }) {
               />
             </div>
 
-            <div className="flex space-x-3">
-              <Button type="button" variant="outline" onClick={onBack}
-                className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800">
-                Back
-              </Button>
-              <Button type="submit" disabled={loginMutation.isPending}
-                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white">
-                {loginMutation.isPending ? "Signing In..." : "Sign In"}
-              </Button>
-            </div>
+            <Button type="submit" disabled={loginMutation.isPending}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white">
+              {loginMutation.isPending ? "Signing In..." : "Sign In"}
+            </Button>
 
-            <div className="text-center">
+            <div className="flex justify-between items-center">
+              <button type="button" onClick={onBack} className="text-sm text-slate-500 hover:text-slate-300">
+                ← Back
+              </button>
               <p className="text-sm text-slate-500">
-                Don't have an account?{" "}
+                No account?{" "}
                 <button type="button" onClick={onBack} className="text-blue-400 hover:text-blue-300 font-medium">
-                  Sign up here
+                  Sign up
                 </button>
               </p>
             </div>

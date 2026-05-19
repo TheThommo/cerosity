@@ -1,0 +1,122 @@
+[
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "History",
+    "subcategory": "Origins",
+    "title": "Origins of Golf in Scotland",
+    "content": "Golf originated on the eastern coast of Scotland during the 15th century. The earliest written reference is a 1457 Act of the Scottish Parliament by King James II banning golf because it distracted men from archery practice for national defence. The ban was repeated in 1471 and 1491 before being lifted after the Treaty of Glasgow in 1502.\n\nThe Old Course at St Andrews, often called the home of golf, has been played since at least the early 1400s. Its 18-hole layout became the standard — originally the course had 22 holes, reduced to 18 in 1764 when four short holes were combined into two. This arbitrary decision shaped every golf course built since.\n\nThe Royal and Ancient Golf Club of St Andrews was founded in 1754 and became the sport's governing body alongside the USGA (founded 1894). Early golf was played with leather balls stuffed with feathers (featheries), replaced by gutta-percha balls in 1848, then rubber-core Haskell balls from 1898.\n\nGolf's mental dimension has been recognised from the start. Old Tom Morris, four-time Open Champion in the 1860s, understood that composure under pressure separated champions from talented strikers. The Red2Blue framework echoes this — the game has always demanded Blue Head clarity alongside physical skill.",
+    "metadata": { "era": "15th_century_onwards", "location": "Scotland", "skill_level": "all" },
+    "source": "R&A Heritage; British Golf Museum, St Andrews; 'A History of Golf' by Robert Browning"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "History",
+    "subcategory": "Major Championships",
+    "title": "The Four Major Championships",
+    "content": "Professional golf's four Majors are the pinnacle of competitive achievement. The Masters (Augusta National, April), the PGA Championship (rotating US venues, May), the US Open (rotating US venues, June), and The Open Championship (links courses in the UK, July) form the Grand Slam calendar.\n\nThe Open Championship is the oldest, first played at Prestwick in 1860. The US Open began in 1895, the PGA Championship in 1916, and the Masters in 1934. Only five men have won all four in their career: Gene Sarazen, Ben Hogan, Gary Player, Jack Nicklaus, and Tiger Woods.\n\nEach Major tests different skills. The Masters rewards course knowledge and creativity on Augusta's contoured greens. The US Open demands precision under the USGA's punishing setups — narrow fairways, deep rough, firm greens. The Open challenges links golf skills — wind management, bump-and-run shots, and mental resilience across exposed terrain. The PGA Championship typically plays as a fair test of all-round excellence on strong parkland courses.\n\nFor athletes, Majors are where pressure peaks. Blue Head thrives in these environments because the process stays the same regardless of the occasion. Red Head gets overwhelmed by the magnitude. Blue Head says: this is a 7-iron to a flag, same process.",
+    "metadata": { "events": ["Masters", "PGA Championship", "US Open", "The Open"], "career_grand_slam_holders": 5 },
+    "source": "Masters.com; TheOpen.com; USGA.org; PGA.com"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "History",
+    "subcategory": "Women's Golf",
+    "title": "Women's Golf — Breaking Barriers",
+    "content": "Women's competitive golf has a rich history often overshadowed by the men's game. The Ladies' Golf Union (now merged into the R&A) was founded in 1893, making women's golf one of the earliest organised women's sports. The first Women's British Open Amateur was held that same year.\n\nThe LPGA Tour was founded in 1950 by 13 pioneering players, including Babe Zaharias, one of the greatest multi-sport athletes in history. The tour grew through the contributions of players like Mickey Wright (82 wins, widely considered the finest swing in golf history), Kathy Whitworth (88 wins, the all-time professional wins record across any gender), and Annika Sorenstam, who dominated from the late 1990s through 2008.\n\nWomen's golf has five Major championships: the Chevron Championship, the Women's PGA Championship, the US Women's Open, the Women's Open (formerly Ricoh Women's British Open), and the Evian Championship. Prize money has grown significantly but still trails the men's game.\n\nThe R&A's Women in Golf Charter, launched in 2018, committed clubs and organisations to making golf more inclusive. Participation data shows women represent roughly 24 percent of golfers worldwide, up from 19 percent in 2016. Mental performance coaching is equally relevant — Red Head and Blue Head operate the same regardless of gender. Pressure is universal.",
+    "metadata": { "lpga_founded": "1950", "women_in_golf_charter": "2018", "participation_pct": "24" },
+    "source": "LPGA.com; R&A Women in Golf Charter; 'The Illustrated History of Women's Golf' by Rhonda Glenn"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Discipline",
+    "subcategory": "Etiquette",
+    "title": "On-Course Etiquette and Spirit of the Game",
+    "content": "Golf is unique among major sports: players are expected to call penalties on themselves. There is no referee following every group. Rule 1.2 states that all players are expected to play in the spirit of the game — acting with integrity, showing consideration, and playing at a good pace. This self-governance is foundational to golf's culture.\n\nKey etiquette rules every golfer should know: repair your pitch marks on the green, rake bunkers after playing from them, replace or fill divots on the fairway, keep pace with the group ahead, and stand still and stay quiet when another player is addressing the ball. On the green, avoid stepping on another player's line to the hole.\n\nReady golf — playing when ready rather than strict order of play — is now encouraged in stroke play to improve pace. This means hitting when safe to do so, even if you are not technically farthest from the hole.\n\nMobile phones should be on silent. Cart paths should be followed where directed. Dress codes vary by club but generally require collared shirts and appropriate footwear.\n\nThe mental performance connection: etiquette reduces friction between playing partners. When everyone follows the code, Red Head triggers (being distracted by movement, noise, or slow partners) are minimised. Blue Head stays focused when the environment is respected.",
+    "metadata": { "rule_reference": "Rule 1.2", "skill_level": "beginner" },
+    "source": "R&A/USGA Rules of Golf, Rule 1.2 and Etiquette Section, 2023 Edition"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Discipline",
+    "subcategory": "Pace of Play",
+    "title": "Pace of Play and Managing Slow Rounds",
+    "content": "Slow play is one of the biggest frustrations in golf. The R&A and USGA recommend an 18-hole round should take no longer than four hours for a fourball. Many clubs enforce pace of play policies with warnings and penalties for groups that fall behind.\n\nTips for maintaining pace: be ready to play when it is your turn, limit practice swings to one or two, begin reading your putt while others are putting, walk briskly between shots, and play a provisional ball when your ball may be lost or out of bounds rather than walking back later.\n\nThe 40-second rule applies in professional golf: each shot should be played within 40 seconds of it being your turn (or 50 seconds for the first player in the group to play). While club golfers rarely face formal time limits, adopting this mindset improves both pace and mental performance.\n\nSlow play often triggers Red Head. Waiting around between shots lets anxiety build, internal chatter ramps up, and focus drifts to score rather than process. Blue Head handles slow rounds by using waiting time constructively — stretching, breathing, observing conditions — rather than stewing. If you are in a slow group, control what you can: your readiness, your routine, your breath. Accept what you cannot control and commit to the next shot when it comes.",
+    "metadata": { "recommended_round_time": "4 hours", "shot_clock": "40 seconds", "skill_level": "all" },
+    "source": "R&A/USGA Pace of Play Manual; PGA Tour Rule 5.6, 2023"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Mental Performance",
+    "subcategory": "Pre-Shot Routine",
+    "title": "The Pre-Shot Routine",
+    "content": "A pre-shot routine is the single most important mental tool in golf. It creates a consistent entry point into Blue Head before every shot, regardless of the situation — whether it is a casual par 3 or the 72nd hole of a Major.\n\nA complete routine has three phases. First, the decision phase: assess the lie, distance, wind, hazards, and commit to a specific target and shot shape. This is where strategy lives. Second, the rehearsal phase: take a practice swing that matches the shot you have committed to, feeling the tempo and contact. Third, the execution phase: address the ball, take one final look at the target, and go. No extra waggles, no second-guessing.\n\nThe routine should take the same amount of time every shot — typically 15 to 25 seconds from stepping into the ball to starting the swing. Consistency in timing prevents Red Head from hijacking the process. When you notice your routine getting longer, it means doubt is creeping in. Reset: step away, recommit, re-enter.\n\nTour professionals like Tiger Woods and Annika Sorenstam are famous for the precision of their routines. The routine is not superstition — it is a deliberate cognitive framework that narrows attention, reduces anxiety, and channels focus toward a single committed action. Blue Head lives inside the routine.",
+    "metadata": { "pressure_moment": "all_shots", "technique": "routine", "skill_level": "all" },
+    "source": "Rotella, Bob. 'Golf is Not a Game of Perfect' (1995); R2B Core Methodology"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Mental Performance",
+    "subcategory": "Putting Pressure",
+    "title": "The Three-Footer to Win — Putting Under Pressure",
+    "content": "Short putts under pressure expose the gap between Red Head and Blue Head more starkly than any other shot in golf. A three-foot putt has a 95 percent make rate on the PGA Tour in normal conditions. In high-pressure moments — to win a match, close out a round, or save par after a recovery — that rate drops measurably.\n\nRed Head on a pressure putt: grip tightens, breathing shallows, eyes dart between ball and hole, internal voice says don't miss. The stroke becomes a stab rather than a stroke. Deceleration kills the putt.\n\nBlue Head protocol for pressure putts: read the line once and commit. Pick a spot on your line one inch in front of the ball — roll the ball over that spot. Take two practice strokes matching the length you need. Address the ball, eyes to the spot, stroke through. Do not look up early.\n\nThe physical cue that matters most is grip pressure. On a scale of 1 to 10, your grip should be a 4 — firm enough to control the putter but soft enough for feel. Red Head pushes grip pressure to 7 or 8. Before addressing a pressure putt, consciously soften your hands.\n\nBreath is your reset. One slow exhale before addressing the ball lowers your heart rate and re-engages Blue Head. The putt is the same stroke you have made thousands of times on the practice green. Trust it.",
+    "metadata": { "pressure_moment": "putting", "technique": "grip_pressure_breath", "pga_tour_make_rate_3ft": "95%", "skill_level": "all" },
+    "source": "Pelz, Dave. 'Putt Like the Pros' (2000); R2B Pressure Moment Framework"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Mental Performance",
+    "subcategory": "First Tee",
+    "title": "First Tee Nerves and Anxiety Management",
+    "content": "First tee nerves affect every golfer — from beginners to Major winners. The physiological response is identical: elevated heart rate, shallow breathing, muscle tension, narrowed peripheral vision. This is Red Head activation — the body's fight-or-flight response treating a golf shot like a threat.\n\nThe key insight: nerves and excitement produce the same physical sensations. Blue Head reframes the experience. Instead of 'I am nervous' say 'I am ready.' The adrenaline that makes your hands shake can also sharpen your focus and add yards to your drive — if you channel it.\n\nPractical first tee routine: arrive at the tee with time to spare. Take three deep belly breaths — inhale for 4 counts, hold for 2, exhale for 6. Loosen your grip on the club. Pick a specific target — not the fairway but a tree, a bunker edge, a yardage marker. Commit to your shot shape. Run your standard pre-shot routine exactly as you would on the range.\n\nAvoid the common Red Head trap of trying to impress playing partners with a perfect drive. The first hole is one of eighteen. A fairway with a 7-iron off the tee is worth more than a sliced driver into the trees. Blue Head picks the smart play, not the ego play.\n\nPhysical warm-up matters too. Hit balls on the range for 15 to 20 minutes before your round, starting with wedges and building to driver. A body that has already made golf swings is less susceptible to tension.",
+    "metadata": { "pressure_moment": "first_tee", "technique": "breathing_reframe", "skill_level": "all" },
+    "source": "Gallwey, W. Timothy. 'The Inner Game of Golf' (1998); R2B Activation Management"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Mental Performance",
+    "subcategory": "Closing Out",
+    "title": "Back Nine Lead — Closing Out a Round",
+    "content": "Leading a competition on the back nine is one of golf's hardest mental challenges. The scoreboard becomes visible, the maths becomes real, and Red Head starts calculating: if I par in from here, I win by two. This projection into the future is the enemy of Blue Head execution.\n\nThe back nine lead triggers two Red Head patterns. Protective play: aiming for the centre of every green, taking irons off tees, avoiding any risk — which often leads to tentative swings and worse results. Score projection: mentally playing holes 14 through 18 before you have hit the shot in front of you.\n\nBlue Head closes out rounds by staying in the present shot. Your commitment level should not change because you lead by three with four to play. The same process that built the lead will protect it. Hit to your targets, execute your routine, play one shot at a time.\n\nIf you feel your body tightening on the back nine, use the walk between shots to reset. Slow your walking pace slightly, drop your shoulders, unclench your jaw. These physical resets send signals to your nervous system that there is no threat.\n\nMany club golfers struggle more with closing than with chasing. The reason is cognitive: when chasing, you have nothing to lose and Blue Head plays freely. When protecting a lead, Red Head adds weight to every shot. Recognise this pattern and name it: I am in protection mode. I choose commitment mode instead.",
+    "metadata": { "pressure_moment": "back_nine_lead", "technique": "present_shot_focus", "skill_level": "intermediate" },
+    "source": "Cohn, Patrick. 'The Mental Game of Golf' (2002); R2B Commitment Model"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Mental Performance",
+    "subcategory": "Bunker Pressure",
+    "title": "Bunker Pressure — Committing to Sand Shots",
+    "content": "Greenside bunker shots under pressure reveal commitment levels immediately. The swing mechanics are straightforward — open clubface, hit two inches behind the ball, accelerate through. But Red Head introduces doubt: what if I blade it over the green, what if I leave it in.\n\nThe physical marker of Red Head in a bunker is deceleration. The player starts the downswing but pulls back before impact, either leaving the ball in the sand or catching it thin. Deceleration is fear made visible in the swing.\n\nBlue Head protocol for pressure bunkers: assess the lie (is the ball sitting up, plugged, or on a downslope), pick your landing spot on the green, commit to the length of swing you need, and accelerate through the sand. The splash of sand after the ball tells you the swing was committed.\n\nA practical drill: in practice, draw a line in the sand two inches behind the ball. Your only job is to enter the sand on that line and exit past the ball. The ball gets in the way of the sand splash — you do not hit the ball directly. This reframing removes the fear of contact.\n\nGrip pressure matters as much in bunkers as in putting. Soft hands allow the bounce of the wedge to work through the sand. Tight hands dig the leading edge and produce inconsistent results. Before each bunker shot, consciously soften your grip to a 4 out of 10.",
+    "metadata": { "pressure_moment": "bunker_recovery", "technique": "commitment_acceleration", "skill_level": "all" },
+    "source": "Utley, Stan. 'The Art of the Short Game' (2007); R2B Commitment in Pressure Moments"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Mental Performance",
+    "subcategory": "External Disruptions",
+    "title": "Slow Play Stress — Maintaining Focus Through Disruptions",
+    "content": "Slow play is the most common external Red Head trigger in club golf. When the group ahead is slow and your group is waiting on every shot, frustration builds, focus scatters, and scores suffer. The problem is not the slow play itself — it is your response to it.\n\nRed Head in a slow round: complaining to playing partners, rushing shots when the fairway finally clears (overcompensating for lost time), losing your pre-shot routine, checking your watch constantly, and allowing irritation to leak into your body as tension.\n\nBlue Head treats slow play as a mental training ground. You cannot control the group ahead. You can control three things: your readiness (be ready to play the moment it is your turn), your routine (run it identically regardless of wait time), and your internal state (use waiting time for breathing, stretching, and course observation rather than frustration).\n\nPractical technique: during a wait, pick a distant object and do a 30-second focus exercise. Look at the object with soft eyes, notice details, then shift attention to your breath. This trains the attention muscle that you will need for your next shot.\n\nIf you feel frustration rising, name it without judgment: I notice I am frustrated. This labelling activates prefrontal cortex processing rather than amygdala-driven reactivity. Naming the emotion creates space between stimulus and response — the space where Blue Head lives.",
+    "metadata": { "pressure_moment": "slow_play", "technique": "attention_training_labelling", "skill_level": "all" },
+    "source": "Csikszentmihalyi, Mihaly. 'Flow' (1990); R2B Attention Training"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Mental Performance",
+    "subcategory": "Recovery",
+    "title": "Recovery After a Double Bogey — The Mental Reset",
+    "content": "How you respond to a bad hole defines your round more than the bad hole itself. A double bogey is two shots. The emotional spiral that follows can cost five or six. Red Head's response to a double bogey is predictable: anger, self-blame, mechanical tinkering, score catastrophising, and pressing on the next hole to get the shots back.\n\nBlue Head recognises that in an 18-hole round, one double bogey is statistically normal for a mid-handicapper and not unusual for a single-figure player. The data shows that most rounds are decided by three or four key shots — and recovery shots after mistakes are often among them.\n\nThe reset protocol has three steps. First, physical: on the walk from the green to the next tee, take three deep breaths and consciously drop your shoulders. Release the club from your hands and shake them loose. Second, cognitive: park the score. You do not need to think about the double bogey again until your post-round review. The hole is over. Third, commitment: on the next tee, run your full pre-shot routine. Do not change your game plan. The temptation to get the shots back leads to reckless play and compounds the damage.\n\nA useful reframe: you did not lose two shots. You played one difficult hole. The next holes are a fresh opportunity. Blue Head plays forward, not backward.",
+    "metadata": { "pressure_moment": "post_bad_hole", "technique": "three_step_reset", "skill_level": "all" },
+    "source": "Rotella, Bob. 'Golf is Not a Game of Perfect' (1995); R2B Recovery Protocol"
+  }
+]

@@ -81,8 +81,8 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero — Chat-First */}
-      <section className="relative pt-16 pb-20 overflow-hidden">
+      {/* Hero — Copy | FLO Cutout | Chat */}
+      <section className="relative pt-12 pb-16 lg:pt-16 lg:pb-20 overflow-hidden">
         {/* Ambient background effects */}
         <div className="absolute inset-0 bg-gradient-to-b from-blue-950/30 via-slate-950 to-slate-950" />
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-3xl" />
@@ -90,19 +90,20 @@ export default function Landing() {
         <div className="absolute top-40 right-1/4 w-[300px] h-[300px] bg-purple-600/5 rounded-full blur-2xl" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Desktop: 3 columns — copy | FLO | chat */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-8 lg:gap-6 items-center">
             {/* Left — Copy */}
-            <div className="text-center lg:text-left">
+            <div className="text-center lg:text-left order-1">
               <Badge className="mb-6 bg-blue-500/10 text-blue-300 border-blue-500/20 px-4 py-1">
                 Agentic AI Coaching — Voice + Chat
               </Badge>
-              <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight">
                 Meet <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">FLO</span>
               </h1>
-              <p className="text-xl md:text-2xl text-slate-300 mb-4 max-w-lg font-light">
+              <p className="text-lg md:text-xl text-slate-300 mb-4 max-w-sm mx-auto lg:mx-0 font-light">
                 Your AI mental performance coach.
               </p>
-              <p className="text-lg text-slate-400 mb-8 max-w-lg">
+              <p className="text-base text-slate-400 mb-8 max-w-sm mx-auto lg:mx-0">
                 Stern when you need it. Empathetic always. Talk to her — right now.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -119,8 +120,18 @@ export default function Landing() {
               </div>
             </div>
 
+            {/* Center — FLO transparent cutout */}
+            <div className="order-2 flex justify-center">
+              <img
+                src="/flo/flo-hero.png"
+                alt="FLO — AI Mental Performance Coach"
+                className="w-[220px] md:w-[280px] lg:w-[320px] object-contain drop-shadow-2xl select-none pointer-events-none"
+                draggable={false}
+              />
+            </div>
+
             {/* Right — Chat widget */}
-            <div id="main-chat-widget">
+            <div id="main-chat-widget" className="order-3">
               <FloChat isInlineWidget={true} />
             </div>
           </div>

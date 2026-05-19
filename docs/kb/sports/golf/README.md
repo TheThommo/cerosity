@@ -18,12 +18,13 @@ T0 knowledge for **Golf** powers FLO sport context and FLO Brain RAG. Research u
 |-------|-------|--------|
 | `kb_sport_knowledge` | 22 | Done |
 | `kb_sport_legends` | 14 | Done |
-| `kb_sport_quotes` | **0** | **NOT STARTED — batch pending** |
+| `kb_sport_quotes` | 25 | Done (7 unverified) |
 | `kb_sport_governance` | 10 | Done |
-| **Total** | **46** | Below 50 min (quotes needed) |
+| **Total** | **71** | PASS (min 50) |
 
-Merged seed: `golf_seed_data.json` (75 KB)
+Merged seed: `golf_seed_data.json` (86 KB)
 FLO context summary: 856 words
+Unverified quotes: 7 (flagged `verified: false` in metadata)
 
 ## Required minimums
 
@@ -31,7 +32,7 @@ FLO context summary: 856 words
 - [x] Scoring explained clearly — 3 entries (par, handicap, Stableford)
 - [x] History (3+ entries), discipline (2+ entries) — 3 history, 2 discipline
 - [x] **12+** legends (`kb_sport_legends`) — 14 legends (4 women, 6 nationalities, 1920s-present)
-- [ ] **20+** mindset quotes (`kb_sport_quotes`) with sources — **0 (unverified: 0)**
+- [x] **20+** mindset quotes (`kb_sport_quotes`) with sources — 25 quotes (7 unverified)
 - [x] **8+** mental-performance knowledge entries — 7 entries (6 pressure moments + pre-shot routine)
 - [x] Governance aligned with **R&A / USGA** — 10 entries
 

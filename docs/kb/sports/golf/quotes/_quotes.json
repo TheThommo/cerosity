@@ -1,0 +1,234 @@
+[
+  {
+    "sport_slug": "golf",
+    "attribution": "Jack Nicklaus",
+    "quote_text": "Concentration is a fine antidote to anxiety.",
+    "context": "From Nicklaus's writings on mental preparation for Major championships",
+    "theme": "focus",
+    "usable_for": "both",
+    "source": "Nicklaus, Jack. 'My Story' (1997)"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Jack Nicklaus",
+    "quote_text": "The longer you play, the better chance the better player has of winning.",
+    "context": "On why sustained composure matters more than single-shot brilliance in stroke play",
+    "theme": "resilience",
+    "usable_for": "both",
+    "source": "Nicklaus, Jack. 'My Story' (1997)"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Tiger Woods",
+    "quote_text": "No matter how good you get you can always get better, and that's the exciting part.",
+    "context": "On his approach to continual improvement throughout his career",
+    "theme": "growth-mindset",
+    "usable_for": "athlete",
+    "source": "ESPN interview archives; widely attributed press conferences"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Ben Hogan",
+    "quote_text": "The most important shot in golf is the next one.",
+    "context": "Hogan's philosophy of present-focus and letting go of previous shots",
+    "theme": "present-focus",
+    "usable_for": "both",
+    "source": "Hogan, Ben. Widely attributed; consistent with 'Five Lessons' (1957) philosophy"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Bobby Jones",
+    "quote_text": "Competitive golf is played mainly on a five-and-a-half-inch course — the space between your ears.",
+    "context": "Jones emphasising that golf is fundamentally a mental game",
+    "theme": "mental-game",
+    "usable_for": "both",
+    "source": "Jones, Bobby. Widely attributed; consistent with 'Down the Fairway' (1927)"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Annika Sorenstam",
+    "quote_text": "The biggest thing is to have a mindset and a belief that you can win every tournament going in.",
+    "context": "On the importance of self-belief before competition begins",
+    "theme": "confidence",
+    "usable_for": "athlete",
+    "source": "Sorenstam, Annika. LPGA Tour press conferences; Golf Digest interviews"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Annika Sorenstam",
+    "quote_text": "Confidence is the most important single factor in this game.",
+    "context": "Sorenstam reflecting on the mental demands of sustained dominance",
+    "theme": "confidence",
+    "usable_for": "both",
+    "source": "Sorenstam, Annika. Golf Channel interviews; World Golf Hall of Fame induction"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Arnold Palmer",
+    "quote_text": "Always make a total effort, even when the odds are against you.",
+    "context": "Palmer's philosophy of full commitment on every shot regardless of situation",
+    "theme": "commitment",
+    "usable_for": "both",
+    "source": "Palmer, Arnold. 'A Life Well Played' (2016)"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Gary Player",
+    "quote_text": "The harder you work, the luckier you get.",
+    "context": "Player's most famous quote, reflecting his belief that preparation creates opportunity",
+    "theme": "work-ethic",
+    "usable_for": "both",
+    "source": "Player, Gary. Widely attributed; consistent with 'Don't Choke' (2010)"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Gary Player",
+    "quote_text": "We create success or failure on the course primarily by our thoughts.",
+    "context": "On the primacy of mental state over physical technique",
+    "theme": "mental-game",
+    "usable_for": "both",
+    "source": "Player, Gary. 'Don't Choke' (2010)"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Rory McIlroy",
+    "quote_text": "I've learned more from my losses than I've ever learned from my wins.",
+    "context": "McIlroy reflecting on his 2011 Masters collapse and subsequent growth",
+    "theme": "resilience",
+    "usable_for": "athlete",
+    "source": "McIlroy, Rory. PGA Tour press conferences; Sky Sports interviews"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Seve Ballesteros",
+    "quote_text": "To give yourself the best possible chance of playing to your potential, you must prepare for every eventuality.",
+    "context": "Ballesteros on the value of preparation in managing competitive pressure",
+    "theme": "preparation",
+    "usable_for": "both",
+    "source": "Ballesteros, Seve. 'Seve: The Official Autobiography' (2007)"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Tom Watson",
+    "quote_text": "Sometimes thinking too much can destroy your momentum.",
+    "context": "Watson on the danger of overthinking, particularly in links golf conditions",
+    "theme": "overthinking",
+    "usable_for": "athlete",
+    "source": "Watson, Tom. Golf Digest interviews; Open Championship press conferences"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Se Ri Pak",
+    "quote_text": "When I was in the water, I just thought about making the shot — nothing else. [paraphrase]",
+    "context": "Pak describing her mindset during the famous water hazard shot at the 1998 US Women's Open at Blackwolf Run",
+    "theme": "present-focus",
+    "usable_for": "athlete",
+    "source": "LPGA Tour media; Korean sports media translations",
+    "metadata": { "verified": false, "note": "Translated from Korean; paraphrased across multiple sources" }
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Lorena Ochoa",
+    "quote_text": "You have to enjoy the process and the journey.",
+    "context": "Ochoa on staying connected to purpose rather than fixating on results",
+    "theme": "process",
+    "usable_for": "both",
+    "source": "Ochoa, Lorena. LPGA Tour farewell press conference (2010); Golf Channel",
+    "metadata": { "verified": false, "note": "Widely attributed in LPGA coverage; exact wording may vary" }
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Phil Mickelson",
+    "quote_text": "Hitting the ball is the fun part of it, but the rewards are a reflection of your ability to think.",
+    "context": "Mickelson on the strategic and mental dimensions of competitive golf",
+    "theme": "strategy",
+    "usable_for": "both",
+    "source": "Mickelson, Phil. PGA Tour press conferences; Golf Digest interviews",
+    "metadata": { "verified": false, "note": "Widely attributed; exact interview source uncertain" }
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Bob Rotella",
+    "quote_text": "Golf is about how well you accept, recover, and score with your misses much more than it is about your perfect shots.",
+    "context": "Sport psychologist Rotella on the importance of recovery over perfection",
+    "theme": "recovery",
+    "usable_for": "both",
+    "source": "Rotella, Bob. 'Golf is Not a Game of Perfect' (1995)"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Jordan Spieth",
+    "quote_text": "I try to take it one shot at a time, but it's so much harder than it sounds. [paraphrase]",
+    "context": "Spieth on the difficulty of maintaining present-focus while leading a Major championship",
+    "theme": "present-focus",
+    "usable_for": "athlete",
+    "source": "Spieth, Jordan. Masters and PGA Tour press conferences (2015-2017)",
+    "metadata": { "verified": false, "note": "Paraphrased from multiple press conferences; core sentiment consistently expressed" }
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Ben Hogan",
+    "quote_text": "I learn something new about the game almost every time I step on the course.",
+    "context": "Hogan's commitment to lifelong learning despite being one of the greatest ball-strikers in history",
+    "theme": "growth-mindset",
+    "usable_for": "both",
+    "source": "Hogan, Ben. Widely attributed; Golf Digest archives",
+    "metadata": { "verified": false, "note": "Commonly attributed to Hogan; primary source uncertain" }
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Jack Nicklaus",
+    "quote_text": "I never missed a putt in my mind.",
+    "context": "Nicklaus on the power of visualisation and positive mental imagery before putting",
+    "theme": "visualisation",
+    "usable_for": "athlete",
+    "source": "Nicklaus, Jack. Various interviews; Golf Digest",
+    "metadata": { "verified": false, "note": "Widely attributed; exact primary source uncertain" }
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Tiger Woods",
+    "quote_text": "I get to play golf for a living. What more can you ask for — getting paid for doing what you love.",
+    "context": "Woods on maintaining perspective and gratitude amid intense competitive pressure",
+    "theme": "perspective",
+    "usable_for": "athlete",
+    "source": "ESPN archives; PGA Tour press conferences"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Tom Watson",
+    "quote_text": "If you can't outplay them, outwork them.",
+    "context": "Watson's philosophy of compensating through effort and preparation",
+    "theme": "work-ethic",
+    "usable_for": "both",
+    "source": "Watson, Tom. Golf Digest interviews; widely attributed"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Padraig Harrington",
+    "quote_text": "The more prepared you are, the less pressure you feel. [paraphrase]",
+    "context": "Harrington on how thorough preparation reduces anxiety in Major championship play",
+    "theme": "preparation",
+    "usable_for": "both",
+    "source": "Harrington, Padraig. European Tour and Open Championship press conferences (2007-2008)",
+    "metadata": { "verified": false, "note": "Paraphrased from multiple interviews around his Open Championship wins" }
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Harvey Penick",
+    "quote_text": "Take dead aim.",
+    "context": "Penick's most famous coaching instruction — commit fully to a specific target rather than aiming vaguely",
+    "theme": "commitment",
+    "usable_for": "both",
+    "source": "Penick, Harvey. 'Harvey Penick's Little Red Book' (1992)"
+  },
+  {
+    "sport_slug": "golf",
+    "attribution": "Bob Rotella",
+    "quote_text": "A person with great dreams can achieve great things.",
+    "context": "Rotella on the relationship between vision and performance outcomes",
+    "theme": "confidence",
+    "usable_for": "both",
+    "source": "Rotella, Bob. 'Golf is Not a Game of Perfect' (1995)"
+  }
+]

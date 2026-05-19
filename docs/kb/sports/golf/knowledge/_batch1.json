@@ -1,0 +1,102 @@
+[
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Rules",
+    "subcategory": "Fundamentals",
+    "title": "Basic Rules of Golf",
+    "content": "Golf is played by striking a ball with a club from the teeing area into the hole on each of the 18 holes in as few strokes as possible. The player who completes the round in the fewest total strokes wins in stroke play; in match play, each hole is a separate contest.\n\nYou must play the ball as it lies — no improving your lie, line of play, or stance unless the Rules specifically allow it. You may not move, bend, or break anything growing or fixed except in taking your normal stance or making your swing. If your ball is unplayable, you always have the option to take relief under penalty.\n\nEvery stroke counts, including penalty strokes. A round begins at the first teeing area and ends when you hole out on the final green. You must use conforming clubs (maximum 14 in your bag) and a conforming ball. Touching or testing the surface of a bunker or penalty area before your stroke is now permitted under the 2019 modernised Rules, though deliberately testing conditions remains prohibited.\n\nThe Rules of Golf are jointly governed by the R&A and the USGA. The current edition took effect January 2023 and simplified many procedures including dropping from knee height, relaxed penalty area rules, and removal of penalties for accidentally moving a ball on the putting green.",
+    "metadata": { "rule_edition": "2023", "governing_body": "R&A/USGA", "skill_level": "beginner" },
+    "source": "R&A/USGA Rules of Golf, 2023 Edition"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Formats",
+    "subcategory": "Stroke Play",
+    "title": "Stroke Play Format",
+    "content": "Stroke play is the most common competitive format. Your total score across all 18 holes (or 36, 54, 72 in multi-round events) determines your finishing position. Every stroke and penalty counts toward a single cumulative total. The player with the lowest gross score wins.\n\nIn stroke play, you must hole out on every hole — there is no conceding putts. If you fail to hole out and do not correct the error before teeing off the next hole, you are disqualified. This makes every shot consequential and demands consistent mental focus across an entire round.\n\nA key mental challenge in stroke play is that one disastrous hole can wreck your scorecard. The Red2Blue approach helps here: when you make a triple bogey, your Red Head screams that the round is ruined. Blue Head recognises it is one hole of eighteen. Process over outcome — commit to the next shot, not the last score.\n\nNet stroke play adjusts gross scores using handicap strokes allocated to specific holes. This allows players of different abilities to compete fairly. Handicap strokes are received on the holes rated most difficult (highest stroke index).",
+    "metadata": { "format": "stroke_play", "rule_reference": "Rule 3.1", "skill_level": "all" },
+    "source": "R&A/USGA Rules of Golf, Rule 3.1, 2023 Edition"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Formats",
+    "subcategory": "Match Play",
+    "title": "Match Play Format",
+    "content": "Match play is golf's oldest competitive format: two sides compete hole by hole. Win a hole by completing it in fewer strokes than your opponent, and you go '1 up.' Lose a hole and you go '1 down.' Halve a hole by tying. The match ends when one side leads by more holes than remain — for example, '3 and 2' means three holes up with two to play.\n\nMatch play fundamentally changes strategy. You play the opponent, not the course. If your opponent is on the green in two, there is no need to attempt a risky recovery — take a safe bogey and move on. Concessions are allowed: you can concede a putt, a hole, or even the match at any time. Once conceded, it cannot be withdrawn.\n\nMentally, match play rewards aggressive recovery. A bad hole costs you one hole, not your entire round. Blue Head thrives here — the ability to reset after each hole is built into the format. Red Head players who carry frustration from a lost hole into the next tee often spiral.\n\nThe order of play matters: the side with the honour (won the previous hole) plays first from the tee. On the green, the ball farther from the hole is played first. There is no penalty for playing out of turn, but your opponent may ask you to replay the stroke.",
+    "metadata": { "format": "match_play", "rule_reference": "Rule 3.2", "skill_level": "all" },
+    "source": "R&A/USGA Rules of Golf, Rule 3.2, 2023 Edition"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Rules",
+    "subcategory": "Penalty Areas",
+    "title": "Penalty Areas (Formerly Water Hazards)",
+    "content": "Under the 2019 modernised Rules, 'water hazards' became 'penalty areas.' They are marked yellow (standard) or red (lateral) and can include any area the Committee designates — not just water. This change simplified relief procedures significantly.\n\nWhen your ball enters a yellow penalty area, you have two relief options: (1) play from where you last played under stroke-and-distance (one penalty stroke), or (2) drop on the line between the hole and where your ball last crossed the edge of the penalty area, going back as far as you like (one penalty stroke).\n\nRed penalty areas add a third option: lateral relief within two club-lengths of where the ball last crossed the edge, no nearer the hole (one penalty stroke).\n\nYou may now touch or move loose impediments and ground your club in a penalty area without penalty. You cannot, however, deliberately test the condition of the ground. If your ball is found and playable within the penalty area, you may play it as it lies with no penalty.\n\nThe mental key: penalty areas create decision points. Blue Head assesses options calmly. Red Head panics and either attempts a hero shot from water or takes poor relief. Your pre-shot routine should include a clear plan before every shot near a penalty area.",
+    "metadata": { "rule_reference": "Rule 17", "pressure_moment": "penalty_relief_decision", "skill_level": "all" },
+    "source": "R&A/USGA Rules of Golf, Rule 17, 2023 Edition"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Rules",
+    "subcategory": "Out of Bounds",
+    "title": "Out of Bounds, Lost Ball, and Provisional Ball",
+    "content": "Out of bounds (OB) is defined by white stakes, fences, or boundary lines. If your ball comes to rest OB, it is out of play. The penalty is stroke-and-distance: you must replay from the previous spot, adding one penalty stroke. This effectively costs two strokes (the lost shot plus the penalty).\n\nA ball is lost if not found within three minutes of searching. The same stroke-and-distance penalty applies. To save time, play a provisional ball before going forward to search. Announce clearly: 'I am playing a provisional.' If you find your original ball in bounds, the provisional is abandoned. If the original is lost or OB, the provisional becomes your ball in play.\n\nMany clubs adopt a Local Rule (Model Local Rule E-5) allowing players to drop in the fairway near where the ball was lost or went OB, under a two-stroke penalty, instead of returning to the tee. This speeds pace of play in casual and club competition.\n\nMentally, OB and lost balls are among golf's most frustrating moments. Red Head floods in: anger, self-blame, wanting to smash the next drive. Blue Head uses the walk back to the tee (or the provisional ball routine) as a reset. The provisional ball itself is a smart mental tool — it keeps you moving forward rather than dwelling on disaster.",
+    "metadata": { "rule_reference": "Rules 14.6, 18.1-18.3", "pressure_moment": "ob_recovery", "skill_level": "all" },
+    "source": "R&A/USGA Rules of Golf, Rules 14.6 and 18.1-18.3, 2023 Edition"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Rules",
+    "subcategory": "Bunkers",
+    "title": "Bunker Rules and Procedures",
+    "content": "Bunkers are specially prepared areas of sand designed as hazards. The 2019 Rules brought significant changes to bunker play. You may now remove loose impediments (leaves, stones, twigs) from a bunker without penalty. You may also touch the sand with your hand or club, provided you are not testing the condition of the sand or touching it in the area right behind or in front of the ball.\n\nYou still cannot ground your club in the sand directly behind or in front of the ball before making your stroke. This means no practice swings that touch the sand near your ball. In a practice swing, you may touch sand elsewhere in the bunker.\n\nIf your ball is unplayable in a bunker, you have three options: (1) stroke-and-distance back to where you last played (one penalty stroke); (2) drop in the bunker on the back-on-the-line relief, keeping the point where the ball lay between you and the hole (one penalty stroke); (3) for two penalty strokes, drop outside the bunker on that same back-on-the-line, going as far back as you wish.\n\nThe mental game in bunkers is about commitment. Many amateurs fear bunkers and tense up, creating tight grip pressure and poor contact. Blue Head treats a greenside bunker as a straightforward shot — open the face, commit to the swing, trust the technique. Red Head tightens, decelerates, and leaves the ball in the sand.",
+    "metadata": { "rule_reference": "Rule 12", "pressure_moment": "bunker_recovery", "skill_level": "all" },
+    "source": "R&A/USGA Rules of Golf, Rule 12, 2023 Edition"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Scoring",
+    "subcategory": "Par System",
+    "title": "Par System and Score Terminology",
+    "content": "Par is the standard number of strokes an expert golfer is expected to need for a hole, including two putts. Par for each hole is set by its length: par 3 (up to approximately 250 yards), par 4 (approximately 250 to 475 yards), par 5 (475 yards and above). Most 18-hole courses have a par between 70 and 72.\n\nScore terms relative to par: a birdie is one under par, an eagle is two under, an albatross (double eagle) is three under. A bogey is one over par, double bogey is two over. A hole-in-one (ace) means holing out from the tee in a single stroke — most commonly on par 3s but occasionally on short par 4s.\n\nUnderstanding these terms matters for mental performance. When FLO asks about your round, knowing your scoring language helps communicate clearly. More importantly, Blue Head focuses on each shot independently rather than fixating on score relative to par. Red Head counts strokes obsessively — 'I need birdie on each of the last three to break 80.' Blue Head asks: 'What does this next shot need?'\n\nCourse rating and slope rating measure difficulty. Course rating indicates the expected score for a scratch golfer; slope rating (55 to 155, standard 113) measures relative difficulty for bogey golfers compared to scratch. These feed into the World Handicap System calculations.",
+    "metadata": { "scoring_system": "par", "skill_level": "beginner" },
+    "source": "R&A/USGA Rules of Golf, 2023 Edition; WHS Rules of Handicapping, 2024"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Scoring",
+    "subcategory": "Handicap",
+    "title": "Handicap Index and World Handicap System",
+    "content": "The World Handicap System (WHS), introduced in 2020, unified six previous systems into one global standard. Your Handicap Index represents your demonstrated ability: it is calculated from the best 8 of your last 20 score differentials.\n\nA score differential equals (113 divided by slope rating) multiplied by (adjusted gross score minus course rating). The system automatically adjusts for abnormally high holes (Net Double Bogey cap) and exceptional scores (reduction applied when a score is 7 or more strokes better than your Handicap Index).\n\nTo get a Handicap Index, submit a minimum of 54 holes (three 18-hole rounds or equivalent 9-hole scores) to your golf club through the national federation's platform. Your index updates overnight after each qualifying round.\n\nFor competition, convert your Handicap Index to a Course Handicap using the slope and rating of the course you are playing. This tells you how many strokes you receive. Strokes are allocated to holes by stroke index — the lower the stroke index, the harder the hole.\n\nMentally, your handicap should be a tool, not an identity. Red Head says 'I am an 18-handicapper, I cannot do that.' Blue Head says 'My handicap shows where I am today. My process will move it.' Track improvement through process goals (fairways hit, putts per round) rather than handicap alone.",
+    "metadata": { "scoring_system": "whs", "introduced": "2020", "skill_level": "all" },
+    "source": "R&A/USGA World Handicap System, Rules of Handicapping, 2024 Edition"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Scoring",
+    "subcategory": "Stableford",
+    "title": "Stableford Scoring System",
+    "content": "Stableford awards points based on your net score on each hole rather than counting total strokes. This format rewards aggressive play and reduces the damage of one disaster hole. Points are: net double bogey or worse equals 0, net bogey equals 1, net par equals 2, net birdie equals 3, net eagle equals 4, net albatross equals 5. Highest total points wins.\n\nThe format was invented by Dr Frank Stableford in 1931 at Wallasey Golf Club, England. It is now one of the most popular formats in club golf worldwide, particularly in the UK, Ireland, and Australia.\n\nStableford's mental benefit is clear: once you have reached zero points on a hole, you can pick up. There is no spiralling eight or nine on the card. This built-in safety net encourages risk-taking on reachable par 5s and short par 4s — you can swing aggressively knowing the downside is capped.\n\nBlue Head loves Stableford: each hole is a fresh opportunity to accumulate points. Red Head hates picking up because it feels like quitting. Reframe: picking up is smart course management. Save energy and focus for the next hole where you can score.\n\nModified Stableford (used on some professional tours) adjusts the point scale — for example, birdie equals 2, eagle equals 5, bogey equals minus 1, double bogey equals minus 3 — creating higher variance and more exciting finishes.",
+    "metadata": { "scoring_system": "stableford", "invented": "1931", "inventor": "Dr Frank Stableford", "skill_level": "all" },
+    "source": "R&A/USGA Rules of Golf, Rule 3.1b (Stableford), 2023 Edition"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": null,
+    "category": "Rules",
+    "subcategory": "Common Confusions",
+    "title": "Common Rule Confusions and Tie-Breaking",
+    "content": "Several rules consistently trip up club golfers. Knowing these prevents unnecessary penalties and reduces Red Head moments caused by confusion during a round.\n\nEmbedded ball: You get free relief when your ball is embedded in its own pitch-mark in the general area (fairway, rough, paths). This was extended in 2019 — previously limited to closely mown areas. Drop within one club-length of the spot directly behind where the ball was embedded, no nearer the hole.\n\nAccidentally moving your ball: On the putting green, if you or your opponent accidentally move your ball, replace it with no penalty. Elsewhere, if you accidentally cause your ball to move during search, replace it — also no penalty (changed in 2019). But if you move it while addressing it or making a practice swing off the green, that is still one penalty stroke.\n\nWrong ball: Playing a wrong ball in stroke play costs two penalty strokes and you must then correct the error by playing your original ball. Strokes made with the wrong ball do not count. In match play, playing a wrong ball loses the hole.\n\nDouble hit: If your club accidentally strikes the ball more than once during a stroke, it counts as one stroke with no penalty. This was a significant 2019 change — previously it was a two-stroke penalty.\n\nTie-breaking in stroke play: If players tie after the regulation number of holes, the method depends on the competition format. Most professional events use a sudden-death playoff starting on a designated hole. Some amateur events use countback — comparing scores on the back nine, then the last six, last three, and final hole. The R&A recommends a playoff or hole-by-hole countback. In match play, ties after 18 holes are resolved by continuing hole by hole until one player wins a hole.",
+    "metadata": { "rule_edition": "2023", "skill_level": "intermediate", "common_errors": ["embedded_ball", "accidental_movement", "wrong_ball", "double_hit", "tiebreak"] },
+    "source": "R&A/USGA Rules of Golf, various Rules, 2023 Edition"
+  }
+]

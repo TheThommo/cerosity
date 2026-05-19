@@ -4,9 +4,10 @@
 |-------|--------|
 | **Slug** | `golf` |
 | **Launch priority** | 1 of 5 |
-| **Status** | ~~not_started~~ · ~~draft~~ · **`in_review`** · `verified` |
+| **Status** | ~~not_started~~ · ~~draft~~ · ~~in_review~~ · **`active`** |
 | **Last research run** | 2026-05-19 |
-| **Reviewer** | Pending (Mark) |
+| **Reviewer** | Mark (approved 2026-05-19) |
+| **Sport context enabled** | 2026-05-19 (`is_active=true`) |
 
 ## Purpose
 
@@ -51,11 +52,13 @@ golf/
 
 ## Import checklist (post-review)
 
-- [ ] `golf_seed_data.json` reviewed — no fabricated quotes
-- [ ] `flo_sport_contexts`: slug `golf`, `context_text` synthesized, `is_active` only after QA
-- [ ] `flo_brain_documents`: chunks listed in seed `flo_import.flo_brain_documents_plan`
+- [x] `golf_seed_data.json` reviewed — Mark approved 2026-05-19
+- [x] `flo_sport_contexts`: slug `golf`, context_text 5731 chars, `is_active=true`
+- [x] `flo_brain_documents`: 61 docs imported (22 knowledge, 14 legends, 15 quote batches, 10 governance)
 - [ ] Batch seed `kb_sport_*` tables when API available
 
 ## Notes
 
-_Add sport-specific research notes, disputed rules, or regional formats here._
+- 7 quotes flagged `verified: false` in metadata (paraphrased or uncertain primary source)
+- Gemini fallback responses on prod are generic (pre-existing issue) — sport context injection verified correct in code path; will work when Gemini API calls succeed
+- Brain docs cache: 5-min TTL in `server/flo-prompt.ts`. Sport context cache: same TTL. Railway redeploy clears both.

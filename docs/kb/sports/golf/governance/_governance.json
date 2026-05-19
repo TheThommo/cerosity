@@ -1,0 +1,102 @@
+[
+  {
+    "sport_slug": "golf",
+    "sport_id": "GOLF_001",
+    "category": "governance",
+    "subcategory": "governing-bodies",
+    "title": "The R&A",
+    "content": "The R&A, based in St Andrews, Scotland, governs golf worldwide outside the United States and Mexico. It jointly authors the Rules of Golf with the USGA and administers The Open Championship. Founded in 1754, the organisation separated governance functions from the private club in 2004 and now serves over 40 million golfers across 145 countries. The R&A also oversees equipment testing and the World Amateur Golf Ranking. Rule knowledge reduces Red Head anxiety — knowing the rules means faster, more confident decisions under pressure.",
+    "metadata": { "region": "worldwide_excluding_usa_mexico", "founded": 1754, "headquarters": "St Andrews, Scotland" },
+    "source": "R&A official website (randa.org); Rules of Golf 2023"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": "GOLF_001",
+    "category": "governance",
+    "subcategory": "governing-bodies",
+    "title": "The USGA",
+    "content": "The United States Golf Association governs golf in the United States and Mexico. Co-author of the Rules of Golf with the R&A, the USGA conducts 14 national championships annually including the US Open, US Women's Open, and US Amateur. Founded in 1894, it manages the handicap system (now part of the World Handicap System) and sets equipment and ball testing standards. The handicap system provides objective measurement enabling fair competition — removing a potential source of Red Head frustration about fairness.",
+    "metadata": { "region": "usa_mexico", "founded": 1894, "headquarters": "Far Hills, New Jersey" },
+    "source": "USGA official website (usga.org); USGA history archives"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": "GOLF_001",
+    "category": "governance",
+    "subcategory": "governing-bodies",
+    "title": "The International Golf Federation (IGF)",
+    "content": "The International Golf Federation coordinates golf at the Olympic Games and manages the World Amateur Team Championships. Founded in 1958, the IGF includes over 150 member federations. Golf returned to the Olympics in 2016 at Rio de Janeiro after a 112-year absence. The IGF works with the World Anti-Doping Agency (WADA) to implement anti-doping protocols for international amateur and Olympic golf competition.",
+    "metadata": { "founded": 1958, "member_federations": 150, "olympic_return_year": 2016 },
+    "source": "IGF official website (igfgolf.org); International Olympic Committee"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": "GOLF_001",
+    "category": "governance",
+    "subcategory": "rules",
+    "title": "Rules of Golf — Unified Framework",
+    "content": "The Rules of Golf are jointly written by the R&A and USGA. Since 2019, both publish a single unified code — ending decades of minor differences. The current edition (2023) contains 24 rules. Rules are reviewed on a four-year cycle. Rule uncertainty is a common Red Head trigger. Blue Head golfers learn the rules most likely to affect their play, converting potential stress into routine procedure. Key confusion areas: Rule 17 (penalty areas), Rule 19 (unplayable ball), Rule 14.7 (wrong place), Rule 18.2 (provisional ball).",
+    "metadata": { "current_edition": 2023, "rule_count": 24, "review_cycle_years": 4 },
+    "source": "R&A/USGA Rules of Golf 2023; R&A Rules Education resources"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": "GOLF_001",
+    "category": "governance",
+    "subcategory": "rules",
+    "title": "Local Rules and Conditions of Competition",
+    "content": "Committees running competitions may adopt Local Rules from the Official Guide to the Rules of Golf. These modify or supplement standard Rules for specific course conditions or competition formats. Common examples: preferred lies (lift, clean, and place), out of bounds alternatives, and pace of play penalties. Players are responsible for knowing which Local Rules are in effect — preparation reduces Red Head uncertainty about what is and isn't allowed.",
+    "metadata": { "governed_by": "R&A/USGA Official Guide" },
+    "source": "R&A/USGA Official Guide to the Rules of Golf 2023"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": "GOLF_001",
+    "category": "governance",
+    "subcategory": "pace-of-play",
+    "title": "Pace of Play Policy",
+    "content": "Pace of play is governed by Rule 5.6, requiring play without unreasonable delay. PGA Tour allows 40 seconds per shot (50 when first to play). Penalties escalate from warnings to strokes to disqualification. Slow play signals Red Head overthinking — inability to commit. Blue Head pace management: consistent pre-shot routine with time limit, decisions made while walking to ball, ready to play when it's your turn. Indecision is Red Head. Commitment — even to an imperfect plan — is Blue Head. Slow play is the most common complaint in amateur golf.",
+    "metadata": { "rule_reference": "Rule 5.6", "pga_tour_time_limit_seconds": 40 },
+    "source": "R&A/USGA Rules of Golf 2023, Rule 5.6; PGA Tour pace of play policy"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": "GOLF_001",
+    "category": "governance",
+    "subcategory": "etiquette",
+    "title": "Etiquette and Code of Conduct",
+    "content": "Golf is unique in requiring players to self-govern conduct and self-police rule violations. The Spirit of the Game section establishes integrity, consideration for others, and course care as core expectations. Key standards: silence during strokes, repair pitch marks, rake bunkers, call Fore, allow faster groups through. Etiquette breaches by others are common Red Head triggers. Blue Head response: acknowledge frustration, refocus on your own process. Control the controllable — a core FLO principle.",
+    "metadata": { "rule_reference": "Rules of Golf Section 1" },
+    "source": "R&A/USGA Rules of Golf 2023, Section 1; R&A etiquette guidelines"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": "GOLF_001",
+    "category": "governance",
+    "subcategory": "anti-doping",
+    "title": "Anti-Doping in Golf (WADA)",
+    "content": "Golf's anti-doping program operates under the WADA Code. The IGF implements at international level; professional tours (PGA Tour, DP World Tour, LPGA) run aligned programs. Key points: WADA Prohibited List updated annually (wada-ama.org), Therapeutic Use Exemptions available, beta-blockers prohibited in competition (they reduce heart rate and tremor affecting putting), common medications may contain prohibited substances — check via WADA Global DRO tool. Blue Head athletes verify medications and maintain records rather than risking Red Head panic over inadvertent violations.",
+    "metadata": { "wada_code_year": 2021, "beta_blockers_prohibited": true, "reference_url": "wada-ama.org" },
+    "source": "WADA Code 2021; IGF anti-doping rules; wada-ama.org"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": "GOLF_001",
+    "category": "governance",
+    "subcategory": "amateur-status",
+    "title": "Amateur Status Rules",
+    "content": "The R&A and USGA jointly govern amateur status. An amateur plays for the challenge, not financial gain. Restrictions: no prize money beyond symbolic value, limited sponsorship for equipment/expenses only, no payment for instruction (narrow exceptions), organised gambling winnings can jeopardise status. Reinstatement available after forfeiting status, with waiting periods based on time as professional. Amateur rules support Blue Head focus on process and growth rather than Red Head anxiety about outcomes and earnings.",
+    "metadata": { "current_edition": 2022, "governed_by": "R&A/USGA" },
+    "source": "R&A/USGA Rules of Amateur Status 2022"
+  },
+  {
+    "sport_slug": "golf",
+    "sport_id": "GOLF_001",
+    "category": "governance",
+    "subcategory": "equipment",
+    "title": "Equipment Standards",
+    "content": "The R&A and USGA set equipment standards through Equipment Rules. Clubs: max 14 in bag, driver max 460cc, length max 46 inches, putter anchoring prohibited since 2016. Balls: velocity and distance limits, min diameter 1.680 inches. Distance-measuring devices permitted by default since 2019. A Model Local Rule (2023) allows elite competitions to require shorter-distance balls from 2026. Equipment obsession is Red Head distraction — constant changes and chasing distance shift focus from skill development. Blue Head: choose conforming equipment, commit to it, focus on controllables.",
+    "metadata": { "max_clubs": 14, "max_driver_volume_cc": 460, "distance_devices_permitted": true },
+    "source": "R&A/USGA Equipment Rules 2023; R&A Conforming Equipment Lists"
+  }
+]

@@ -166,10 +166,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency: "usd",
-        description: description || `Red2Blue ${tier} Access`,
+        description: description || `Cerosity ${tier} Access`,
         metadata: {
           tier: tier,
-          product: 'red2blue_access'
+          product: 'cerosity_access'
         }
       });
 
@@ -198,10 +198,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             price_data: {
               currency: 'usd',
               product_data: {
-                name: tier === 'ultimate' ? 'Red2Blue Ultimate Access' : 'Red2Blue Premium Access',
-                description: tier === 'ultimate' 
-                  ? 'Lifetime access to all Red2Blue tools + human coaching' 
-                  : 'Lifetime access to all Red2Blue tools and AI coaching',
+                name: tier === 'ultimate' ? 'Cerosity Master Human Coaching' : tier === 'flo' ? 'Cerosity FLO Subscription' : 'Cerosity Elite Digital Coaching',
+                description: tier === 'ultimate'
+                  ? 'AI + Human elite coaching with personal sessions'
+                  : tier === 'flo' ? 'Unlimited AI mental performance coaching' : 'Complete AI coaching with all features',
               },
               unit_amount: Math.round(amount * 100), // Convert to cents
             },
@@ -213,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cancel_url: cancel_url || `https://${req.headers.host}/checkout-hosted?tier=${tier}`,
         metadata: {
           tier: tier,
-          product: 'red2blue_access'
+          product: 'cerosity_access'
         }
       };
 
@@ -312,13 +312,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const productPricing = {
         premium: {
           productId: 'prod_SR3rZuRQG7JnqR',
-          amount: 69000, // $690.00 in cents
-          description: 'Premium Access - Lifetime',
+          amount: 59000, // $590.00 in cents
+          description: 'Elite Digital Coaching - Lifetime',
         },
         ultimate: {
           productId: 'prod_SR3txKbR55uws2',
-          amount: 159000, // $1590.00 in cents
-          description: 'Ultimate Access - Lifetime',
+          amount: 229000, // $2290.00 in cents
+          description: 'Master Human Coaching - Lifetime',
         },
       };
 

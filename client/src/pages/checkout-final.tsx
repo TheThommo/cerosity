@@ -6,25 +6,20 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Brain } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { TIER_PRICING, type SubscriptionTier } from "@shared/entitlements";
+import { FloAvatar } from "@/components/flo-avatar";
 
-// Fetch Stripe config from backend to get the correct publishable key
+// Fetch Stripe config from backend
 let stripePromise: Promise<any> | null = null;
 
 async function getStripeConfig() {
   try {
     const response = await fetch('/api/stripe-config');
     const data = await response.json();
-    
     if (!response.ok || !data.publishableKey) {
       throw new Error(data.error || 'Failed to get Stripe configuration');
     }
-    
-    console.log('Stripe Config:', {
-      publishableKey: `${data.publishableKey.substring(0, 7)}...`,
-      keyType: data.publishableKey.startsWith('pk_') ? 'publishable' : 'invalid'
-    });
-    
     return data.publishableKey;
   } catch (error) {
     console.error('Failed to fetch Stripe config:', error);
@@ -32,15 +27,15 @@ async function getStripeConfig() {
   }
 }
 
-// Initialize Stripe promise
 stripePromise = getStripeConfig().then(publishableKey => loadStripe(publishableKey));
 
 interface CheckoutFormProps {
   amount: number;
   tier: string;
+  interval: string;
 }
 
-function CheckoutForm({ amount, tier }: CheckoutFormProps) {
+function CheckoutForm({ amount, tier, interval }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -48,26 +43,10 @@ function CheckoutForm({ amount, tier }: CheckoutFormProps) {
   const [isPaymentElementReady, setIsPaymentElementReady] = useState(false);
   const [, setLocation] = useLocation();
 
-  // Debug the state changes
-  useEffect(() => {
-    console.log('CheckoutForm render:', { 
-      stripe: !!stripe, 
-      elements: !!elements, 
-      isPaymentElementReady,
-      amount, 
-      tier 
-    });
-  }, [stripe, elements, isPaymentElementReady, amount, tier]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!stripe || !elements || !isPaymentElementReady) {
-      console.log('Stripe not ready:', { 
-        stripe: !!stripe, 
-        elements: !!elements, 
-        paymentElementReady: isPaymentElementReady 
-      });
       toast({
         title: "Payment Not Ready",
         description: "Please wait for the payment form to load completely.",
@@ -87,7 +66,6 @@ function CheckoutForm({ amount, tier }: CheckoutFormProps) {
       });
 
       if (error) {
-        console.error('Payment error:', error);
         toast({
           title: "Payment Failed",
           description: error.message,
@@ -97,8 +75,7 @@ function CheckoutForm({ amount, tier }: CheckoutFormProps) {
         sessionStorage.setItem('paidTier', tier);
         setLocation(`/signup-after-payment?tier=${tier}`);
       }
-    } catch (error) {
-      console.error('Payment exception:', error);
+    } catch {
       toast({
         title: "Payment Error",
         description: "An unexpected error occurred. Please try again.",
@@ -109,16 +86,16 @@ function CheckoutForm({ amount, tier }: CheckoutFormProps) {
     }
   };
 
+  const label = interval === "month"
+    ? `Pay $${amount}/mo — Start Subscription`
+    : `Pay $${amount} — Complete Purchase`;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="min-h-[200px] p-4">
-        <PaymentElement 
-          onReady={() => {
-            console.log('PaymentElement is now ready!');
-            setIsPaymentElementReady(true);
-          }}
-          onLoadError={(error) => {
-            console.error('PaymentElement load error:', error);
+        <PaymentElement
+          onReady={() => setIsPaymentElementReady(true)}
+          onLoadError={() => {
             toast({
               title: "Payment Form Error",
               description: "Failed to load payment form. Please refresh and try again.",
@@ -127,54 +104,47 @@ function CheckoutForm({ amount, tier }: CheckoutFormProps) {
           }}
         />
       </div>
-      
+
       {!isPaymentElementReady && (
-        <div className="text-center text-sm text-gray-500 py-2">
+        <div className="text-center text-sm text-slate-500 py-2">
           Loading secure payment form...
         </div>
       )}
-      
-      <Button 
-        type="submit" 
+
+      <Button
+        type="submit"
         disabled={!stripe || !elements || !isPaymentElementReady || isProcessing}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed"
       >
-        {isProcessing ? "Processing..." : 
+        {isProcessing ? "Processing..." :
          !isPaymentElementReady ? "Loading Payment Form..." :
-         `Pay $${amount} - Complete Purchase`}
+         label}
       </Button>
     </form>
   );
 }
 
+type CheckoutTier = "flo" | "premium" | "ultimate";
+
 export default function CheckoutFinal() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tier, setTier] = useState<"premium" | "ultimate">("premium");
+  const [tier, setTier] = useState<CheckoutTier>("premium");
   const [, setLocation] = useLocation();
-
-  // Debug main component state
-  useEffect(() => {
-    console.log('CheckoutFinal state:', { 
-      clientSecret: !!clientSecret, 
-      error, 
-      tier 
-    });
-  }, [clientSecret, error, tier]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const tierParam = urlParams.get("tier") as "premium" | "ultimate";
-    if (tierParam) {
-      setTier(tierParam);
-    }
+    const tierParam = urlParams.get("tier") as CheckoutTier | null;
+    const validTiers: CheckoutTier[] = ["flo", "premium", "ultimate"];
+    const resolvedTier = tierParam && validTiers.includes(tierParam) ? tierParam : "premium";
+    setTier(resolvedTier);
 
-    const amount = tierParam === "ultimate" ? 2190 : 490;
-    
-    apiRequest("POST", "/api/create-payment-intent", { 
-      amount, 
-      tier: tierParam || "premium",
-      description: `Red2Blue ${tierParam === "ultimate" ? "Ultimate" : "Premium"} Access - Lifetime`
+    const pricing = TIER_PRICING[resolvedTier];
+
+    apiRequest("POST", "/api/create-payment-intent", {
+      amount: pricing.price,
+      tier: resolvedTier,
+      description: `Cerosity ${pricing.name} — ${pricing.interval === "month" ? "Monthly" : "Lifetime Access"}`
     })
       .then((res) => res.json())
       .then((data) => {
@@ -184,22 +154,23 @@ export default function CheckoutFinal() {
           setError('Failed to initialize payment');
         }
       })
-      .catch((error) => {
-        console.error("Error creating payment intent:", error);
+      .catch(() => {
         setError('Failed to initialize payment');
       });
   }, []);
 
+  const pricing = TIER_PRICING[tier];
+
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Card className="w-full max-w-md bg-slate-900 border-slate-800">
           <CardHeader>
-            <CardTitle className="text-red-600">Payment Setup Error</CardTitle>
+            <CardTitle className="text-red-400">Payment Setup Error</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <Button onClick={() => setLocation("/")} variant="outline" className="w-full">
+            <p className="text-slate-400 mb-4">{error}</p>
+            <Button onClick={() => setLocation("/#pricing-section")} variant="outline" className="w-full border-slate-700 text-slate-300 hover:bg-slate-800">
               <ArrowLeft className="mr-2" size={16} />
               Back to Pricing
             </Button>
@@ -211,74 +182,82 @@ export default function CheckoutFinal() {
 
   if (!clientSecret) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 gradient-red-blue rounded-full flex items-center justify-center mb-4 mx-auto animate-pulse">
-            <Brain className="text-white" size={32} />
+          <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mb-4 mx-auto animate-pulse border border-blue-500/30">
+            <FloAvatar size={32} variant="mini" />
           </div>
-          <p className="text-gray-600">Setting up secure payment...</p>
+          <p className="text-slate-400">Setting up secure payment...</p>
         </div>
       </div>
     );
   }
 
-  const tierInfo = {
-    premium: { amount: 490, name: "Premium Access" },
-    ultimate: { amount: 2190, name: "Ultimate Access" }
-  };
-
-  const currentTier = tierInfo[tier];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-slate-950">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <Button variant="ghost" onClick={() => setLocation("/")} className="mb-4">
+          <Button variant="ghost" onClick={() => setLocation("/#pricing-section")} className="mb-4 text-slate-400 hover:text-white">
             <ArrowLeft className="mr-2" size={16} />
             Back to Pricing
           </Button>
-          
+
           <div className="text-center">
             <div className="flex items-center justify-center mb-4">
-              <Brain className="text-blue-600 mr-2" size={32} />
-              <h1 className="text-3xl font-bold text-gray-900">Red2Blue</h1>
+              <div className="w-12 h-12 rounded-full overflow-hidden">
+                <FloAvatar size={48} variant="mini" />
+              </div>
             </div>
-            <h2 className="text-2xl font-semibold text-gray-800">
-              Complete Your {currentTier.name}
+            <h1 className="text-3xl font-bold text-white mb-1">Cerosity</h1>
+            <h2 className="text-xl font-semibold text-slate-300">
+              Complete Your {pricing.name}
             </h2>
           </div>
         </div>
 
-        <Card>
+        <Card className="bg-slate-900 border-slate-800">
           <CardHeader>
-            <CardTitle className="text-center text-2xl">
-              ${currentTier.amount} - {currentTier.name}
+            <CardTitle className="text-center text-2xl text-white">
+              ${pricing.price}{pricing.interval === "month" ? "/mo" : ""} — {pricing.name}
             </CardTitle>
-            <p className="text-center text-gray-600">
-              One-time payment • Lifetime access • No recurring fees
+            <p className="text-center text-slate-400">
+              {pricing.interval === "month"
+                ? "Monthly subscription · Cancel anytime"
+                : "One-time payment · Lifetime access · No recurring fees"}
             </p>
           </CardHeader>
           <CardContent>
-            <Elements 
+            <Elements
               key={`elements-${clientSecret}`}
-              stripe={stripePromise} 
+              stripe={stripePromise}
               options={{
                 clientSecret,
                 appearance: {
-                  theme: 'stripe' as const,
+                  theme: 'night' as const,
                   variables: {
                     colorPrimary: '#2563eb',
+                    colorBackground: '#0f172a',
+                    colorText: '#e2e8f0',
+                    colorTextSecondary: '#94a3b8',
+                    colorDanger: '#ef4444',
                   }
                 }
               }}
             >
-              <CheckoutForm 
-                amount={currentTier.amount} 
+              <CheckoutForm
+                amount={pricing.price}
                 tier={tier}
+                interval={pricing.interval}
               />
             </Elements>
           </CardContent>
         </Card>
+
+        {/* Security Notice */}
+        <div className="mt-8 text-center text-sm text-slate-500">
+          <p>Payments are securely processed by Stripe</p>
+          <p>Your payment information is never stored on our servers</p>
+        </div>
       </div>
     </div>
   );

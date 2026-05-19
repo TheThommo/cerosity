@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Loader2, Wind, Target, Eye, Flame, Zap } from "lucide-react";
+import { Send, Loader2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FloAvatar } from "@/components/flo-avatar";
 import { FloVoicePTT } from "@/components/flo-voice-ptt";
@@ -13,12 +13,10 @@ interface Message {
   timestamp: Date;
 }
 
-const R2B_TOOLS = [
-  { icon: Wind, label: "Box Breathing", prompt: "Walk me through box breathing to calm down right now" },
-  { icon: Target, label: "Control Circles", prompt: "Help me identify what's in my control circle vs outside it" },
-  { icon: Eye, label: "Visualization", prompt: "Guide me through a performance visualization exercise" },
-  { icon: Flame, label: "Red→Blue Shift", prompt: "I'm in Red Head right now. Help me shift to Blue Head" },
-  { icon: Zap, label: "Pre-Performance", prompt: "Give me a 60-second pre-performance routine I can use now" },
+const SPORT_PROMPTS = [
+  { label: "I'm nervous before a game", prompt: "I'm really nervous before my next game, how do I calm down?" },
+  { label: "Playing the world #1", prompt: "I am playing against the world number 1 this weekend" },
+  { label: "What if conditions change?", prompt: "What if it rains during my competition?" },
 ];
 
 function parseVisitorInfo(text: string, existing: { name: string; sport: string; email: string }) {
@@ -51,10 +49,16 @@ function parseVisitorInfo(text: string, existing: { name: string; sport: string;
   return updated;
 }
 
-export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }) {
+interface FloChatProps {
+  isInlineWidget?: boolean;
+  onSignupRequest?: () => void;
+}
+
+export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showSignupCta, setShowSignupCta] = useState(false);
   const [visitor, setVisitor] = useState(() => {
     try {
       const saved = sessionStorage.getItem("cerosity_visitor");
@@ -78,6 +82,11 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
     if (!messageText.trim() || isLoading) return;
 
     userMessageCount.current += 1;
+
+    // Show signup CTA after 6 user messages
+    if (userMessageCount.current >= 6) {
+      setShowSignupCta(true);
+    }
 
     const parsed = parseVisitorInfo(messageText, visitor);
     if (parsed.name !== visitor.name || parsed.sport !== visitor.sport || parsed.email !== visitor.email) {
@@ -135,15 +144,21 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
         }).catch(() => {});
       }
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "flo",
-          content: "I'm here to help with your mental game. Try one of the tools above, or ask me anything about pressure, focus, or confidence.",
-          timestamp: new Date(),
-        },
-      ]);
+      // Don't repeat identical fallback — check last flo message
+      const FALLBACK = "I'm here to help with your mental game. Try one of the prompts above, or ask me anything about pressure, focus, or confidence.";
+      setMessages((prev) => {
+        const lastFlo = [...prev].reverse().find(m => m.role === "flo");
+        if (lastFlo?.content === FALLBACK) return prev; // skip duplicate
+        return [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "flo" as const,
+            content: FALLBACK,
+            timestamp: new Date(),
+          },
+        ];
+      });
     } finally {
       setIsLoading(false);
     }
@@ -156,6 +171,18 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
     },
     [inputValue, sendMessage, isLoading]
   );
+
+  const handleSignupClick = () => {
+    if (onSignupRequest) {
+      onSignupRequest();
+    } else {
+      // Default: scroll to pricing section
+      const pricingEl = document.getElementById("pricing-section");
+      if (pricingEl) {
+        pricingEl.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
 
   return (
     <div className="w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl shadow-blue-950/20">
@@ -174,18 +201,18 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
         </div>
       </div>
 
-      {/* R2B Tool Buttons */}
+      {/* Sport Prompt Chips */}
       <div className="px-4 py-3 border-b border-slate-800/50 bg-slate-900/80">
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {R2B_TOOLS.map((tool) => (
+          {SPORT_PROMPTS.map((item) => (
             <button
-              key={tool.label}
-              onClick={() => sendMessage(tool.prompt)}
+              key={item.label}
+              type="button"
+              onClick={() => sendMessage(item.prompt)}
               disabled={isLoading}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-600 text-xs text-slate-300 hover:text-white transition-all whitespace-nowrap disabled:opacity-50"
             >
-              <tool.icon className="w-3.5 h-3.5 text-blue-400" />
-              {tool.label}
+              {item.label}
             </button>
           ))}
         </div>
@@ -220,6 +247,20 @@ export function FloChat({ isInlineWidget = false }: { isInlineWidget?: boolean }
             </div>
           </div>
         ))}
+
+        {/* Signup CTA after 6 messages */}
+        {showSignupCta && (
+          <div className="flex justify-center py-3">
+            <button
+              type="button"
+              onClick={handleSignupClick}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-medium shadow-lg shadow-blue-600/25 transition-all hover:scale-105"
+            >
+              Unlock unlimited FLO coaching
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {isLoading && (
           <div className="flex justify-start">

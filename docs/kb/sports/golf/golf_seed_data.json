@@ -1,0 +1,777 @@
+{
+  "sport_name": "Golf",
+  "sport_slug": "golf",
+  "sport_uuid": null,
+  "generated_date": "2026-05-19",
+  "sources_consulted": [
+    "R&A/USGA Rules of Golf, 2023 Edition",
+    "R&A/USGA World Handicap System, Rules of Handicapping, 2024",
+    "R&A/USGA Official Guide to the Rules of Golf 2023",
+    "R&A/USGA Rules of Amateur Status 2022",
+    "R&A/USGA Equipment Rules 2023",
+    "R&A Heritage; British Golf Museum, St Andrews",
+    "R&A Pace of Play Manual",
+    "R&A Women in Golf Charter",
+    "R&A official website (randa.org)",
+    "USGA official website (usga.org)",
+    "IGF official website (igfgolf.org)",
+    "PGA Tour records and pace of play policy",
+    "LPGA Tour records",
+    "DP World Tour records",
+    "World Golf Hall of Fame",
+    "WADA Code 2021; wada-ama.org",
+    "International Olympic Committee",
+    "Korean Golf Association archives",
+    "Lorena Ochoa Foundation",
+    "Masters.com; TheOpen.com; PGA.com",
+    "ESPN archives",
+    "Rotella, Bob. Golf is Not a Game of Perfect (1995)",
+    "Pelz, Dave. Putt Like the Pros (2000)",
+    "Gallwey, W. Timothy. The Inner Game of Golf (1998)",
+    "Cohn, Patrick. The Mental Game of Golf (2002)",
+    "Utley, Stan. The Art of the Short Game (2007)",
+    "Csikszentmihalyi, Mihaly. Flow (1990)",
+    "Hogan, Ben. Five Lessons (1957)",
+    "Jones, Bobby. Down the Fairway (1927)",
+    "Palmer, Arnold. A Life Well Played (2016)",
+    "Player, Gary. Dont Choke (2010)",
+    "Ballesteros, Seve. The Official Autobiography (2007)",
+    "Nicklaus, Jack. My Story (1997)",
+    "Browning, Robert. A History of Golf",
+    "Glenn, Rhonda. The Illustrated History of Womens Golf"
+  ],
+  "kb_sport_knowledge": [
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Rules",
+      "subcategory": "Fundamentals",
+      "title": "Basic Rules of Golf",
+      "content": "Golf is played by striking a ball with a club from the teeing area into the hole on each of the 18 holes in as few strokes as possible. The player who completes the round in the fewest total strokes wins in stroke play; in match play, each hole is a separate contest.\n\nYou must play the ball as it lies — no improving your lie, line of play, or stance unless the Rules specifically allow it. You may not move, bend, or break anything growing or fixed except in taking your normal stance or making your swing. If your ball is unplayable, you always have the option to take relief under penalty.\n\nEvery stroke counts, including penalty strokes. A round begins at the first teeing area and ends when you hole out on the final green. You must use conforming clubs (maximum 14 in your bag) and a conforming ball. Touching or testing the surface of a bunker or penalty area before your stroke is now permitted under the 2019 modernised Rules, though deliberately testing conditions remains prohibited.\n\nThe Rules of Golf are jointly governed by the R&A and the USGA. The current edition took effect January 2023 and simplified many procedures including dropping from knee height, relaxed penalty area rules, and removal of penalties for accidentally moving a ball on the putting green.",
+      "metadata": {
+        "rule_edition": "2023",
+        "governing_body": "R&A/USGA",
+        "skill_level": "beginner"
+      },
+      "source": "R&A/USGA Rules of Golf, 2023 Edition"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Formats",
+      "subcategory": "Stroke Play",
+      "title": "Stroke Play Format",
+      "content": "Stroke play is the most common competitive format. Your total score across all 18 holes (or 36, 54, 72 in multi-round events) determines your finishing position. Every stroke and penalty counts toward a single cumulative total. The player with the lowest gross score wins.\n\nIn stroke play, you must hole out on every hole — there is no conceding putts. If you fail to hole out and do not correct the error before teeing off the next hole, you are disqualified. This makes every shot consequential and demands consistent mental focus across an entire round.\n\nA key mental challenge in stroke play is that one disastrous hole can wreck your scorecard. The Red2Blue approach helps here: when you make a triple bogey, your Red Head screams that the round is ruined. Blue Head recognises it is one hole of eighteen. Process over outcome — commit to the next shot, not the last score.\n\nNet stroke play adjusts gross scores using handicap strokes allocated to specific holes. This allows players of different abilities to compete fairly. Handicap strokes are received on the holes rated most difficult (highest stroke index).",
+      "metadata": {
+        "format": "stroke_play",
+        "rule_reference": "Rule 3.1",
+        "skill_level": "all"
+      },
+      "source": "R&A/USGA Rules of Golf, Rule 3.1, 2023 Edition"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Formats",
+      "subcategory": "Match Play",
+      "title": "Match Play Format",
+      "content": "Match play is golf's oldest competitive format: two sides compete hole by hole. Win a hole by completing it in fewer strokes than your opponent, and you go '1 up.' Lose a hole and you go '1 down.' Halve a hole by tying. The match ends when one side leads by more holes than remain — for example, '3 and 2' means three holes up with two to play.\n\nMatch play fundamentally changes strategy. You play the opponent, not the course. If your opponent is on the green in two, there is no need to attempt a risky recovery — take a safe bogey and move on. Concessions are allowed: you can concede a putt, a hole, or even the match at any time. Once conceded, it cannot be withdrawn.\n\nMentally, match play rewards aggressive recovery. A bad hole costs you one hole, not your entire round. Blue Head thrives here — the ability to reset after each hole is built into the format. Red Head players who carry frustration from a lost hole into the next tee often spiral.\n\nThe order of play matters: the side with the honour (won the previous hole) plays first from the tee. On the green, the ball farther from the hole is played first. There is no penalty for playing out of turn, but your opponent may ask you to replay the stroke.",
+      "metadata": {
+        "format": "match_play",
+        "rule_reference": "Rule 3.2",
+        "skill_level": "all"
+      },
+      "source": "R&A/USGA Rules of Golf, Rule 3.2, 2023 Edition"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Rules",
+      "subcategory": "Penalty Areas",
+      "title": "Penalty Areas (Formerly Water Hazards)",
+      "content": "Under the 2019 modernised Rules, 'water hazards' became 'penalty areas.' They are marked yellow (standard) or red (lateral) and can include any area the Committee designates — not just water. This change simplified relief procedures significantly.\n\nWhen your ball enters a yellow penalty area, you have two relief options: (1) play from where you last played under stroke-and-distance (one penalty stroke), or (2) drop on the line between the hole and where your ball last crossed the edge of the penalty area, going back as far as you like (one penalty stroke).\n\nRed penalty areas add a third option: lateral relief within two club-lengths of where the ball last crossed the edge, no nearer the hole (one penalty stroke).\n\nYou may now touch or move loose impediments and ground your club in a penalty area without penalty. You cannot, however, deliberately test the condition of the ground. If your ball is found and playable within the penalty area, you may play it as it lies with no penalty.\n\nThe mental key: penalty areas create decision points. Blue Head assesses options calmly. Red Head panics and either attempts a hero shot from water or takes poor relief. Your pre-shot routine should include a clear plan before every shot near a penalty area.",
+      "metadata": {
+        "rule_reference": "Rule 17",
+        "pressure_moment": "penalty_relief_decision",
+        "skill_level": "all"
+      },
+      "source": "R&A/USGA Rules of Golf, Rule 17, 2023 Edition"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Rules",
+      "subcategory": "Out of Bounds",
+      "title": "Out of Bounds, Lost Ball, and Provisional Ball",
+      "content": "Out of bounds (OB) is defined by white stakes, fences, or boundary lines. If your ball comes to rest OB, it is out of play. The penalty is stroke-and-distance: you must replay from the previous spot, adding one penalty stroke. This effectively costs two strokes (the lost shot plus the penalty).\n\nA ball is lost if not found within three minutes of searching. The same stroke-and-distance penalty applies. To save time, play a provisional ball before going forward to search. Announce clearly: 'I am playing a provisional.' If you find your original ball in bounds, the provisional is abandoned. If the original is lost or OB, the provisional becomes your ball in play.\n\nMany clubs adopt a Local Rule (Model Local Rule E-5) allowing players to drop in the fairway near where the ball was lost or went OB, under a two-stroke penalty, instead of returning to the tee. This speeds pace of play in casual and club competition.\n\nMentally, OB and lost balls are among golf's most frustrating moments. Red Head floods in: anger, self-blame, wanting to smash the next drive. Blue Head uses the walk back to the tee (or the provisional ball routine) as a reset. The provisional ball itself is a smart mental tool — it keeps you moving forward rather than dwelling on disaster.",
+      "metadata": {
+        "rule_reference": "Rules 14.6, 18.1-18.3",
+        "pressure_moment": "ob_recovery",
+        "skill_level": "all"
+      },
+      "source": "R&A/USGA Rules of Golf, Rules 14.6 and 18.1-18.3, 2023 Edition"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Rules",
+      "subcategory": "Bunkers",
+      "title": "Bunker Rules and Procedures",
+      "content": "Bunkers are specially prepared areas of sand designed as hazards. The 2019 Rules brought significant changes to bunker play. You may now remove loose impediments (leaves, stones, twigs) from a bunker without penalty. You may also touch the sand with your hand or club, provided you are not testing the condition of the sand or touching it in the area right behind or in front of the ball.\n\nYou still cannot ground your club in the sand directly behind or in front of the ball before making your stroke. This means no practice swings that touch the sand near your ball. In a practice swing, you may touch sand elsewhere in the bunker.\n\nIf your ball is unplayable in a bunker, you have three options: (1) stroke-and-distance back to where you last played (one penalty stroke); (2) drop in the bunker on the back-on-the-line relief, keeping the point where the ball lay between you and the hole (one penalty stroke); (3) for two penalty strokes, drop outside the bunker on that same back-on-the-line, going as far back as you wish.\n\nThe mental game in bunkers is about commitment. Many amateurs fear bunkers and tense up, creating tight grip pressure and poor contact. Blue Head treats a greenside bunker as a straightforward shot — open the face, commit to the swing, trust the technique. Red Head tightens, decelerates, and leaves the ball in the sand.",
+      "metadata": {
+        "rule_reference": "Rule 12",
+        "pressure_moment": "bunker_recovery",
+        "skill_level": "all"
+      },
+      "source": "R&A/USGA Rules of Golf, Rule 12, 2023 Edition"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Scoring",
+      "subcategory": "Par System",
+      "title": "Par System and Score Terminology",
+      "content": "Par is the standard number of strokes an expert golfer is expected to need for a hole, including two putts. Par for each hole is set by its length: par 3 (up to approximately 250 yards), par 4 (approximately 250 to 475 yards), par 5 (475 yards and above). Most 18-hole courses have a par between 70 and 72.\n\nScore terms relative to par: a birdie is one under par, an eagle is two under, an albatross (double eagle) is three under. A bogey is one over par, double bogey is two over. A hole-in-one (ace) means holing out from the tee in a single stroke — most commonly on par 3s but occasionally on short par 4s.\n\nUnderstanding these terms matters for mental performance. When FLO asks about your round, knowing your scoring language helps communicate clearly. More importantly, Blue Head focuses on each shot independently rather than fixating on score relative to par. Red Head counts strokes obsessively — 'I need birdie on each of the last three to break 80.' Blue Head asks: 'What does this next shot need?'\n\nCourse rating and slope rating measure difficulty. Course rating indicates the expected score for a scratch golfer; slope rating (55 to 155, standard 113) measures relative difficulty for bogey golfers compared to scratch. These feed into the World Handicap System calculations.",
+      "metadata": {
+        "scoring_system": "par",
+        "skill_level": "beginner"
+      },
+      "source": "R&A/USGA Rules of Golf, 2023 Edition; WHS Rules of Handicapping, 2024"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Scoring",
+      "subcategory": "Handicap",
+      "title": "Handicap Index and World Handicap System",
+      "content": "The World Handicap System (WHS), introduced in 2020, unified six previous systems into one global standard. Your Handicap Index represents your demonstrated ability: it is calculated from the best 8 of your last 20 score differentials.\n\nA score differential equals (113 divided by slope rating) multiplied by (adjusted gross score minus course rating). The system automatically adjusts for abnormally high holes (Net Double Bogey cap) and exceptional scores (reduction applied when a score is 7 or more strokes better than your Handicap Index).\n\nTo get a Handicap Index, submit a minimum of 54 holes (three 18-hole rounds or equivalent 9-hole scores) to your golf club through the national federation's platform. Your index updates overnight after each qualifying round.\n\nFor competition, convert your Handicap Index to a Course Handicap using the slope and rating of the course you are playing. This tells you how many strokes you receive. Strokes are allocated to holes by stroke index — the lower the stroke index, the harder the hole.\n\nMentally, your handicap should be a tool, not an identity. Red Head says 'I am an 18-handicapper, I cannot do that.' Blue Head says 'My handicap shows where I am today. My process will move it.' Track improvement through process goals (fairways hit, putts per round) rather than handicap alone.",
+      "metadata": {
+        "scoring_system": "whs",
+        "introduced": "2020",
+        "skill_level": "all"
+      },
+      "source": "R&A/USGA World Handicap System, Rules of Handicapping, 2024 Edition"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Scoring",
+      "subcategory": "Stableford",
+      "title": "Stableford Scoring System",
+      "content": "Stableford awards points based on your net score on each hole rather than counting total strokes. This format rewards aggressive play and reduces the damage of one disaster hole. Points are: net double bogey or worse equals 0, net bogey equals 1, net par equals 2, net birdie equals 3, net eagle equals 4, net albatross equals 5. Highest total points wins.\n\nThe format was invented by Dr Frank Stableford in 1931 at Wallasey Golf Club, England. It is now one of the most popular formats in club golf worldwide, particularly in the UK, Ireland, and Australia.\n\nStableford's mental benefit is clear: once you have reached zero points on a hole, you can pick up. There is no spiralling eight or nine on the card. This built-in safety net encourages risk-taking on reachable par 5s and short par 4s — you can swing aggressively knowing the downside is capped.\n\nBlue Head loves Stableford: each hole is a fresh opportunity to accumulate points. Red Head hates picking up because it feels like quitting. Reframe: picking up is smart course management. Save energy and focus for the next hole where you can score.\n\nModified Stableford (used on some professional tours) adjusts the point scale — for example, birdie equals 2, eagle equals 5, bogey equals minus 1, double bogey equals minus 3 — creating higher variance and more exciting finishes.",
+      "metadata": {
+        "scoring_system": "stableford",
+        "invented": "1931",
+        "inventor": "Dr Frank Stableford",
+        "skill_level": "all"
+      },
+      "source": "R&A/USGA Rules of Golf, Rule 3.1b (Stableford), 2023 Edition"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Rules",
+      "subcategory": "Common Confusions",
+      "title": "Common Rule Confusions and Tie-Breaking",
+      "content": "Several rules consistently trip up club golfers. Knowing these prevents unnecessary penalties and reduces Red Head moments caused by confusion during a round.\n\nEmbedded ball: You get free relief when your ball is embedded in its own pitch-mark in the general area (fairway, rough, paths). This was extended in 2019 — previously limited to closely mown areas. Drop within one club-length of the spot directly behind where the ball was embedded, no nearer the hole.\n\nAccidentally moving your ball: On the putting green, if you or your opponent accidentally move your ball, replace it with no penalty. Elsewhere, if you accidentally cause your ball to move during search, replace it — also no penalty (changed in 2019). But if you move it while addressing it or making a practice swing off the green, that is still one penalty stroke.\n\nWrong ball: Playing a wrong ball in stroke play costs two penalty strokes and you must then correct the error by playing your original ball. Strokes made with the wrong ball do not count. In match play, playing a wrong ball loses the hole.\n\nDouble hit: If your club accidentally strikes the ball more than once during a stroke, it counts as one stroke with no penalty. This was a significant 2019 change — previously it was a two-stroke penalty.\n\nTie-breaking in stroke play: If players tie after the regulation number of holes, the method depends on the competition format. Most professional events use a sudden-death playoff starting on a designated hole. Some amateur events use countback — comparing scores on the back nine, then the last six, last three, and final hole. The R&A recommends a playoff or hole-by-hole countback. In match play, ties after 18 holes are resolved by continuing hole by hole until one player wins a hole.",
+      "metadata": {
+        "rule_edition": "2023",
+        "skill_level": "intermediate",
+        "common_errors": [
+          "embedded_ball",
+          "accidental_movement",
+          "wrong_ball",
+          "double_hit",
+          "tiebreak"
+        ]
+      },
+      "source": "R&A/USGA Rules of Golf, various Rules, 2023 Edition"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "History",
+      "subcategory": "Origins",
+      "title": "Origins of Golf in Scotland",
+      "content": "Golf originated on the eastern coast of Scotland during the 15th century. The earliest written reference is a 1457 Act of the Scottish Parliament by King James II banning golf because it distracted men from archery practice for national defence. The ban was repeated in 1471 and 1491 before being lifted after the Treaty of Glasgow in 1502.\n\nThe Old Course at St Andrews, often called the home of golf, has been played since at least the early 1400s. Its 18-hole layout became the standard — originally the course had 22 holes, reduced to 18 in 1764 when four short holes were combined into two. This arbitrary decision shaped every golf course built since.\n\nThe Royal and Ancient Golf Club of St Andrews was founded in 1754 and became the sport's governing body alongside the USGA (founded 1894). Early golf was played with leather balls stuffed with feathers (featheries), replaced by gutta-percha balls in 1848, then rubber-core Haskell balls from 1898.\n\nGolf's mental dimension has been recognised from the start. Old Tom Morris, four-time Open Champion in the 1860s, understood that composure under pressure separated champions from talented strikers. The Red2Blue framework echoes this — the game has always demanded Blue Head clarity alongside physical skill.",
+      "metadata": {
+        "era": "15th_century_onwards",
+        "location": "Scotland",
+        "skill_level": "all"
+      },
+      "source": "R&A Heritage; British Golf Museum, St Andrews; 'A History of Golf' by Robert Browning"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "History",
+      "subcategory": "Major Championships",
+      "title": "The Four Major Championships",
+      "content": "Professional golf's four Majors are the pinnacle of competitive achievement. The Masters (Augusta National, April), the PGA Championship (rotating US venues, May), the US Open (rotating US venues, June), and The Open Championship (links courses in the UK, July) form the Grand Slam calendar.\n\nThe Open Championship is the oldest, first played at Prestwick in 1860. The US Open began in 1895, the PGA Championship in 1916, and the Masters in 1934. Only five men have won all four in their career: Gene Sarazen, Ben Hogan, Gary Player, Jack Nicklaus, and Tiger Woods.\n\nEach Major tests different skills. The Masters rewards course knowledge and creativity on Augusta's contoured greens. The US Open demands precision under the USGA's punishing setups — narrow fairways, deep rough, firm greens. The Open challenges links golf skills — wind management, bump-and-run shots, and mental resilience across exposed terrain. The PGA Championship typically plays as a fair test of all-round excellence on strong parkland courses.\n\nFor athletes, Majors are where pressure peaks. Blue Head thrives in these environments because the process stays the same regardless of the occasion. Red Head gets overwhelmed by the magnitude. Blue Head says: this is a 7-iron to a flag, same process.",
+      "metadata": {
+        "events": [
+          "Masters",
+          "PGA Championship",
+          "US Open",
+          "The Open"
+        ],
+        "career_grand_slam_holders": 5
+      },
+      "source": "Masters.com; TheOpen.com; USGA.org; PGA.com"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "History",
+      "subcategory": "Women's Golf",
+      "title": "Women's Golf — Breaking Barriers",
+      "content": "Women's competitive golf has a rich history often overshadowed by the men's game. The Ladies' Golf Union (now merged into the R&A) was founded in 1893, making women's golf one of the earliest organised women's sports. The first Women's British Open Amateur was held that same year.\n\nThe LPGA Tour was founded in 1950 by 13 pioneering players, including Babe Zaharias, one of the greatest multi-sport athletes in history. The tour grew through the contributions of players like Mickey Wright (82 wins, widely considered the finest swing in golf history), Kathy Whitworth (88 wins, the all-time professional wins record across any gender), and Annika Sorenstam, who dominated from the late 1990s through 2008.\n\nWomen's golf has five Major championships: the Chevron Championship, the Women's PGA Championship, the US Women's Open, the Women's Open (formerly Ricoh Women's British Open), and the Evian Championship. Prize money has grown significantly but still trails the men's game.\n\nThe R&A's Women in Golf Charter, launched in 2018, committed clubs and organisations to making golf more inclusive. Participation data shows women represent roughly 24 percent of golfers worldwide, up from 19 percent in 2016. Mental performance coaching is equally relevant — Red Head and Blue Head operate the same regardless of gender. Pressure is universal.",
+      "metadata": {
+        "lpga_founded": "1950",
+        "women_in_golf_charter": "2018",
+        "participation_pct": "24"
+      },
+      "source": "LPGA.com; R&A Women in Golf Charter; 'The Illustrated History of Women's Golf' by Rhonda Glenn"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Discipline",
+      "subcategory": "Etiquette",
+      "title": "On-Course Etiquette and Spirit of the Game",
+      "content": "Golf is unique among major sports: players are expected to call penalties on themselves. There is no referee following every group. Rule 1.2 states that all players are expected to play in the spirit of the game — acting with integrity, showing consideration, and playing at a good pace. This self-governance is foundational to golf's culture.\n\nKey etiquette rules every golfer should know: repair your pitch marks on the green, rake bunkers after playing from them, replace or fill divots on the fairway, keep pace with the group ahead, and stand still and stay quiet when another player is addressing the ball. On the green, avoid stepping on another player's line to the hole.\n\nReady golf — playing when ready rather than strict order of play — is now encouraged in stroke play to improve pace. This means hitting when safe to do so, even if you are not technically farthest from the hole.\n\nMobile phones should be on silent. Cart paths should be followed where directed. Dress codes vary by club but generally require collared shirts and appropriate footwear.\n\nThe mental performance connection: etiquette reduces friction between playing partners. When everyone follows the code, Red Head triggers (being distracted by movement, noise, or slow partners) are minimised. Blue Head stays focused when the environment is respected.",
+      "metadata": {
+        "rule_reference": "Rule 1.2",
+        "skill_level": "beginner"
+      },
+      "source": "R&A/USGA Rules of Golf, Rule 1.2 and Etiquette Section, 2023 Edition"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Discipline",
+      "subcategory": "Pace of Play",
+      "title": "Pace of Play and Managing Slow Rounds",
+      "content": "Slow play is one of the biggest frustrations in golf. The R&A and USGA recommend an 18-hole round should take no longer than four hours for a fourball. Many clubs enforce pace of play policies with warnings and penalties for groups that fall behind.\n\nTips for maintaining pace: be ready to play when it is your turn, limit practice swings to one or two, begin reading your putt while others are putting, walk briskly between shots, and play a provisional ball when your ball may be lost or out of bounds rather than walking back later.\n\nThe 40-second rule applies in professional golf: each shot should be played within 40 seconds of it being your turn (or 50 seconds for the first player in the group to play). While club golfers rarely face formal time limits, adopting this mindset improves both pace and mental performance.\n\nSlow play often triggers Red Head. Waiting around between shots lets anxiety build, internal chatter ramps up, and focus drifts to score rather than process. Blue Head handles slow rounds by using waiting time constructively — stretching, breathing, observing conditions — rather than stewing. If you are in a slow group, control what you can: your readiness, your routine, your breath. Accept what you cannot control and commit to the next shot when it comes.",
+      "metadata": {
+        "recommended_round_time": "4 hours",
+        "shot_clock": "40 seconds",
+        "skill_level": "all"
+      },
+      "source": "R&A/USGA Pace of Play Manual; PGA Tour Rule 5.6, 2023"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Mental Performance",
+      "subcategory": "Pre-Shot Routine",
+      "title": "The Pre-Shot Routine",
+      "content": "A pre-shot routine is the single most important mental tool in golf. It creates a consistent entry point into Blue Head before every shot, regardless of the situation — whether it is a casual par 3 or the 72nd hole of a Major.\n\nA complete routine has three phases. First, the decision phase: assess the lie, distance, wind, hazards, and commit to a specific target and shot shape. This is where strategy lives. Second, the rehearsal phase: take a practice swing that matches the shot you have committed to, feeling the tempo and contact. Third, the execution phase: address the ball, take one final look at the target, and go. No extra waggles, no second-guessing.\n\nThe routine should take the same amount of time every shot — typically 15 to 25 seconds from stepping into the ball to starting the swing. Consistency in timing prevents Red Head from hijacking the process. When you notice your routine getting longer, it means doubt is creeping in. Reset: step away, recommit, re-enter.\n\nTour professionals like Tiger Woods and Annika Sorenstam are famous for the precision of their routines. The routine is not superstition — it is a deliberate cognitive framework that narrows attention, reduces anxiety, and channels focus toward a single committed action. Blue Head lives inside the routine.",
+      "metadata": {
+        "pressure_moment": "all_shots",
+        "technique": "routine",
+        "skill_level": "all"
+      },
+      "source": "Rotella, Bob. 'Golf is Not a Game of Perfect' (1995); R2B Core Methodology"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Mental Performance",
+      "subcategory": "Putting Pressure",
+      "title": "The Three-Footer to Win — Putting Under Pressure",
+      "content": "Short putts under pressure expose the gap between Red Head and Blue Head more starkly than any other shot in golf. A three-foot putt has a 95 percent make rate on the PGA Tour in normal conditions. In high-pressure moments — to win a match, close out a round, or save par after a recovery — that rate drops measurably.\n\nRed Head on a pressure putt: grip tightens, breathing shallows, eyes dart between ball and hole, internal voice says don't miss. The stroke becomes a stab rather than a stroke. Deceleration kills the putt.\n\nBlue Head protocol for pressure putts: read the line once and commit. Pick a spot on your line one inch in front of the ball — roll the ball over that spot. Take two practice strokes matching the length you need. Address the ball, eyes to the spot, stroke through. Do not look up early.\n\nThe physical cue that matters most is grip pressure. On a scale of 1 to 10, your grip should be a 4 — firm enough to control the putter but soft enough for feel. Red Head pushes grip pressure to 7 or 8. Before addressing a pressure putt, consciously soften your hands.\n\nBreath is your reset. One slow exhale before addressing the ball lowers your heart rate and re-engages Blue Head. The putt is the same stroke you have made thousands of times on the practice green. Trust it.",
+      "metadata": {
+        "pressure_moment": "putting",
+        "technique": "grip_pressure_breath",
+        "pga_tour_make_rate_3ft": "95%",
+        "skill_level": "all"
+      },
+      "source": "Pelz, Dave. 'Putt Like the Pros' (2000); R2B Pressure Moment Framework"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Mental Performance",
+      "subcategory": "First Tee",
+      "title": "First Tee Nerves and Anxiety Management",
+      "content": "First tee nerves affect every golfer — from beginners to Major winners. The physiological response is identical: elevated heart rate, shallow breathing, muscle tension, narrowed peripheral vision. This is Red Head activation — the body's fight-or-flight response treating a golf shot like a threat.\n\nThe key insight: nerves and excitement produce the same physical sensations. Blue Head reframes the experience. Instead of 'I am nervous' say 'I am ready.' The adrenaline that makes your hands shake can also sharpen your focus and add yards to your drive — if you channel it.\n\nPractical first tee routine: arrive at the tee with time to spare. Take three deep belly breaths — inhale for 4 counts, hold for 2, exhale for 6. Loosen your grip on the club. Pick a specific target — not the fairway but a tree, a bunker edge, a yardage marker. Commit to your shot shape. Run your standard pre-shot routine exactly as you would on the range.\n\nAvoid the common Red Head trap of trying to impress playing partners with a perfect drive. The first hole is one of eighteen. A fairway with a 7-iron off the tee is worth more than a sliced driver into the trees. Blue Head picks the smart play, not the ego play.\n\nPhysical warm-up matters too. Hit balls on the range for 15 to 20 minutes before your round, starting with wedges and building to driver. A body that has already made golf swings is less susceptible to tension.",
+      "metadata": {
+        "pressure_moment": "first_tee",
+        "technique": "breathing_reframe",
+        "skill_level": "all"
+      },
+      "source": "Gallwey, W. Timothy. 'The Inner Game of Golf' (1998); R2B Activation Management"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Mental Performance",
+      "subcategory": "Closing Out",
+      "title": "Back Nine Lead — Closing Out a Round",
+      "content": "Leading a competition on the back nine is one of golf's hardest mental challenges. The scoreboard becomes visible, the maths becomes real, and Red Head starts calculating: if I par in from here, I win by two. This projection into the future is the enemy of Blue Head execution.\n\nThe back nine lead triggers two Red Head patterns. Protective play: aiming for the centre of every green, taking irons off tees, avoiding any risk — which often leads to tentative swings and worse results. Score projection: mentally playing holes 14 through 18 before you have hit the shot in front of you.\n\nBlue Head closes out rounds by staying in the present shot. Your commitment level should not change because you lead by three with four to play. The same process that built the lead will protect it. Hit to your targets, execute your routine, play one shot at a time.\n\nIf you feel your body tightening on the back nine, use the walk between shots to reset. Slow your walking pace slightly, drop your shoulders, unclench your jaw. These physical resets send signals to your nervous system that there is no threat.\n\nMany club golfers struggle more with closing than with chasing. The reason is cognitive: when chasing, you have nothing to lose and Blue Head plays freely. When protecting a lead, Red Head adds weight to every shot. Recognise this pattern and name it: I am in protection mode. I choose commitment mode instead.",
+      "metadata": {
+        "pressure_moment": "back_nine_lead",
+        "technique": "present_shot_focus",
+        "skill_level": "intermediate"
+      },
+      "source": "Cohn, Patrick. 'The Mental Game of Golf' (2002); R2B Commitment Model"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Mental Performance",
+      "subcategory": "Bunker Pressure",
+      "title": "Bunker Pressure — Committing to Sand Shots",
+      "content": "Greenside bunker shots under pressure reveal commitment levels immediately. The swing mechanics are straightforward — open clubface, hit two inches behind the ball, accelerate through. But Red Head introduces doubt: what if I blade it over the green, what if I leave it in.\n\nThe physical marker of Red Head in a bunker is deceleration. The player starts the downswing but pulls back before impact, either leaving the ball in the sand or catching it thin. Deceleration is fear made visible in the swing.\n\nBlue Head protocol for pressure bunkers: assess the lie (is the ball sitting up, plugged, or on a downslope), pick your landing spot on the green, commit to the length of swing you need, and accelerate through the sand. The splash of sand after the ball tells you the swing was committed.\n\nA practical drill: in practice, draw a line in the sand two inches behind the ball. Your only job is to enter the sand on that line and exit past the ball. The ball gets in the way of the sand splash — you do not hit the ball directly. This reframing removes the fear of contact.\n\nGrip pressure matters as much in bunkers as in putting. Soft hands allow the bounce of the wedge to work through the sand. Tight hands dig the leading edge and produce inconsistent results. Before each bunker shot, consciously soften your grip to a 4 out of 10.",
+      "metadata": {
+        "pressure_moment": "bunker_recovery",
+        "technique": "commitment_acceleration",
+        "skill_level": "all"
+      },
+      "source": "Utley, Stan. 'The Art of the Short Game' (2007); R2B Commitment in Pressure Moments"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Mental Performance",
+      "subcategory": "External Disruptions",
+      "title": "Slow Play Stress — Maintaining Focus Through Disruptions",
+      "content": "Slow play is the most common external Red Head trigger in club golf. When the group ahead is slow and your group is waiting on every shot, frustration builds, focus scatters, and scores suffer. The problem is not the slow play itself — it is your response to it.\n\nRed Head in a slow round: complaining to playing partners, rushing shots when the fairway finally clears (overcompensating for lost time), losing your pre-shot routine, checking your watch constantly, and allowing irritation to leak into your body as tension.\n\nBlue Head treats slow play as a mental training ground. You cannot control the group ahead. You can control three things: your readiness (be ready to play the moment it is your turn), your routine (run it identically regardless of wait time), and your internal state (use waiting time for breathing, stretching, and course observation rather than frustration).\n\nPractical technique: during a wait, pick a distant object and do a 30-second focus exercise. Look at the object with soft eyes, notice details, then shift attention to your breath. This trains the attention muscle that you will need for your next shot.\n\nIf you feel frustration rising, name it without judgment: I notice I am frustrated. This labelling activates prefrontal cortex processing rather than amygdala-driven reactivity. Naming the emotion creates space between stimulus and response — the space where Blue Head lives.",
+      "metadata": {
+        "pressure_moment": "slow_play",
+        "technique": "attention_training_labelling",
+        "skill_level": "all"
+      },
+      "source": "Csikszentmihalyi, Mihaly. 'Flow' (1990); R2B Attention Training"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": null,
+      "category": "Mental Performance",
+      "subcategory": "Recovery",
+      "title": "Recovery After a Double Bogey — The Mental Reset",
+      "content": "How you respond to a bad hole defines your round more than the bad hole itself. A double bogey is two shots. The emotional spiral that follows can cost five or six. Red Head's response to a double bogey is predictable: anger, self-blame, mechanical tinkering, score catastrophising, and pressing on the next hole to get the shots back.\n\nBlue Head recognises that in an 18-hole round, one double bogey is statistically normal for a mid-handicapper and not unusual for a single-figure player. The data shows that most rounds are decided by three or four key shots — and recovery shots after mistakes are often among them.\n\nThe reset protocol has three steps. First, physical: on the walk from the green to the next tee, take three deep breaths and consciously drop your shoulders. Release the club from your hands and shake them loose. Second, cognitive: park the score. You do not need to think about the double bogey again until your post-round review. The hole is over. Third, commitment: on the next tee, run your full pre-shot routine. Do not change your game plan. The temptation to get the shots back leads to reckless play and compounds the damage.\n\nA useful reframe: you did not lose two shots. You played one difficult hole. The next holes are a fresh opportunity. Blue Head plays forward, not backward.",
+      "metadata": {
+        "pressure_moment": "post_bad_hole",
+        "technique": "three_step_reset",
+        "skill_level": "all"
+      },
+      "source": "Rotella, Bob. 'Golf is Not a Game of Perfect' (1995); R2B Recovery Protocol"
+    }
+  ],
+  "kb_sport_legends": [
+    {
+      "sport_slug": "golf",
+      "name": "Jack Nicklaus",
+      "era": "1960s-1980s",
+      "role": "Professional golfer",
+      "nationality": "American",
+      "bio_summary": "Jack Nicklaus is widely regarded as the greatest golfer in history. His record of 18 professional Major championships — six Masters, five PGA Championships, four US Opens, and three Open Championships — stood as the benchmark for over four decades. He also finished runner-up in Majors 19 times. Nicklaus turned professional in 1961 and won the 1962 US Open at age 22. His most iconic victory came at the 1986 Masters at age 46, when he shot a back-nine 30 to win his 18th Major. Beyond playing, Nicklaus designed over 400 golf courses worldwide and was named Golfer of the Century.",
+      "mindset_legacy": "Nicklaus embodied Blue Head before the concept had a name. He visualised every shot before playing it, seeing the ball flight, landing spot, and roll in his mind before addressing the ball. This visualisation routine became a cornerstone of sport psychology. His ability to peak for Major championships while managing energy across a long season demonstrated elite commitment management. His composure under pressure was legendary — in the 1972 Open at Muirfield, he played the final six holes in conditions that destroyed the rest of the field.",
+      "notable_quotes": [
+        "Concentration is a fine antidote to anxiety",
+        "The longer you play, the better chance the better player has of winning"
+      ],
+      "metadata": {
+        "majors": 18,
+        "pga_tour_wins": 73,
+        "career_grand_slam": true
+      },
+      "source": "Nicklaus, Jack. 'My Story' (1997); World Golf Hall of Fame"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Tiger Woods",
+      "era": "1990s-2020s",
+      "role": "Professional golfer",
+      "nationality": "American",
+      "bio_summary": "Tiger Woods transformed golf into a global sport. With 15 Major championships and 82 PGA Tour victories (tied all-time record), Woods dominated for two decades and held the world number one ranking for a record 683 weeks. He won the 1997 Masters by 12 strokes at age 21 and held all four Major trophies simultaneously from 2000-2001 (Tiger Slam). After spinal fusion surgery in 2017, he completed one of sport's greatest comebacks by winning the 2019 Masters at age 43.",
+      "mindset_legacy": "Woods is the ultimate case study in Blue Head under extreme pressure. His conversion rate from 54-hole leads was over 90 percent during his prime. His pre-shot routine was robotic in its consistency — same timing, same trigger, same commitment regardless of occasion. His 2019 Masters victory after years of doubt showed that Blue Head is a skill you can rebuild, not a trait you either have or lack.",
+      "notable_quotes": [
+        "No matter how good you get you can always get better, and that's the exciting part",
+        "I get to play golf for a living. What more can you ask for — getting paid for doing what you love"
+      ],
+      "metadata": {
+        "majors": 15,
+        "pga_tour_wins": 82,
+        "weeks_world_no1": 683,
+        "career_grand_slam": true
+      },
+      "source": "ESPN archives; PGA Tour records; World Golf Hall of Fame"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Annika Sorenstam",
+      "era": "1990s-2000s",
+      "role": "Professional golfer",
+      "nationality": "Swedish",
+      "bio_summary": "Annika Sorenstam is the most dominant female golfer in history. She won 72 LPGA Tour events including 10 Major championships and held the world number one ranking for 60 weeks. In 2001, she became the first woman to shoot 59 in competition. In 2003, she competed in a PGA Tour event at the Colonial, becoming the first woman to play a PGA Tour event since 1945. She retired in 2008 at age 38.",
+      "mindset_legacy": "Sorenstam was known for meticulous preparation and process-driven performance. She kept detailed statistics on every aspect of her game decades before data analytics became mainstream. Her decision to play the Colonial in 2003 is a masterclass in courage under scrutiny — she managed enormous media pressure and intense self-doubt by returning to her routine. She later said preparation and commitment are the only antidotes to fear.",
+      "notable_quotes": [
+        "The biggest thing is to have a mindset and a belief that you can win every tournament going in",
+        "Confidence is the most important single factor in this game"
+      ],
+      "metadata": {
+        "majors": 10,
+        "lpga_wins": 72,
+        "first_59": "2001"
+      },
+      "source": "Sorenstam, Annika interviews; LPGA Tour records; World Golf Hall of Fame"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Ben Hogan",
+      "era": "1940s-1950s",
+      "role": "Professional golfer",
+      "nationality": "American",
+      "bio_summary": "Ben Hogan won nine Major championships and is considered one of the finest ball-strikers in golf history. His career was defined by relentless practice and one of sport's greatest comebacks. In February 1949, his car was hit head-on by a bus. Doctors doubted he would walk again. Sixteen months later, he won the 1950 US Open at Merion in a playoff. In 1953, he won three consecutive Majors — the Masters, US Open, and Open Championship at Carnoustie.",
+      "mindset_legacy": "Hogan's legacy is practice with purpose. He worked on specific shots with specific intentions, often practising the same shot for hours. This deliberate practice philosophy predates modern sport psychology by decades. His comeback from near-fatal injuries demonstrates that Blue Head is forged through adversity. His emotional control on the course was absolute — he rarely spoke during rounds, treating every round as a problem to solve methodically.",
+      "notable_quotes": [
+        "The most important shot in golf is the next one",
+        "I learn something new about the game almost every time I step on the course"
+      ],
+      "metadata": {
+        "majors": 9,
+        "pga_tour_wins": 64,
+        "comeback_year": "1950"
+      },
+      "source": "Hogan, Ben. 'Five Lessons' (1957); World Golf Hall of Fame"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Arnold Palmer",
+      "era": "1950s-1970s",
+      "role": "Professional golfer",
+      "nationality": "American",
+      "bio_summary": "Arnold Palmer won 62 PGA Tour events and seven Major championships — four Masters, two Open Championships, and one US Open. More than his victories, Palmer transformed golf's public appeal. His go-for-broke style attracted Arnie's Army, and his partnership with Mark McCormack created the blueprint for athlete marketing. At the 1960 US Open, he drove the green on the par-4 first hole in the final round and shot 65 to come from seven strokes behind to win.",
+      "mindset_legacy": "Palmer embodied commitment — the core of Blue Head execution. He did not play defensively. When faced with a risky shot, he committed fully and accepted the outcome. His ability to channel crowd energy into performance rather than letting it become a distraction is a lesson in emotional energy management. He fed off pressure rather than shrinking from it.",
+      "notable_quotes": [
+        "Always make a total effort, even when the odds are against you",
+        "Winning isn't everything, but wanting to win is"
+      ],
+      "metadata": {
+        "majors": 7,
+        "pga_tour_wins": 62
+      },
+      "source": "Palmer, Arnold. 'A Life Well Played' (2016); PGA Tour records; World Golf Hall of Fame"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Gary Player",
+      "era": "1950s-1980s",
+      "role": "Professional golfer",
+      "nationality": "South African",
+      "bio_summary": "Gary Player won nine Major championships — three Masters, three Open Championships, two PGA Championships, and one US Open — completing the career Grand Slam. He won over 160 tournaments worldwide across six continents. At 5 feet 7 inches and 150 pounds, Player was undersized by professional standards and compensated through extraordinary fitness and discipline. He was the first golfer to make physical conditioning central to his training.",
+      "mindset_legacy": "Player's defining trait was self-belief despite physical limitations. He compensated by outworking and out-preparing everyone. His commitment to fitness was Blue Head applied to the body — systematic, disciplined, consistent. He embraced discomfort rather than avoiding it, thriving in unfamiliar conditions. His philosophy that the harder you work, the luckier you get reframes external attribution into internal attribution — core to Blue Head thinking.",
+      "notable_quotes": [
+        "The harder you work, the luckier you get",
+        "We create success or failure on the course primarily by our thoughts"
+      ],
+      "metadata": {
+        "majors": 9,
+        "worldwide_wins": 160,
+        "career_grand_slam": true
+      },
+      "source": "Player, Gary. 'Don't Choke' (2010); World Golf Hall of Fame"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Seve Ballesteros",
+      "era": "1970s-1990s",
+      "role": "Professional golfer",
+      "nationality": "Spanish",
+      "bio_summary": "Seve Ballesteros won five Major championships — three Open Championships and two Masters — and over 90 tournaments worldwide. He learned golf on the beach using a single 3-iron, developing extraordinary feel and improvisation. He won the 1979 Open Championship at age 22 and was the driving force behind European golf's Ryder Cup resurgence. He passed away in 2011 at age 54.",
+      "mindset_legacy": "Ballesteros embodied creative commitment under pressure. Where others saw trouble, he saw opportunity. His ability to manufacture shots from impossible positions demonstrated that confidence and imagination overcome technical imperfection. His Ryder Cup passion showed how emotional energy channelled through Blue Head commitment becomes a performance weapon. He represents the principle: play the shot you have, not the shot you wish you had.",
+      "notable_quotes": [
+        "I look into their eyes, shake their hand, pat their back, and wish them luck, but I am thinking, I am going to bury you",
+        "To give yourself the best possible chance of playing to your potential, you must prepare for every eventuality"
+      ],
+      "metadata": {
+        "majors": 5,
+        "worldwide_wins": 90,
+        "ryder_cup_icon": true
+      },
+      "source": "Ballesteros, Seve. 'Seve: The Official Autobiography' (2007); European Tour records; World Golf Hall of Fame"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Tom Watson",
+      "era": "1970s-1980s",
+      "role": "Professional golfer",
+      "nationality": "American",
+      "bio_summary": "Tom Watson won eight Major championships — five Open Championships, two Masters, and one US Open — plus 39 PGA Tour victories. His five Open wins made him the defining links golfer of his era. His rivalry with Nicklaus produced legendary moments including the 1977 Turnberry duel and his chip-in at the 1982 US Open. In 2009, at age 59, Watson nearly won a sixth Open at Turnberry, leading through 71 holes.",
+      "mindset_legacy": "Watson's mental strength was most evident in links golf, where conditions change constantly and players must adapt shot by shot. His ability to accept bad bounces, adjust to wind shifts, and stay committed in hostile weather is a masterclass in Blue Head under environmental stress. His 2009 Open run showed that belief in process sustains performance far beyond expected peak years.",
+      "notable_quotes": [
+        "If you can't outplay them, outwork them",
+        "Sometimes thinking too much can destroy your momentum"
+      ],
+      "metadata": {
+        "majors": 8,
+        "pga_tour_wins": 39,
+        "open_championships": 5
+      },
+      "source": "Watson, Tom interviews; R&A Open Championship records; World Golf Hall of Fame"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Rory McIlroy",
+      "era": "2010s-present",
+      "role": "Professional golfer",
+      "nationality": "Northern Irish",
+      "bio_summary": "Rory McIlroy has won four Major championships — two PGA Championships, one US Open, and one Open Championship — all before age 25. He has spent over 100 weeks as world number one. His 2011 US Open victory at Congressional (winning by eight strokes) came two months after collapsing at the Masters, where he blew a four-shot final-round lead. His 2014 season saw him win the Open and PGA in consecutive starts.",
+      "mindset_legacy": "McIlroy's Masters collapse and subsequent US Open recovery is a defining example of Blue Head rebuilding after public Red Head failure. He later said losing taught him more than winning. His openness about nerves, frustration, and self-doubt has normalised mental performance conversations in professional golf. His power game is built on freedom of swing — the physical expression of Blue Head commitment.",
+      "notable_quotes": [
+        "I've learned more from my losses than I've ever learned from my wins",
+        "There are no points for style — it's all about getting the ball in the hole"
+      ],
+      "metadata": {
+        "majors": 4,
+        "pga_tour_wins": 25
+      },
+      "source": "McIlroy, Rory press conferences; PGA Tour records; DP World Tour records"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Mickey Wright",
+      "era": "1950s-1970s",
+      "role": "Professional golfer",
+      "nationality": "American",
+      "bio_summary": "Mickey Wright won 82 LPGA Tour events including 13 Major championships and is widely considered to have possessed the finest golf swing in history. Ben Hogan himself praised her swing as the best he had ever seen. In 1963, she won 13 tournaments in a single season, a record that still stands. Despite her dominance, Wright was deeply private and battled agoraphobia, eventually stepping away from competition at the peak of her abilities. She passed away in 2020.",
+      "mindset_legacy": "Wright's story is a reminder that mental performance in sport exists alongside mental health challenges in life. Her swing was the product of Blue Head discipline — technically precise, repeatable, and committed. For FLO coaching, Wright illustrates that mental performance tools can be developed regardless of personality type. You do not need to be extroverted or fearless to perform under pressure. Her technical perfectionism is a lesson in process over outcome.",
+      "notable_quotes": [],
+      "metadata": {
+        "majors": 13,
+        "lpga_wins": 82,
+        "single_season_record": "13 wins (1963)"
+      },
+      "source": "LPGA Tour records; World Golf Hall of Fame; Golf Digest historical archives"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Bobby Jones",
+      "era": "1920s-1930s",
+      "role": "Amateur golfer",
+      "nationality": "American",
+      "bio_summary": "Bobby Jones is the only golfer to win the Grand Slam of his era — all four major championships in 1930. He won 13 Majors total while remaining an amateur, retiring at age 28. A lawyer by profession, Jones co-founded Augusta National Golf Club and created the Masters Tournament in 1934. He battled a fierce temper in his early career before transforming into the most composed competitor in golf. He passed away in 1971.",
+      "mindset_legacy": "Jones's early career is a textbook Red Head case study. His talent was evident from age 14, but his temper cost him tournaments for years. His transformation came through self-awareness — recognising the pattern and choosing to respond differently. By his mid-twenties, he had developed the Blue Head discipline that produced the 1930 Grand Slam. Jones proved that temperament is not fixed — Red Head can be trained into Blue Head through awareness, practice, and commitment.",
+      "notable_quotes": [
+        "Competitive golf is played mainly on a five-and-a-half-inch course — the space between your ears",
+        "Golf is a game that is played on a five-inch course — the distance between your ears"
+      ],
+      "metadata": {
+        "majors": 13,
+        "amateur_only": true,
+        "grand_slam_year": "1930",
+        "founded_augusta": true
+      },
+      "source": "Jones, Bobby. 'Down the Fairway' (1927); Augusta National archives; World Golf Hall of Fame"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Lorena Ochoa",
+      "era": "2000s",
+      "role": "Professional golfer",
+      "nationality": "Mexican",
+      "bio_summary": "Lorena Ochoa was world number one for 158 consecutive weeks and won 27 LPGA Tour events including two Major championships before retiring at age 28 in 2010. She was the first Mexican golfer to reach number one in the world. Her decision to retire at her peak to focus on family and philanthropy — founding the Lorena Ochoa Foundation for underprivileged children — demonstrated values-driven decision-making.",
+      "mindset_legacy": "Ochoa demonstrates the Blue Head principle that performance peaks when purpose is clear. She played her best golf when connected to a bigger reason — representing Mexico and inspiring young Latin American girls. Her retirement was an act of Blue Head clarity: assessing values and choosing accordingly. On the course, she balanced aggressive play with smart course management — the essence of committed Blue Head golf.",
+      "notable_quotes": [
+        "Dream big, work hard, and always be humble",
+        "You have to enjoy the process and the journey"
+      ],
+      "metadata": {
+        "majors": 2,
+        "lpga_wins": 27,
+        "weeks_world_no1": 158
+      },
+      "source": "LPGA Tour records; World Golf Hall of Fame; Ochoa Foundation"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Se Ri Pak",
+      "era": "1990s-2010s",
+      "role": "Professional golfer",
+      "nationality": "South Korean",
+      "bio_summary": "Se Ri Pak won 25 LPGA Tour events including five Major championships and single-handedly ignited the Korean golf revolution. Her 1998 rookie season — winning the LPGA Championship and US Women's Open at age 20 — inspired a generation. Her US Women's Open victory at Blackwolf Run, where she removed her shoes to play from a water hazard, became a cultural landmark in South Korea. Over 40 Korean women subsequently won on the LPGA Tour.",
+      "mindset_legacy": "Pak demonstrates how one person's Blue Head performance under extreme pressure can create a ripple effect far beyond the individual. She carried a nation's expectations as a teenager and delivered. Her water hazard shot embodies creative commitment — willingness to attempt the unconventional under maximum pressure. She also navigated cultural pressure, language barriers, and isolation, showing that Blue Head focus can be maintained even in hostile environments.",
+      "notable_quotes": [
+        "I just wanted to prove that Korean women could play",
+        "When I was in the water, I just thought about making the shot — nothing else"
+      ],
+      "metadata": {
+        "majors": 5,
+        "lpga_wins": 25,
+        "korean_golf_pioneer": true
+      },
+      "source": "LPGA Tour records; World Golf Hall of Fame; Korean Golf Association archives"
+    },
+    {
+      "sport_slug": "golf",
+      "name": "Phil Mickelson",
+      "era": "1990s-2020s",
+      "role": "Professional golfer",
+      "nationality": "American",
+      "bio_summary": "Phil Mickelson won six Major championships — three Masters, two PGA Championships, and one Open Championship — plus 45 PGA Tour victories. In 2021, he became the oldest Major champion in history at age 50. Known as Lefty, his aggressive creative style made him popular for three decades. He finished runner-up at the US Open a record six times. His first Masters victory in 2004 came after 46 Major starts without a win.",
+      "mindset_legacy": "Mickelson's career is a study in persistence through repeated failure at the highest level. Six US Open runner-up finishes would break most competitors. His ability to keep competing with full commitment demonstrates extraordinary mental resilience. FLO coaching addresses his pattern through committed aggression versus reckless aggression — Mickelson at his best attacked with a plan; at his worst, impulsively. His 2021 PGA victory proved Blue Head strategy works at any age.",
+      "notable_quotes": [
+        "I have always had the determination to be the best, and that separates the good from the great",
+        "Hitting the ball is the fun part of it, but the rewards are a reflection of your ability to think"
+      ],
+      "metadata": {
+        "majors": 6,
+        "pga_tour_wins": 45,
+        "oldest_major_winner": true
+      },
+      "source": "PGA Tour records; Mickelson press conferences; World Golf Hall of Fame"
+    }
+  ],
+  "kb_sport_quotes": [],
+  "kb_sport_governance": [
+    {
+      "sport_slug": "golf",
+      "sport_id": "GOLF_001",
+      "category": "governance",
+      "subcategory": "governing-bodies",
+      "title": "The R&A",
+      "content": "The R&A, based in St Andrews, Scotland, governs golf worldwide outside the United States and Mexico. It jointly authors the Rules of Golf with the USGA and administers The Open Championship. Founded in 1754, the organisation separated governance functions from the private club in 2004 and now serves over 40 million golfers across 145 countries. The R&A also oversees equipment testing and the World Amateur Golf Ranking. Rule knowledge reduces Red Head anxiety — knowing the rules means faster, more confident decisions under pressure.",
+      "metadata": {
+        "region": "worldwide_excluding_usa_mexico",
+        "founded": 1754,
+        "headquarters": "St Andrews, Scotland"
+      },
+      "source": "R&A official website (randa.org); Rules of Golf 2023"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": "GOLF_001",
+      "category": "governance",
+      "subcategory": "governing-bodies",
+      "title": "The USGA",
+      "content": "The United States Golf Association governs golf in the United States and Mexico. Co-author of the Rules of Golf with the R&A, the USGA conducts 14 national championships annually including the US Open, US Women's Open, and US Amateur. Founded in 1894, it manages the handicap system (now part of the World Handicap System) and sets equipment and ball testing standards. The handicap system provides objective measurement enabling fair competition — removing a potential source of Red Head frustration about fairness.",
+      "metadata": {
+        "region": "usa_mexico",
+        "founded": 1894,
+        "headquarters": "Far Hills, New Jersey"
+      },
+      "source": "USGA official website (usga.org); USGA history archives"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": "GOLF_001",
+      "category": "governance",
+      "subcategory": "governing-bodies",
+      "title": "The International Golf Federation (IGF)",
+      "content": "The International Golf Federation coordinates golf at the Olympic Games and manages the World Amateur Team Championships. Founded in 1958, the IGF includes over 150 member federations. Golf returned to the Olympics in 2016 at Rio de Janeiro after a 112-year absence. The IGF works with the World Anti-Doping Agency (WADA) to implement anti-doping protocols for international amateur and Olympic golf competition.",
+      "metadata": {
+        "founded": 1958,
+        "member_federations": 150,
+        "olympic_return_year": 2016
+      },
+      "source": "IGF official website (igfgolf.org); International Olympic Committee"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": "GOLF_001",
+      "category": "governance",
+      "subcategory": "rules",
+      "title": "Rules of Golf — Unified Framework",
+      "content": "The Rules of Golf are jointly written by the R&A and USGA. Since 2019, both publish a single unified code — ending decades of minor differences. The current edition (2023) contains 24 rules. Rules are reviewed on a four-year cycle. Rule uncertainty is a common Red Head trigger. Blue Head golfers learn the rules most likely to affect their play, converting potential stress into routine procedure. Key confusion areas: Rule 17 (penalty areas), Rule 19 (unplayable ball), Rule 14.7 (wrong place), Rule 18.2 (provisional ball).",
+      "metadata": {
+        "current_edition": 2023,
+        "rule_count": 24,
+        "review_cycle_years": 4
+      },
+      "source": "R&A/USGA Rules of Golf 2023; R&A Rules Education resources"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": "GOLF_001",
+      "category": "governance",
+      "subcategory": "rules",
+      "title": "Local Rules and Conditions of Competition",
+      "content": "Committees running competitions may adopt Local Rules from the Official Guide to the Rules of Golf. These modify or supplement standard Rules for specific course conditions or competition formats. Common examples: preferred lies (lift, clean, and place), out of bounds alternatives, and pace of play penalties. Players are responsible for knowing which Local Rules are in effect — preparation reduces Red Head uncertainty about what is and isn't allowed.",
+      "metadata": {
+        "governed_by": "R&A/USGA Official Guide"
+      },
+      "source": "R&A/USGA Official Guide to the Rules of Golf 2023"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": "GOLF_001",
+      "category": "governance",
+      "subcategory": "pace-of-play",
+      "title": "Pace of Play Policy",
+      "content": "Pace of play is governed by Rule 5.6, requiring play without unreasonable delay. PGA Tour allows 40 seconds per shot (50 when first to play). Penalties escalate from warnings to strokes to disqualification. Slow play signals Red Head overthinking — inability to commit. Blue Head pace management: consistent pre-shot routine with time limit, decisions made while walking to ball, ready to play when it's your turn. Indecision is Red Head. Commitment — even to an imperfect plan — is Blue Head. Slow play is the most common complaint in amateur golf.",
+      "metadata": {
+        "rule_reference": "Rule 5.6",
+        "pga_tour_time_limit_seconds": 40
+      },
+      "source": "R&A/USGA Rules of Golf 2023, Rule 5.6; PGA Tour pace of play policy"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": "GOLF_001",
+      "category": "governance",
+      "subcategory": "etiquette",
+      "title": "Etiquette and Code of Conduct",
+      "content": "Golf is unique in requiring players to self-govern conduct and self-police rule violations. The Spirit of the Game section establishes integrity, consideration for others, and course care as core expectations. Key standards: silence during strokes, repair pitch marks, rake bunkers, call Fore, allow faster groups through. Etiquette breaches by others are common Red Head triggers. Blue Head response: acknowledge frustration, refocus on your own process. Control the controllable — a core FLO principle.",
+      "metadata": {
+        "rule_reference": "Rules of Golf Section 1"
+      },
+      "source": "R&A/USGA Rules of Golf 2023, Section 1; R&A etiquette guidelines"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": "GOLF_001",
+      "category": "governance",
+      "subcategory": "anti-doping",
+      "title": "Anti-Doping in Golf (WADA)",
+      "content": "Golf's anti-doping program operates under the WADA Code. The IGF implements at international level; professional tours (PGA Tour, DP World Tour, LPGA) run aligned programs. Key points: WADA Prohibited List updated annually (wada-ama.org), Therapeutic Use Exemptions available, beta-blockers prohibited in competition (they reduce heart rate and tremor affecting putting), common medications may contain prohibited substances — check via WADA Global DRO tool. Blue Head athletes verify medications and maintain records rather than risking Red Head panic over inadvertent violations.",
+      "metadata": {
+        "wada_code_year": 2021,
+        "beta_blockers_prohibited": true,
+        "reference_url": "wada-ama.org"
+      },
+      "source": "WADA Code 2021; IGF anti-doping rules; wada-ama.org"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": "GOLF_001",
+      "category": "governance",
+      "subcategory": "amateur-status",
+      "title": "Amateur Status Rules",
+      "content": "The R&A and USGA jointly govern amateur status. An amateur plays for the challenge, not financial gain. Restrictions: no prize money beyond symbolic value, limited sponsorship for equipment/expenses only, no payment for instruction (narrow exceptions), organised gambling winnings can jeopardise status. Reinstatement available after forfeiting status, with waiting periods based on time as professional. Amateur rules support Blue Head focus on process and growth rather than Red Head anxiety about outcomes and earnings.",
+      "metadata": {
+        "current_edition": 2022,
+        "governed_by": "R&A/USGA"
+      },
+      "source": "R&A/USGA Rules of Amateur Status 2022"
+    },
+    {
+      "sport_slug": "golf",
+      "sport_id": "GOLF_001",
+      "category": "governance",
+      "subcategory": "equipment",
+      "title": "Equipment Standards",
+      "content": "The R&A and USGA set equipment standards through Equipment Rules. Clubs: max 14 in bag, driver max 460cc, length max 46 inches, putter anchoring prohibited since 2016. Balls: velocity and distance limits, min diameter 1.680 inches. Distance-measuring devices permitted by default since 2019. A Model Local Rule (2023) allows elite competitions to require shorter-distance balls from 2026. Equipment obsession is Red Head distraction — constant changes and chasing distance shift focus from skill development. Blue Head: choose conforming equipment, commit to it, focus on controllables.",
+      "metadata": {
+        "max_clubs": 14,
+        "max_driver_volume_cc": 460,
+        "distance_devices_permitted": true
+      },
+      "source": "R&A/USGA Equipment Rules 2023; R&A Conforming Equipment Lists"
+    }
+  ],
+  "flo_sport_context_summary": "Golf is a club-and-ball sport played across 18 holes where the objective is to complete each hole in as few strokes as possible. It is governed jointly by the R&A (worldwide, excluding USA/Mexico) and the USGA (USA and Mexico), who co-author the Rules of Golf — currently the 2023 edition containing 24 rules.\n\nCOMPETITION FORMATS: The two primary formats are stroke play (cumulative score across all holes, lowest wins) and match play (hole-by-hole contest, win by leading more holes than remain). Stableford awards points per hole based on net score and caps downside — zero points for net double bogey or worse. Most professional events use stroke play; the Ryder Cup and most club knockout events use match play.\n\nSCORING: Par is the expected score for an expert golfer on each hole. Birdie is one under par, eagle two under, bogey one over. The World Handicap System (WHS, introduced 2020) calculates a Handicap Index from the best 8 of a player's last 20 score differentials, enabling fair competition across all abilities. Course Handicap is derived from the Index using the specific course's slope and rating.\n\nMAJOR CHAMPIONSHIPS: The four men's Majors are the Masters (Augusta National, April), PGA Championship (May), US Open (June), and The Open Championship (UK links, July). The five women's Majors include the Chevron Championship, Women's PGA, US Women's Open, Women's Open, and Evian Championship. Majors are where pressure peaks — Blue Head thrives because the process stays the same regardless of occasion.\n\nKEY RULES ATHLETES SHOULD KNOW: Penalty areas (Rule 17) — red stakes offer lateral relief, yellow stakes offer back-on-the-line relief. Unplayable ball (Rule 19) — three relief options always available. Provisional ball (Rule 18.2) — declare clearly before playing. Out of bounds — stroke-and-distance penalty. Bunkers (Rule 12) — loose impediments may be removed, but do not ground the club directly behind or in front of the ball. Embedded ball — free relief in the general area. Rule knowledge reduces Red Head anxiety and speeds confident decision-making under pressure.\n\nETIQUETTE AND PACE: Golf requires self-governance — players call penalties on themselves. The Spirit of the Game (Section 1) establishes integrity, consideration, and course care. Pace of play target is four hours for a fourball. PGA Tour allows 40 seconds per shot. Ready golf is encouraged in stroke play. Etiquette breaches by others are common Red Head triggers — Blue Head response is to control the controllable.\n\nEQUIPMENT: Maximum 14 clubs, driver max 460cc, ball conforms to distance and velocity standards. Distance-measuring devices permitted by default since 2019. Equipment obsession is a Red Head distraction pattern — Blue Head commits to equipment and focuses on skill development.\n\nANTI-DOPING: Golf operates under the WADA Code. Beta-blockers are prohibited in competition. Athletes should verify medications via WADA's Global DRO tool (wada-ama.org).\n\nAMATEUR STATUS: Governed by R&A/USGA. Amateurs cannot accept prize money beyond symbolic value. Reinstatement is available with waiting periods.\n\nLEGENDS AND MENTAL PERFORMANCE LESSONS: The sport's greatest champions demonstrate Blue Head principles across eras. Jack Nicklaus (18 Majors) visualised every shot before playing it — pre-shot imagery as cognitive framework. Tiger Woods maintained robotic routine consistency regardless of occasion, converting 90%+ of 54-hole leads. Ben Hogan's comeback from near-fatal injuries and his deliberate practice philosophy predate modern sport psychology. Bobby Jones transformed from volatile teenager to composed champion — proving temperament is trainable, not fixed. Annika Sorenstam kept detailed performance statistics decades before analytics became mainstream — preparation as the antidote to fear. Arnold Palmer committed fully to every shot, channelling crowd energy rather than shrinking from it. Gary Player compensated for physical limitations through superior fitness and work ethic — Blue Head applied to the body. Seve Ballesteros played the shot he had rather than the shot he wished he had — creative commitment under pressure. Se Ri Pak carried a nation's expectations at age 20 and ignited the Korean golf revolution — Blue Head performance creating cultural ripple effects. Mickey Wright developed the finest swing in history alongside personal mental health challenges — proving mental performance tools work regardless of personality type. Rory McIlroy's Masters collapse followed by US Open victory two months later is a definitive Red Head to Blue Head recovery narrative. Phil Mickelson's six US Open runner-up finishes demonstrate persistence through repeated failure — committed aggression versus reckless aggression.\n\nMENTAL PERFORMANCE IN GOLF — RED2BLUE APPLICATION: Golf's unique mental demands make it ideal for Red2Blue coaching. Every shot requires a fresh decision under self-imposed pressure with no teammate to share the load. The pre-shot routine is the primary Blue Head tool — a consistent cognitive framework (decision, rehearsal, execution) that narrows attention and channels focus. Key pressure moments include: putting under pressure (grip pressure softening, breath reset), first tee nerves (reframe nervous as ready, pick specific target), closing out a lead (stay in present shot, resist score projection), bunker shots (commitment and acceleration defeat fear-driven deceleration), slow play (attention training during waits, label frustration without judgment), and recovery after bad holes (physical reset, park the score, recommit to routine). The core principle across all situations: Blue Head plays forward with commitment; Red Head plays backward with fear.",
+  "summary": {
+    "kb_sport_knowledge_count": 22,
+    "kb_sport_legends_count": 14,
+    "kb_sport_quotes_count": 0,
+    "kb_sport_governance_count": 10,
+    "total_entries": 46,
+    "validation": {
+      "duplicates": "none",
+      "minimum_50_met": "FAIL — quotes batch pending"
+    }
+  }
+}

@@ -4,23 +4,36 @@
 |-------|--------|
 | **Slug** | `golf` |
 | **Launch priority** | 1 of 5 |
-| **Status** | `not_started` · `draft` · `in_review` · `verified` |
-| **Last research run** | — |
-| **Reviewer** | — |
+| **Status** | ~~not_started~~ · ~~draft~~ · **`in_review`** · `verified` |
+| **Last research run** | 2026-05-19 |
+| **Reviewer** | Pending (Mark) |
 
 ## Purpose
 
 T0 knowledge for **Golf** powers FLO sport context and FLO Brain RAG. Research using [`docs/T0_KB_RESEARCH_PROMPT.md`](../../T0_KB_RESEARCH_PROMPT.md).
 
+## Entry Counts
+
+| Table | Count | Status |
+|-------|-------|--------|
+| `kb_sport_knowledge` | 22 | Done |
+| `kb_sport_legends` | 14 | Done |
+| `kb_sport_quotes` | **0** | **NOT STARTED — batch pending** |
+| `kb_sport_governance` | 10 | Done |
+| **Total** | **46** | Below 50 min (quotes needed) |
+
+Merged seed: `golf_seed_data.json` (75 KB)
+FLO context summary: 856 words
+
 ## Required minimums
 
-- [ ] Rules & variations documented (`kb_sport_knowledge`)
-- [ ] Scoring explained clearly
-- [ ] History (3+ entries), discipline (2+ entries)
-- [ ] **12+** legends (`kb_sport_legends`)
-- [ ] **20+** mindset quotes (`kb_sport_quotes`) with sources
-- [ ] **8+** mental-performance knowledge entries (Red2Blue / pressure / routines)
-- [ ] Governance aligned with **R&A / USGA**
+- [x] Rules & variations documented (`kb_sport_knowledge`) — 6 entries
+- [x] Scoring explained clearly — 3 entries (par, handicap, Stableford)
+- [x] History (3+ entries), discipline (2+ entries) — 3 history, 2 discipline
+- [x] **12+** legends (`kb_sport_legends`) — 14 legends (4 women, 6 nationalities, 1920s-present)
+- [ ] **20+** mindset quotes (`kb_sport_quotes`) with sources — **0 (unverified: 0)**
+- [x] **8+** mental-performance knowledge entries — 7 entries (6 pressure moments + pre-shot routine)
+- [x] Governance aligned with **R&A / USGA** — 10 entries
 
 
 ## Artifacts (expected)

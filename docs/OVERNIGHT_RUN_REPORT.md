@@ -1,8 +1,9 @@
-# Overnight Run Report — 2026-05-19
+# Overnight Run Report — 2026-05-19 (updated 2026-05-20)
 
 ## Summary
 
 Unattended overnight run completing pre-signup FLO fixes, checkout unification, and dark theme audit.
+Follow-up production fix pass on 2026-05-20 (commit `caefcba`, deployed and verified).
 
 ## Completed
 
@@ -41,20 +42,40 @@ Unattended overnight run completing pre-signup FLO fixes, checkout unification, 
 - [x] `npx tsc --noEmit` — 0 errors in modified files (pre-existing errors unchanged)
 - [x] `rg replit` → 0 hits
 
+---
+
+## Production Fix Pass — 2026-05-20
+
+**Prod commit**: `caefcba` | **Health**: ✅ healthy | **Deploy**: Railway auto-deploy (delayed by Railway outage, resolved)
+
+### P0 Fixes
+- [x] **FLO hero image**: Replaced bad `flo-hero.png` cutout with `FLO_Image_3.png` → `client/public/flo/flo-image-3.png`
+- [x] **6-message coaching gate**: Server hard gate at count>6 (no Gemini call), client disables input + shows signup CTA
+- [x] **buildLandingSalesDirective()**: Progressive coaching directives in `server/flo-prompt.ts`, `forLanding` prompt mode
+- [x] **Exact 3 pre-prompts**: "I am nervous", "I am playing against world #1", "What if it rains"
+- [x] **VAPI error handling**: Toast on error/start failure, prefer `VITE_VAPI_ASSISTANT_ID` over inline config
+- [ ] **Trusted company logos**: NOT extractable from brochure PDF — **BLOCKED** (need standalone logo files)
+
+### P1 Fixes
+- [x] **Footer scroll-to-top**: All 8 footer Links scroll to top on click
+- [x] **onSignupRequest wiring**: FloChat CTA opens free tier signup modal
+
+### Type Fixes
+- [x] `BuildFloPromptOpts`: Added `athleteContext` field
+- [x] `clearSportContextCache`: Added stub export for routes.ts compatibility
+
+### Files Modified (this pass)
+- `server/flo-prompt.ts` — BuildFloPromptOpts type, buildLandingSalesDirective(), clearSportContextCache stub, forLanding rules
+- `server/routes.ts` — landing-chat hard gate at msg 7+, buildLandingSalesDirective import
+- `client/src/components/flo-chat.tsx` — exact 3 prompts, previewEnded gate, server signal handling
+- `client/src/components/flo-voice-ptt.tsx` — toast errors, VAPI_ASSISTANT_ID preference
+- `client/src/components/footer.tsx` — scroll-to-top on all Links
+- `client/src/pages/landing.tsx` — flo-image-3.png hero, onSignupRequest wiring
+- `client/public/flo/flo-image-3.png` — new (1.3MB full FLO figure)
+- `docs/OVERNIGHT_RUN_REPORT.md` — updated with prod verification
+
 ## Assumptions Made
 - checkout.tsx (unused, not routed) left as-is — checkout-final.tsx is the production route
 - Post-auth pages with light theme not changed (different scope)
-- Trusted logos section skipped — no logo assets in repo
-
-## Files Modified
-- `client/src/components/flo-chat.tsx` — 3 sport prompts, signup CTA, fallback dedup
-- `client/src/components/flo-voice-ptt.tsx` — type="button" on all buttons
-- `client/src/pages/checkout-final.tsx` — dark theme, entitlements pricing
-- `client/src/pages/checkout-simple.tsx` — dark theme, entitlements pricing
-- `client/src/pages/checkout-hosted.tsx` — dark theme, entitlements pricing
-- `client/src/pages/signup-after-payment.tsx` — dark theme, entitlements pricing
-- `client/src/pages/payment-redirect.tsx` — dark theme, Cerosity branding
-- `client/src/pages/not-found.tsx` — dark theme
-- `server/routes.ts` — fixed hardcoded prices, Cerosity branding
-- `docs/PRE_SIGNUP_ARCHITECTURE.md` — new
-- `docs/OVERNIGHT_RUN_REPORT.md` — new
+- Trusted logos section skipped — no logo assets extractable from PDF
+- Pre-existing TS errors in storage.ts/vite.ts not touched (out of scope)

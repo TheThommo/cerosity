@@ -123,7 +123,7 @@ export default function Landing() {
             {/* Center — FLO transparent cutout */}
             <div className="order-2 flex justify-center">
               <img
-                src="/flo/flo-hero.png"
+                src="/flo/flo-image-3.png"
                 alt="FLO — AI Mental Performance Coach"
                 className="w-[220px] md:w-[280px] lg:w-[320px] object-contain drop-shadow-2xl select-none pointer-events-none"
                 draggable={false}
@@ -132,7 +132,14 @@ export default function Landing() {
 
             {/* Right — Chat widget */}
             <div id="main-chat-widget" className="order-3">
-              <FloChat isInlineWidget={true} />
+              <FloChat
+                isInlineWidget
+                onSignupRequest={() => {
+                  window.scrollTo(0, 0);
+                  setSelectedTier('free');
+                  setShowSignUp(true);
+                }}
+              />
             </div>
           </div>
         </div>

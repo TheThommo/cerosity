@@ -8,7 +8,7 @@ import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSche
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest } from "./auth";
 import { sendLeadRegistrationEmail, sendAdminLeadNotification } from "./email";
-import { buildFloPrompt, clearBrainDocsCache, clearSportContextCache } from "./flo-prompt";
+import { buildFloPrompt, buildLandingSalesDirective, clearBrainDocsCache, clearSportContextCache } from "./flo-prompt";
 import { formatAthleteContextForPrompt } from "./flo-athlete-context";
 import { recommendationEngine } from "./recommendationEngine";
 import { debugLogger, withErrorLogging } from "./debug";
@@ -813,6 +813,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[LANDING-CHAT] msg #${count}: "${message.substring(0, 80)}" name=${name} sport=${sport}`);
 
+      // Hard gate: after 6 messages, don't call Gemini — prompt signup only
+      if (count > 6) {
+        clearTimeout(requestTimeout);
+        return res.json({
+          message: "You've had a taste of what FLO can do. Create a free account to keep coaching — I'll remember everything we've talked about.",
+          suggestions: [],
+          urgencyLevel: "low",
+          showSignupCta: true,
+          previewEnded: true,
+        });
+      }
+
       if (count === 1 && /^(hi|hello|hey|yo|sup|hiya)\s*[!.?]*$/i.test(message.trim())) {
         clearTimeout(requestTimeout);
         return res.json({
@@ -822,21 +834,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      let salesDirective = '';
-      if (count <= 1) {
-        salesDirective = `This is the visitor's FIRST message. Be warm and human — respond to what they said. If they already shared their sport or problem, coach on it. If not, naturally ask what sport they're in and what's on their mind. Don't survey them — weave it into conversation.`;
-      } else if (count >= 2 && count <= 3) {
-        salesDirective = `Message ${count}. Focus on understanding their challenge. Ask good follow-up questions. Coach, don't pitch.`;
-      } else if (count >= 4 && count <= 5) {
-        salesDirective = `Message ${count}. Give specific R2B advice for their situation. You can mention one sentence that Cerosity has a full programme if relevant — but keep coaching as priority.`;
-      } else if (count === 6) {
-        salesDirective = `Message 6. You've built rapport. After answering their question, add a natural signup invitation: "Now that we've got to know each other a bit, sign up at cerosity.com so I can remember your game and we can keep building on this." One time only — don't push.`;
-      } else if (count > 6) {
-        salesDirective = `Message ${count}. Keep coaching. Do NOT repeat the signup ask. If they haven't signed up, that's fine — just be a great coach.`;
-      }
+      const salesDirective = buildLandingSalesDirective(count);
 
       const systemPrompt = await buildFloPrompt({
+        userMessage: message.trim(),
         forChatApi: true,
+        forLanding: true,
         visitorName: name || undefined,
         sport: sport || undefined,
         salesDirective,
@@ -858,7 +861,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           message: response.message,
           suggestions: response.suggestions || [],
-          urgencyLevel: response.urgencyLevel || "low"
+          urgencyLevel: response.urgencyLevel || "low",
+          ...(count >= 6 ? { showSignupCta: true } : {}),
         });
       }
 

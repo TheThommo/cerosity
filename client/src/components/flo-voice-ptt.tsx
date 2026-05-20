@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Mic, MicOff, Phone, PhoneOff, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import Vapi from "@vapi-ai/web";
 
 type CallStatus = "idle" | "connecting" | "active" | "ending";
 
 const VAPI_PUBLIC_KEY = import.meta.env.VITE_VAPI_PUBLIC_KEY || "";
+const VAPI_ASSISTANT_ID = import.meta.env.VITE_VAPI_ASSISTANT_ID || "";
 
 const FLO_ASSISTANT_CONFIG = {
   name: "FLO",
@@ -55,6 +57,7 @@ RULES:
 };
 
 export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
+  const { toast } = useToast();
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [isMuted, setIsMuted] = useState(false);
   const [volumeLevel, setVolumeLevel] = useState(0);
@@ -101,6 +104,11 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
     vapi.on("error", (error: any) => {
       console.error("[FLO-VOICE] Error:", error);
       setCallStatus("idle");
+      toast({
+        title: "Voice Connection Failed",
+        description: error?.message || "Could not connect to FLO voice. Try again.",
+        variant: "destructive",
+      });
     });
 
     return () => {
@@ -112,12 +120,22 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
     if (!vapiRef.current || !VAPI_PUBLIC_KEY) return;
     setCallStatus("connecting");
     try {
-      await vapiRef.current.start(FLO_ASSISTANT_CONFIG as any);
-    } catch (err) {
+      // Prefer dashboard-configured assistant over inline config
+      if (VAPI_ASSISTANT_ID) {
+        await vapiRef.current.start(VAPI_ASSISTANT_ID);
+      } else {
+        await vapiRef.current.start(FLO_ASSISTANT_CONFIG as any);
+      }
+    } catch (err: any) {
       console.error("[FLO-VOICE] Start error:", err);
       setCallStatus("idle");
+      toast({
+        title: "Voice Connection Failed",
+        description: err?.message || "Could not start FLO voice call. Check microphone permissions.",
+        variant: "destructive",
+      });
     }
-  }, []);
+  }, [toast]);
 
   const endCall = useCallback(() => {
     if (!vapiRef.current) return;

@@ -14,9 +14,9 @@ interface Message {
 }
 
 const SPORT_PROMPTS = [
-  { label: "I'm nervous before a game", prompt: "I'm really nervous before my next game, how do I calm down?" },
-  { label: "Playing the world #1", prompt: "I am playing against the world number 1 this weekend" },
-  { label: "What if conditions change?", prompt: "What if it rains during my competition?" },
+  { label: "I am nervous", prompt: "I am nervous" },
+  { label: "I am playing against world #1", prompt: "I am playing against world #1" },
+  { label: "What if it rains", prompt: "What if it rains" },
 ];
 
 function parseVisitorInfo(text: string, existing: { name: string; sport: string; email: string }) {
@@ -58,6 +58,7 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [previewEnded, setPreviewEnded] = useState(false);
   const [showSignupCta, setShowSignupCta] = useState(false);
   const [visitor, setVisitor] = useState(() => {
     try {
@@ -79,14 +80,9 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
   const emailCaptured = useRef(false);
 
   const sendMessage = useCallback(async (messageText: string) => {
-    if (!messageText.trim() || isLoading) return;
+    if (!messageText.trim() || isLoading || previewEnded) return;
 
     userMessageCount.current += 1;
-
-    // Show signup CTA after 6 user messages
-    if (userMessageCount.current >= 6) {
-      setShowSignupCta(true);
-    }
 
     const parsed = parseVisitorInfo(messageText, visitor);
     if (parsed.name !== visitor.name || parsed.sport !== visitor.sport || parsed.email !== visitor.email) {
@@ -135,6 +131,10 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
       };
       setMessages((prev) => [...prev, floMessage]);
 
+      // Respect server signals
+      if (data.showSignupCta) setShowSignupCta(true);
+      if (data.previewEnded) setPreviewEnded(true);
+
       if (!emailCaptured.current && parsed.email) {
         emailCaptured.current = true;
         fetch("/api/capture-lead", {
@@ -144,11 +144,10 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
         }).catch(() => {});
       }
     } catch {
-      // Don't repeat identical fallback — check last flo message
       const FALLBACK = "I'm here to help with your mental game. Try one of the prompts above, or ask me anything about pressure, focus, or confidence.";
       setMessages((prev) => {
         const lastFlo = [...prev].reverse().find(m => m.role === "flo");
-        if (lastFlo?.content === FALLBACK) return prev; // skip duplicate
+        if (lastFlo?.content === FALLBACK) return prev;
         return [
           ...prev,
           {
@@ -162,21 +161,20 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, messages, visitor]);
+  }, [isLoading, messages, visitor, previewEnded]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      if (inputValue.trim() && !isLoading) sendMessage(inputValue);
+      if (inputValue.trim() && !isLoading && !previewEnded) sendMessage(inputValue);
     },
-    [inputValue, sendMessage, isLoading]
+    [inputValue, sendMessage, isLoading, previewEnded]
   );
 
   const handleSignupClick = () => {
     if (onSignupRequest) {
       onSignupRequest();
     } else {
-      // Default: scroll to pricing section
       const pricingEl = document.getElementById("pricing-section");
       if (pricingEl) {
         pricingEl.scrollIntoView({ behavior: "smooth" });
@@ -201,22 +199,24 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
         </div>
       </div>
 
-      {/* Sport Prompt Chips */}
-      <div className="px-4 py-3 border-b border-slate-800/50 bg-slate-900/80">
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {SPORT_PROMPTS.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => sendMessage(item.prompt)}
-              disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-600 text-xs text-slate-300 hover:text-white transition-all whitespace-nowrap disabled:opacity-50"
-            >
-              {item.label}
-            </button>
-          ))}
+      {/* Sport Prompt Chips — hide when preview ended */}
+      {!previewEnded && (
+        <div className="px-4 py-3 border-b border-slate-800/50 bg-slate-900/80">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {SPORT_PROMPTS.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => sendMessage(item.prompt)}
+                disabled={isLoading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-600 text-xs text-slate-300 hover:text-white transition-all whitespace-nowrap disabled:opacity-50"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Messages */}
       <div ref={messagesContainerRef} className="h-[400px] overflow-y-auto p-5 space-y-4 bg-slate-950/50">
@@ -248,7 +248,7 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
           </div>
         ))}
 
-        {/* Signup CTA after 6 messages */}
+        {/* Signup CTA */}
         {showSignupCta && (
           <div className="flex justify-center py-3">
             <button
@@ -256,7 +256,7 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
               onClick={handleSignupClick}
               className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-medium shadow-lg shadow-blue-600/25 transition-all hover:scale-105"
             >
-              Unlock unlimited FLO coaching
+              {previewEnded ? "Create free account to continue" : "Unlock unlimited FLO coaching"}
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -273,7 +273,6 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
             </div>
           </div>
         )}
-
       </div>
 
       {/* Input */}
@@ -283,14 +282,14 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Talk to FLO..."
-            disabled={isLoading}
+            placeholder={previewEnded ? "Create a free account to keep coaching with FLO" : "Talk to FLO..."}
+            disabled={isLoading || previewEnded}
             className="flex-1 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-blue-500"
           />
-          <FloVoicePTT compact />
+          {!previewEnded && <FloVoicePTT compact />}
           <Button
             type="submit"
-            disabled={isLoading || !inputValue.trim()}
+            disabled={isLoading || !inputValue.trim() || previewEnded}
             size="icon"
             className="bg-blue-600 hover:bg-blue-500 text-white"
           >

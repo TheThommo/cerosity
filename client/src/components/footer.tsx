@@ -55,20 +55,20 @@ export function Footer() {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Platform</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li><Link href="/help" className="hover:text-white transition-colors">Help & FAQ</Link></li>
-              <li><Link href="/community" className="hover:text-white transition-colors">Community</Link></li>
+              <li><Link href="/help" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition-colors">Help & FAQ</Link></li>
+              <li><Link href="/community" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition-colors">Community</Link></li>
             </ul>
           </div>
 
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Legal</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li><Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link></li>
-              <li><Link href="/cookie-policy" className="hover:text-white transition-colors">Cookie Policy</Link></li>
-              <li><Link href="/data-processing" className="hover:text-white transition-colors">Data Processing</Link></li>
-              <li><Link href="/refund-policy" className="hover:text-white transition-colors">Refund Policy</Link></li>
-              <li><Link href="/acceptable-use" className="hover:text-white transition-colors">Acceptable Use</Link></li>
+              <li><Link href="/privacy-policy" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms-of-service" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><Link href="/cookie-policy" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition-colors">Cookie Policy</Link></li>
+              <li><Link href="/data-processing" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition-colors">Data Processing</Link></li>
+              <li><Link href="/refund-policy" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition-colors">Refund Policy</Link></li>
+              <li><Link href="/acceptable-use" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition-colors">Acceptable Use</Link></li>
             </ul>
           </div>
 

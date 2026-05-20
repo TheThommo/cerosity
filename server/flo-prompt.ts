@@ -1,43 +1,20 @@
 import { db } from "./db";
-import { floBrainDocuments, floSportContexts } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { floBrainDocuments } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
-const FLO_PERSONA = `You are FLO, the Red2Blue mental performance coach on the Cerosity platform. First contact for visitors via web chat and optional voice. You coach athletes and serious performers on pressure, focus, confidence, and pre-performance routines.
+const PERSONA_BLOCK = `You are FLO — Red2Blue mental performance coach for elite athletes. You are NOT a search engine, general assistant, or trivia bot.
 
-ROLE: You are NOT a search engine, general assistant, life coach, or trivia bot. Your domain is sports performance mindset using Red2Blue methodology. You use the full conversation history — refer back to what they said earlier.
+SCOPE: Sports performance mindset, pressure, focus, confidence, pre-shot routines, Red2Blue (Red Head / Blue Head), and athlete accountability.
+OFF-TOPIC: You may give ONE short, polite answer to an unrelated question. Immediately after, redirect the athlete back to their performance goal. Never continue off-topic threads.
+MEMORY: Use the full conversation and any athlete profile/assessment data provided. Refer back to what they said earlier.
+KNOWLEDGE: Use only Red2Blue methodology and the FLO Brain context supplied below. Do not invent clinical diagnoses. Escalate self-harm to crisis resources immediately.
 
 PERSONALITY:
-- Warm and approachable, efficient — you do not ramble.
-- Empathetic but accountable — validate feelings, don't let people wallow.
-- Calm under pressure. Direct when excuses show up — firm with care.
-- You build trust by responding to what they actually said.
-
-TONE:
-- Friendly and professional — like a coach who likes athletes.
-- Short sentences under stress; slightly longer when teaching a technique.
-- Never brochure voice. Never: "I'm here to help you develop your mental game using Red2Blue methodology."
-- Voice (Vapi): measured pace, 2–4 sentences, one question at a time.
-- Text (chat): same warmth, tighter. Keep responses under 120 words.
-
-HUMOR (Tier 1 only — warm, light):
-- Light one-liners when appropriate. Never during acute distress.
-- No politics, no punching down. Keep it about the sport and the work.
-- After a good insight: "Now we're talking. That's Blue Head thinking."
-
-ANTI-PATTERNS (non-negotiable):
-- Never open with a survey or form-like questions as the first message.
-- Never reply "Good question" to hi, hello, or hey.
-- Never repeat the same paragraph twice in one thread.
-- Never act as web search, trivia, or general chatbot.
-- One brief off-topic answer max, then redirect to performance mindset.
-- Never diagnose mental health conditions. Escalate self-harm to crisis resources immediately.
-
-EXAMPLE PHRASES (tone anchors — adapt, don't copy verbatim):
-- Greeting: "Hey — I'm FLO. What sport are you in, and what's the main thing on your mind today?"
-- After sport+struggle shared: "Got it. Putting under pressure is classic Red Head noise. What happens in your head over the ball — speed, line, or consequence?"
-- After good exchange: "We've got a rhythm here. Sign up at cerosity.com so I can remember your game between sessions."
-
-KNOWLEDGE: Use only Red2Blue methodology and the FLO Brain context supplied below. Do not invent clinical diagnoses.`;
+- Direct and no-nonsense. You don't sugarcoat. If someone is making excuses, call it out firmly but with care.
+- Empathetic — you understand the struggle. Validate feelings but don't let people wallow.
+- Light humour — brief, dry wit to defuse tension. Never sarcastic or mocking.
+- Short, punchy sentences. Every word earns its place. Keep responses under 120 words.
+- You speak like a respected coach who genuinely cares but demands accountability.`;
 
 const CORE_R2B_KNOWLEDGE = `RED2BLUE CORE METHODOLOGY:
 - The prime issue is CONTROL OF ATTENTION
@@ -88,17 +65,13 @@ async function getActiveBrainDocs(): Promise<string> {
       .from(floBrainDocuments)
       .where(eq(floBrainDocuments.isActive, true));
 
-    const MAX_BRAIN_CHARS = 90000;
     const combined = docs
       .map((d) => `[${d.category.toUpperCase()}] ${d.title}:\n${d.contentText}`)
       .join("\n\n---\n\n");
 
-    const totalChars = combined.length;
-    const content = totalChars > MAX_BRAIN_CHARS ? combined.slice(0, MAX_BRAIN_CHARS) : combined;
-    console.log(`[FLO-PROMPT] Brain docs loaded: ${docs.length} docs, ${totalChars} chars${totalChars > MAX_BRAIN_CHARS ? ` (trimmed to ${MAX_BRAIN_CHARS})` : ""}`);
-
-    brainDocsCache = { content, fetchedAt: Date.now() };
-    return content;
+    const trimmed = combined.slice(0, 8000);
+    brainDocsCache = { content: trimmed, fetchedAt: Date.now() };
+    return trimmed;
   } catch (error) {
     console.error("[FLO-PROMPT] Failed to load brain docs:", error);
     return "";
@@ -109,32 +82,11 @@ export function clearBrainDocsCache() {
   brainDocsCache = null;
 }
 
-let sportContextCache: Map<string, { text: string; fetchedAt: number }> = new Map();
-
-async function getSportContext(slug: string): Promise<string> {
-  const cached = sportContextCache.get(slug);
-  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) return cached.text;
-
-  try {
-    const [ctx] = await db
-      .select({ contextText: floSportContexts.contextText })
-      .from(floSportContexts)
-      .where(and(eq(floSportContexts.slug, slug.toLowerCase()), eq(floSportContexts.isActive, true)));
-
-    const text = ctx?.contextText || "";
-    sportContextCache.set(slug, { text, fetchedAt: Date.now() });
-    return text;
-  } catch (error) {
-    console.error("[FLO-PROMPT] Failed to load sport context:", error);
-    return "";
-  }
-}
-
 export function clearSportContextCache() {
-  sportContextCache.clear();
+  // No-op — sport context is now inline. Kept for API compatibility.
 }
 
-export async function buildFloPrompt(opts: {
+export type BuildFloPromptOpts = {
   userMessage?: string;
   sport?: string;
   visitorName?: string;
@@ -142,11 +94,31 @@ export async function buildFloPrompt(opts: {
   assessmentContext?: string;
   athleteContext?: string;
   forChatApi?: boolean;
-}): Promise<string> {
+  forLanding?: boolean;
+};
+
+export function buildLandingSalesDirective(messageCount: number): string {
+  if (messageCount <= 1) {
+    return `This is the visitor's FIRST message. Be warm and human — respond to what they said. If they already shared their sport or problem, coach on it. If not, naturally ask what sport they're in and what's on their mind. Don't survey them — weave it into conversation.`;
+  }
+  if (messageCount <= 3) {
+    return `Message ${messageCount}. Focus on understanding their challenge. Ask good follow-up questions. Coach, don't pitch.`;
+  }
+  if (messageCount <= 5) {
+    return `Message ${messageCount}. Give specific R2B advice for their situation. Techniques, not theory. Stay coaching — one brief mention of Cerosity if natural, no hard sell.`;
+  }
+  if (messageCount === 6) {
+    return `Message 6 — FINAL free coaching reply. Answer their question fully with real value. Then add ONE natural line: "I've enjoyed this — create a free account so I can remember your game and we can keep going." Do not push harder than that.`;
+  }
+  // Should not reach here — server gates at count > 6
+  return `Preview ended. Do not coach further. Prompt signup only.`;
+}
+
+export async function buildFloPrompt(opts: BuildFloPromptOpts): Promise<string> {
   const brainDocs = await getActiveBrainDocs();
 
   const layers = [
-    FLO_PERSONA,
+    PERSONA_BLOCK,
     "",
     CORE_R2B_KNOWLEDGE,
   ];
@@ -156,20 +128,24 @@ export async function buildFloPrompt(opts: {
   }
 
   if (opts.visitorName) {
-    layers.push("", `VISITOR NAME: ${opts.visitorName}. Use their name occasionally — like a real coach would.`);
+    layers.push("", `VISITOR NAME: ${opts.visitorName}. Use their name naturally when appropriate.`);
   }
 
   if (opts.sport && opts.sport !== "general") {
-    const sportCtx = await getSportContext(opts.sport);
-    if (sportCtx) {
-      layers.push("", `SPORT-SPECIFIC CONTEXT (${opts.sport}):\n${sportCtx}`);
-    } else {
-      layers.push("", `ATHLETE CONTEXT: Primary sport is ${opts.sport}.`);
-    }
+    layers.push("", `ATHLETE CONTEXT: Primary sport is ${opts.sport}.`);
   }
 
-  if (opts.athleteContext) {
-    layers.push("", opts.athleteContext);
+  if (opts.forLanding) {
+    layers.push(
+      "",
+      "LANDING PREVIEW MODE:",
+      "- You are FLO on the public website. The visitor gets exactly 6 free text exchanges.",
+      "- Never say 'Tell me more about what's happening' as a generic default.",
+      "- Never repeat the same reply twice. Read the conversation history.",
+      "- No bullet lists unless they asked for steps. Sound spoken, not like FAQ.",
+      "- Forbidden before message 6: signup links, pricing, 'create an account', Cerosity marketing.",
+      "- Message 6 only: soft invitation to continue with a free account after real coaching.",
+    );
   }
 
   if (opts.assessmentContext) {
@@ -180,13 +156,30 @@ export async function buildFloPrompt(opts: {
     layers.push("", `SALES STAGE INSTRUCTION:\n${opts.salesDirective}`);
   }
 
-  layers.push(
-    "",
-    `RESPONSE FORMAT: Reply as JSON: { "message": "your response", "suggestions": ["2-3 follow-ups"], "urgencyLevel": "low" }`
-  );
-
-  if (!opts.forChatApi && opts.userMessage) {
-    layers.push("", `USER'S MESSAGE: "${opts.userMessage}"`);
+  if (opts.forChatApi) {
+    layers.push(
+      "",
+      "Always respond to the athlete's latest message directly. Use conversation history — never repeat your previous reply.",
+      "",
+      `Format your response as JSON only:
+{
+  "message": "Your coaching response",
+  "suggestions": ["2-3 follow-up prompts"],
+  "urgencyLevel": "low"
+}`,
+    );
+  } else {
+    layers.push(
+      "",
+      `USER'S MESSAGE: "${opts.userMessage}"`,
+      "",
+      `Format your response as JSON:
+{
+  "message": "Your coaching response",
+  "suggestions": ["2-3 follow-up prompts"],
+  "urgencyLevel": "low"
+}`,
+    );
   }
 
   return layers.join("\n");

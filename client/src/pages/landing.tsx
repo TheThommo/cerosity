@@ -123,7 +123,7 @@ export default function Landing() {
             {/* Center — FLO transparent cutout */}
             <div className="order-2 flex justify-center">
               <img
-                src="/flo/flo-image-3.png"
+                src="/flo/flo-hero.png"
                 alt="FLO — AI Mental Performance Coach"
                 className="w-[220px] md:w-[280px] lg:w-[320px] object-contain drop-shadow-2xl select-none pointer-events-none"
                 draggable={false}

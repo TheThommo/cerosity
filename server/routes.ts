@@ -12,6 +12,7 @@ import { buildFloPrompt, buildLandingSalesDirective, clearBrainDocsCache, clearS
 import { formatAthleteContextForPrompt } from "./flo-athlete-context";
 import { recommendationEngine } from "./recommendationEngine";
 import { debugLogger, withErrorLogging } from "./debug";
+import { handleVapiWebhook } from "./vapi";
 import multer from "multer";
 import * as pdfParse from "pdf-parse";
 
@@ -395,6 +396,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   }
+
+  // VAPI Voice Webhook — receives call events, tool calls, transcripts
+  app.post("/api/webhooks/vapi-events", (req, res) => handleVapiWebhook(req, res));
 
   // DEMO ACCESS ROUTES - For testing premium/ultimate features without payment (disabled in production)
   app.post("/api/demo/upgrade", async (req: AuthRequest, res) => {

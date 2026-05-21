@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, date, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -684,3 +684,72 @@ export const insertAthleteProfileSchema = createInsertSchema(athleteProfiles).om
 
 export type AthleteProfile = typeof athleteProfiles.$inferSelect;
 export type InsertAthleteProfile = z.infer<typeof insertAthleteProfileSchema>;
+
+// ── VAPI Voice Tables ──────────────────────────────────────────────
+
+export const voiceCalls = pgTable("voice_calls", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"),
+  direction: text("direction").notNull(), // 'inbound' | 'outbound' | 'web'
+  status: text("status").notNull().default("in-progress"),
+  fromNumber: text("from_number"),
+  toNumber: text("to_number"),
+  provider: text("provider").notNull().default("vapi"),
+  providerCallId: text("provider_call_id").unique(),
+  vapiAssistantId: text("vapi_assistant_id"),
+  costUsd: numeric("cost_usd", { precision: 10, scale: 4 }),
+  durationSeconds: integer("duration_seconds"),
+  summary: text("summary"),
+  sentiment: text("sentiment"),
+  providerMetadata: jsonb("provider_metadata"),
+  startedAt: timestamp("started_at").defaultNow(),
+  endedAt: timestamp("ended_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const voiceCallTranscripts = pgTable("voice_call_transcripts", {
+  id: serial("id").primaryKey(),
+  callId: integer("call_id").notNull(),
+  speaker: text("speaker").notNull(), // 'Agent' | 'Customer'
+  content: text("content").notNull(),
+  startsAtMs: integer("starts_at_ms"),
+  endsAtMs: integer("ends_at_ms"),
+  confidence: numeric("confidence", { precision: 5, scale: 4 }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const voiceSessions = pgTable("voice_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"),
+  agentType: text("agent_type").notNull().default("flo"),
+  vapiAssistantId: text("vapi_assistant_id"),
+  status: text("status").notNull().default("active"),
+  durationSeconds: integer("duration_seconds"),
+  costUsd: numeric("cost_usd", { precision: 10, scale: 4 }),
+  error: text("error"),
+  startedAt: timestamp("started_at").defaultNow(),
+  endedAt: timestamp("ended_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertVoiceCallSchema = createInsertSchema(voiceCalls).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertVoiceCallTranscriptSchema = createInsertSchema(voiceCallTranscripts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertVoiceSessionSchema = createInsertSchema(voiceSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type VoiceCall = typeof voiceCalls.$inferSelect;
+export type InsertVoiceCall = z.infer<typeof insertVoiceCallSchema>;
+export type VoiceCallTranscript = typeof voiceCallTranscripts.$inferSelect;
+export type InsertVoiceCallTranscript = z.infer<typeof insertVoiceCallTranscriptSchema>;
+export type VoiceSession = typeof voiceSessions.$inferSelect;
+export type InsertVoiceSession = z.infer<typeof insertVoiceSessionSchema>;

@@ -6,8 +6,30 @@ import Vapi from "@vapi-ai/web";
 
 type CallStatus = "idle" | "connecting" | "active" | "ending";
 
-const VAPI_PUBLIC_KEY = import.meta.env.VITE_VAPI_PUBLIC_KEY || "";
-const VAPI_ASSISTANT_ID = import.meta.env.VITE_VAPI_ASSISTANT_ID || "";
+// Build-time values (baked by Vite). May be empty if Railway didn't have them at build.
+let VAPI_PUBLIC_KEY = import.meta.env.VITE_VAPI_PUBLIC_KEY || "";
+let VAPI_ASSISTANT_ID = import.meta.env.VITE_VAPI_ASSISTANT_ID || "";
+
+// Runtime fallback — fetch from server if build-time vars are missing
+let _configFetched = false;
+async function ensureVapiConfig(): Promise<{ publicKey: string; assistantId: string }> {
+  if (VAPI_PUBLIC_KEY && VAPI_ASSISTANT_ID) {
+    return { publicKey: VAPI_PUBLIC_KEY, assistantId: VAPI_ASSISTANT_ID };
+  }
+  if (_configFetched) {
+    return { publicKey: VAPI_PUBLIC_KEY, assistantId: VAPI_ASSISTANT_ID };
+  }
+  try {
+    const res = await fetch("/api/public-config");
+    if (res.ok) {
+      const data = await res.json();
+      if (data.vapiPublicKey) VAPI_PUBLIC_KEY = data.vapiPublicKey;
+      if (data.vapiAssistantId) VAPI_ASSISTANT_ID = data.vapiAssistantId;
+    }
+  } catch { /* best-effort */ }
+  _configFetched = true;
+  return { publicKey: VAPI_PUBLIC_KEY, assistantId: VAPI_ASSISTANT_ID };
+}
 
 const FLO_ASSISTANT_CONFIG = {
   name: "FLO",
@@ -65,12 +87,23 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const vapiRef = useRef<Vapi | null>(null);
 
+  const [configReady, setConfigReady] = useState(!!VAPI_PUBLIC_KEY);
+
   useEffect(() => {
-    if (!VAPI_PUBLIC_KEY) return;
+    let cancelled = false;
 
-    const vapi = new Vapi(VAPI_PUBLIC_KEY);
-    vapiRef.current = vapi;
+    async function init() {
+      const cfg = await ensureVapiConfig();
+      if (cancelled || !cfg.publicKey) return;
+      if (vapiRef.current) return; // already initialised
 
+      const vapi = new Vapi(cfg.publicKey);
+      vapiRef.current = vapi;
+      setConfigReady(true);
+      setupListeners(vapi);
+    }
+
+    function setupListeners(vapi: Vapi) {
     vapi.on("call-start", () => {
       setCallStatus("active");
       setTranscript([]);
@@ -110,14 +143,18 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
         variant: "destructive",
       });
     });
+    } // end setupListeners
+
+    init();
 
     return () => {
-      vapi.stop();
+      cancelled = true;
+      vapiRef.current?.stop();
     };
   }, []);
 
   const startCall = useCallback(async () => {
-    if (!vapiRef.current || !VAPI_PUBLIC_KEY) return;
+    if (!vapiRef.current) return;
     setCallStatus("connecting");
     try {
       // Prefer dashboard-configured assistant over inline config
@@ -173,7 +210,7 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
     }
   }, [callStatus, endCall, startCall]);
 
-  if (!VAPI_PUBLIC_KEY) {
+  if (!configReady) {
     return (
       <div className="relative group">
         <button type="button" disabled className={cn("relative w-16 h-16 rounded-full flex items-center justify-center bg-slate-700 opacity-50 cursor-not-allowed")}>

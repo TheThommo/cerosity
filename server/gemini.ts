@@ -175,8 +175,50 @@ function generateFallbackResponse(userMessage: string): CoachingResponse {
     };
   }
 
+  if (message.includes("opponent") || message.includes("world") || message.includes("ranked") || message.includes("number 1") || message.includes("number one") || message.includes("top seed")) {
+    return {
+      message: "Playing someone ranked above you is an opportunity, not a threat. Red Head says 'I can't beat them' — Blue Head says 'I control my process.' Forget the name on the other side. Focus on YOUR game plan, YOUR routines, YOUR execution. The scoreboard is an Outer Circle distraction. Stay in your Inner Circle: breathing, rhythm, commitment to each shot.",
+      suggestions: [
+        "Write down 3 things YOU control in this match",
+        "Use box breathing before and between points",
+        "Commit to your pre-shot routine on every single ball"
+      ],
+      redHeadIndicators: ["intimidation", "outcome focus", "comparing yourself to opponent"],
+      blueHeadTechniques: ["Control circles", "Process focus", "Pre-performance routine"],
+      urgencyLevel: "medium"
+    };
+  }
+
+  if (message.includes("weather") || message.includes("rain") || message.includes("wind") || message.includes("cold") || message.includes("hot") || message.includes("conditions")) {
+    return {
+      message: "Weather is the ultimate Outer Circle factor — you cannot control it, but you CAN control how you respond to it. Rain, wind, heat — everyone on the field deals with the same conditions. The athlete who adapts fastest wins. Use your Control Circles: park the weather in the Outer Circle, then ask 'What adjustments are in MY control?' Grip, club selection, tempo, hydration — those are Inner Circle moves.",
+      suggestions: [
+        "Identify 3 adjustments within your control right now",
+        "Accept conditions as equal for everyone — reframe as advantage",
+        "Shorten your routine in bad weather to stay decisive"
+      ],
+      redHeadIndicators: ["complaining about conditions", "using weather as excuse"],
+      blueHeadTechniques: ["Control circles", "Rapid adaptation", "Acceptance and refocus"],
+      urgencyLevel: "low"
+    };
+  }
+
+  if (message.includes("confidence") || message.includes("doubt") || message.includes("trust") || message.includes("believe") || message.includes("can't do")) {
+    return {
+      message: "Confidence isn't something you wait for — it's something you build through action. Red Head waits to 'feel ready.' Blue Head commits to the process and lets confidence follow. Start with your body language: stand tall, move with purpose. Then lock into your pre-performance routine — same process every time builds trust. Confidence comes from preparation and commitment, not from hope.",
+      suggestions: [
+        "List 3 recent performances where you executed well",
+        "Use power posture for 30 seconds before competing",
+        "Commit fully to each action — half-commitment kills confidence"
+      ],
+      redHeadIndicators: ["self-doubt", "hesitation", "waiting to feel ready"],
+      blueHeadTechniques: ["Commitment mindset", "Body language reset", "Evidence-based confidence"],
+      urgencyLevel: "medium"
+    };
+  }
+
   return {
-    message: "Tell me more about what's happening — the more specific you are, the more I can help. Pressure before competition? Focus dropping mid-round? Confidence after a bad result?",
+    message: "Every athlete faces moments that test them. Whether it's pressure, focus, or bouncing back from a setback — that's where Red2Blue methodology comes in. The shift from Red Head (reactive, tight, overthinking) to Blue Head (focused, composed, decisive) is a skill you can train. Tell me what's going on — competition nerves, a tough opponent, or something else — and I'll give you a specific technique.",
     suggestions: [
       "Tell me about a recent performance that frustrated you",
       "Describe a pressure moment you want to handle better"

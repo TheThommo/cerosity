@@ -55,6 +55,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ received: true });
   });
 
+  // Health check — used by Phase 8 prod verification
+  app.get("/api/health", async (_req, res) => {
+    let commit = "unknown";
+    try {
+      const { execSync } = await import("child_process");
+      commit = execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
+    } catch { /* not in git context — ok */ }
+
+    res.json({
+      status: "ok",
+      commit,
+      geminiConfigured: !!process.env.GEMINI_API_KEY,
+      vapiConfigured: !!process.env.VAPI_API_KEY,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  // Public config — runtime VAPI keys for client (no secrets)
+  app.get("/api/public-config", (_req, res) => {
+    res.json({
+      vapiPublicKey: process.env.VITE_VAPI_PUBLIC_KEY || "",
+      vapiAssistantId: process.env.VITE_VAPI_ASSISTANT_ID || "",
+    });
+  });
+
   // Stripe config endpoint - returns only the publishable key
   app.get("/api/stripe-config", (req, res) => {
     // Find the correct publishable key by checking prefixes

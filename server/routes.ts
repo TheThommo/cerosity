@@ -56,16 +56,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Health check — used by Phase 8 prod verification
-  app.get("/api/health", async (_req, res) => {
-    let commit = "unknown";
-    try {
-      const { execSync } = await import("child_process");
-      commit = execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
-    } catch { /* not in git context — ok */ }
-
+  app.get("/api/health", (_req, res) => {
+    const sha = process.env.RAILWAY_GIT_COMMIT_SHA || "";
     res.json({
       status: "ok",
-      commit,
+      commit: sha ? sha.substring(0, 7) : "unknown",
       geminiConfigured: !!process.env.GEMINI_API_KEY,
       vapiConfigured: !!process.env.VAPI_API_KEY,
       timestamp: new Date().toISOString(),

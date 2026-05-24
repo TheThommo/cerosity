@@ -382,34 +382,34 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
+            <button onClick={() => { window.scrollTo(0, 0); setSelectedTier('free'); setShowSignUp(true); }} className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center hover:border-blue-600 transition-colors cursor-pointer">
               <div className="w-12 h-12 mx-auto mb-4 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20">
                 <Crosshair className="w-6 h-6 text-blue-400" />
               </div>
               <h4 className="font-semibold text-white mb-2">Ability to Focus</h4>
               <p className="text-sm text-slate-400">Complete guide to building unshakeable concentration under pressure. Techniques used by elite athletes worldwide.</p>
-            </div>
-            <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
+            </button>
+            <button onClick={() => { window.scrollTo(0, 0); setSelectedTier('free'); setShowSignUp(true); }} className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center hover:border-indigo-600 transition-colors cursor-pointer">
               <div className="w-12 h-12 mx-auto mb-4 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20">
                 <Target className="w-6 h-6 text-indigo-400" />
               </div>
               <h4 className="font-semibold text-white mb-2">Master Your Moment</h4>
               <p className="text-sm text-slate-400">By Cero Golf — how to own the critical moments that define performance. Mental tools for when it matters most.</p>
-            </div>
-            <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
+            </button>
+            <button onClick={() => { window.scrollTo(0, 0); setSelectedTier('free'); setShowSignUp(true); }} className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center hover:border-purple-600 transition-colors cursor-pointer">
               <div className="w-12 h-12 mx-auto mb-4 bg-purple-500/10 rounded-xl flex items-center justify-center border border-purple-500/20">
                 <Zap className="w-6 h-6 text-purple-400" />
               </div>
               <h4 className="font-semibold text-white mb-2">Pre-Shot Routine</h4>
               <p className="text-sm text-slate-400">Mindset for the Moment — a structured pre-performance routine to lock in focus and execute with confidence.</p>
-            </div>
-            <div className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center">
+            </button>
+            <button onClick={() => { window.scrollTo(0, 0); setSelectedTier('free'); setShowSignUp(true); }} className="bg-slate-950 rounded-xl p-6 border border-slate-800 text-center hover:border-green-600 transition-colors cursor-pointer">
               <div className="w-12 h-12 mx-auto mb-4 bg-green-500/10 rounded-xl flex items-center justify-center border border-green-500/20">
                 <BookOpen className="w-6 h-6 text-green-400" />
               </div>
               <h4 className="font-semibold text-white mb-2">Motivation & Inspiration</h4>
               <p className="text-sm text-slate-400">Stories, frameworks, and practical exercises to build lasting motivation and find your competitive drive.</p>
-            </div>
+            </button>
           </div>
 
           <div className="text-center">
@@ -619,17 +619,19 @@ export default function Landing() {
 function SignUpForm({ onBack }: { onBack: () => void }) {
   try {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl w-full">
-          <Card className="shadow-2xl">
+          <Card className="shadow-2xl shadow-blue-950/20 bg-slate-900 border-slate-800">
             <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                  <CerosityLogo size={40} />
+              <div className="flex items-center justify-center space-x-3 mb-4">
+                <CerosityLogo size={48} />
+                <div>
+                  <h1 className="text-2xl font-bold text-white">Cerosity</h1>
+                  <p className="text-sm text-slate-400">AI Mental Performance</p>
                 </div>
               </div>
-              <CardTitle className="text-3xl">Create Your Account</CardTitle>
-              <CardDescription className="text-lg">
+              <CardTitle className="text-3xl text-white">Create Your Account</CardTitle>
+              <CardDescription className="text-lg text-slate-400">
                 Join the Cerosity mental performance community
               </CardDescription>
             </CardHeader>
@@ -643,20 +645,20 @@ function SignUpForm({ onBack }: { onBack: () => void }) {
   } catch (error) {
     console.error('SignUpForm error:', error);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl w-full">
-          <Card className="shadow-2xl">
+          <Card className="shadow-2xl bg-slate-900 border-slate-800">
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl text-red-600">Something went wrong</CardTitle>
-              <CardDescription className="text-lg">
+              <CardTitle className="text-3xl text-red-400">Something went wrong</CardTitle>
+              <CardDescription className="text-lg text-slate-400">
                 Please refresh the page and try again
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-4">
-              <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-500">
                 Refresh Page
               </Button>
-              <Button variant="outline" onClick={onBack}>
+              <Button variant="outline" onClick={onBack} className="border-slate-700 text-slate-300 hover:bg-slate-800">
                 Back to Landing
               </Button>
             </CardContent>
@@ -691,7 +693,7 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
   if (hasError) {
     return (
       <div className="text-center space-y-4">
-        <p className="text-red-600">Registration form encountered an error</p>
+        <p className="text-red-400">Registration form encountered an error</p>
         <Button onClick={() => {
           setHasError(false);
           window.location.reload();
@@ -796,24 +798,24 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
       {/* Basic Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">First Name</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">First Name</label>
           <input
             type="text"
             required
             value={formData.firstName}
             onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
             placeholder="First name"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Last Name</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Last Name</label>
           <input
             type="text"
             required
             value={formData.lastName}
             onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
             placeholder="Last name"
           />
         </div>
@@ -821,13 +823,13 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
 
       <div className="grid grid-cols-1 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
           <input
             type="email"
             required
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
             placeholder="your@email.com"
           />
         </div>
@@ -835,24 +837,24 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
           <input
             type="password"
             required
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
             placeholder="Create a strong password"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Confirm Password</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Confirm Password</label>
           <input
             type="password"
             required
             value={formData.confirmPassword}
             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
             placeholder="Confirm your password"
           />
         </div>
@@ -861,20 +863,20 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
       {/* Personal Information */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Date of Birth</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Date of Birth</label>
           <input
             type="date"
             value={formData.dateOfBirth}
             onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Dexterity</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Dexterity</label>
           <select
             value={formData.dexterity}
             onChange={(e) => setFormData({ ...formData, dexterity: e.target.value })}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
           >
             <option value="">Select</option>
             <option value="right">Right-handed</option>
@@ -882,11 +884,11 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Gender</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Gender</label>
           <select
             value={formData.gender}
             onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
           >
             <option value="">Select</option>
             <option value="male">Male</option>
@@ -897,7 +899,7 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-slate-300 mb-2">
             Golf Handicap (optional)
           </label>
           <input
@@ -906,16 +908,16 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
             max="54"
             value={formData.golfHandicap}
             onChange={(e) => setFormData({ ...formData, golfHandicap: e.target.value })}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
             placeholder="Enter your golf handicap"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Golf Experience</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Golf Experience</label>
           <select
             value={formData.golfExperience}
             onChange={(e) => setFormData({ ...formData, golfExperience: e.target.value })}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
           >
             <option value="">Select experience level</option>
             <option value="beginner">Beginner</option>
@@ -928,41 +930,41 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Goals</label>
+        <label className="block text-sm font-medium text-slate-300 mb-2">Goals</label>
         <input
           type="text"
           value={formData.goals}
           onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
-          className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
           placeholder="What do you want to achieve? (e.g., improve putting, manage pressure, build confidence)"
         />
       </div>
 
       {/* Bio Section */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">
+        <label className="block text-sm font-medium text-slate-300 mb-2">
           Tell us about yourself
         </label>
-        <p className="text-sm text-slate-600 mb-3">
+        <p className="text-sm text-slate-400 mb-3">
           Share your background, goals, and why you're here. Our AI will create a personalized profile to enhance your coaching experience.
         </p>
         <textarea
           rows={6}
           value={formData.bio}
           onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-          className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
           placeholder="Tell us about your athletic background, mental performance goals, challenges you face, and what you hope to achieve with AI coaching..."
         />
       </div>
 
       {/* Privacy Notice */}
-      <div className="bg-blue-50 p-4 rounded-lg">
+      <div className="bg-blue-950/30 p-4 rounded-lg border border-blue-900/30">
         <div className="flex items-start space-x-3">
-          <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+          <Shield className="w-5 h-5 text-blue-400 mt-0.5" />
           <div className="text-sm">
-            <p className="font-medium text-blue-900 mb-1">Privacy Protected</p>
-            <p className="text-blue-700">
-              Your personal information is encrypted and secure. We never share your data with third parties. 
+            <p className="font-medium text-blue-300 mb-1">Privacy Protected</p>
+            <p className="text-blue-200/70">
+              Your personal information is encrypted and secure. We never share your data with third parties.
               By creating an account, you agree to our Terms of Service and Privacy Policy.
             </p>
           </div>
@@ -975,26 +977,26 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
           type="button"
           variant="outline"
           onClick={onBack}
-          className="flex-1"
+          className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
         >
           Back to Landing
         </Button>
         <Button
           type="submit"
           disabled={registerMutation.isPending}
-          className="flex-1 bg-blue-600 hover:bg-blue-700"
+          className="flex-1 bg-blue-600 hover:bg-blue-500 text-white"
         >
           {registerMutation.isPending ? "Creating Account..." : "Create Account & Generate AI Profile"}
         </Button>
       </div>
 
       <div className="text-center">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-400">
           Already have an account?{" "}
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setShowSignIn(true)}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-blue-400 hover:text-blue-300 font-medium"
           >
             Sign in here
           </button>
@@ -1039,24 +1041,24 @@ function SignInFormContent({ onBack, onBackToLanding }: { onBack: () => void; on
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+        <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
         <input
           type="email"
           required
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
           placeholder="your@email.com"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+        <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
         <input
           type="password"
           required
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
           placeholder="Enter your password"
         />
       </div>
@@ -1067,26 +1069,26 @@ function SignInFormContent({ onBack, onBackToLanding }: { onBack: () => void; on
           type="button"
           variant="outline"
           onClick={onBack}
-          className="flex-1"
+          className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
         >
           Back to Sign Up
         </Button>
         <Button
           type="submit"
           disabled={loginMutation.isPending}
-          className="flex-1 bg-blue-600 hover:bg-blue-700"
+          className="flex-1 bg-blue-600 hover:bg-blue-500 text-white"
         >
           {loginMutation.isPending ? "Signing In..." : "Sign In"}
         </Button>
       </div>
 
       <div className="text-center">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-400">
           Don't have an account?{" "}
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={onBack}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-blue-400 hover:text-blue-300 font-medium"
           >
             Create one here
           </button>

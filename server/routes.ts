@@ -6,7 +6,7 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSchema, insertPreShotRoutineSchema, insertMentalSkillsXCheckSchema, insertControlCircleSchema, insertDailyMoodSchema, insertUserGoalSchema } from "@shared/schema";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
-import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest } from "./auth";
+import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback } from "./auth";
 import { sendLeadRegistrationEmail, sendAdminLeadNotification } from "./email";
 import { buildFloPrompt, buildLandingSalesDirective, clearBrainDocsCache, clearSportContextCache } from "./flo-prompt";
 import { formatAthleteContextForPrompt } from "./flo-athlete-context";
@@ -152,6 +152,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ message: "Logged out successfully" });
     });
+  });
+
+  // Google OAuth — initiate
+  app.get("/api/auth/google", (req, res) => {
+    if (!isGoogleOAuthConfigured()) {
+      return res.status(501).json({ message: "Google SSO not configured" });
+    }
+    const state = Math.random().toString(36).substring(2);
+    req.session.oauthState = state;
+    req.session.save(() => {
+      res.redirect(getGoogleAuthUrl(state));
+    });
+  });
+
+  // Google OAuth — callback
+  app.get("/api/auth/google/callback", async (req, res) => {
+    try {
+      const code = req.query.code as string;
+      if (!code) return res.redirect("/?error=no_code");
+
+      const { user, isNew } = await handleGoogleCallback(code, req);
+      req.session.save((err) => {
+        if (err) {
+          console.error("[GOOGLE-AUTH] Session save error:", err);
+          return res.redirect("/?error=session");
+        }
+        // Redirect to home — frontend picks up session via /api/auth/me
+        res.redirect(isNew ? "/?welcome=1" : "/");
+      });
+    } catch (error: any) {
+      console.error("[GOOGLE-AUTH] Callback error:", error.message);
+      res.redirect("/?error=google_auth_failed");
+    }
   });
 
   app.get("/api/auth/me", async (req: AuthRequest, res) => {

@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import session from 'express-session';
 import connectPg from 'connect-pg-simple';
 import { Request, Response, NextFunction } from 'express';
@@ -6,9 +7,19 @@ import { storage } from './storage';
 import { generateAIProfile } from './openai';
 import { debugLogger, withErrorLogging } from './debug';
 
+// ── Google OAuth Config ───────────────────────────────────────────
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://cerosity.com/api/auth/google/callback';
+
+export function isGoogleOAuthConfigured(): boolean {
+  return !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
+}
+
 declare module 'express-session' {
   interface SessionData {
     userId?: number;
+    oauthState?: string;
   }
 }
 
@@ -282,4 +293,92 @@ export async function loginUser(email: string, password: string) {
   const { password: _, ...userWithoutPassword } = user;
   console.log('Login successful for user:', userWithoutPassword.username);
   return userWithoutPassword;
+}
+
+// ── Google OAuth ──────────────────────────────────────────────────
+
+/** Build Google OAuth authorization URL (no passport dependency) */
+export function getGoogleAuthUrl(state: string): string {
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: GOOGLE_CALLBACK_URL,
+    response_type: 'code',
+    scope: 'openid email profile',
+    access_type: 'offline',
+    state,
+    prompt: 'select_account',
+  });
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+/** Exchange authorization code for tokens, return Google profile */
+async function exchangeGoogleCode(code: string): Promise<{
+  email: string;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
+  sub: string;
+}> {
+  // Exchange code for tokens
+  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      code,
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      redirect_uri: GOOGLE_CALLBACK_URL,
+      grant_type: 'authorization_code',
+    }),
+  });
+  if (!tokenRes.ok) {
+    const err = await tokenRes.text();
+    throw new Error(`Google token exchange failed: ${err}`);
+  }
+  const tokens = await tokenRes.json();
+
+  // Fetch user info
+  const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: `Bearer ${tokens.access_token}` },
+  });
+  if (!userInfoRes.ok) throw new Error('Failed to fetch Google user info');
+  return userInfoRes.json();
+}
+
+/** Handle Google OAuth callback — find or create user, set session */
+export async function handleGoogleCallback(code: string, req: Request): Promise<{ user: any; isNew: boolean }> {
+  const profile = await exchangeGoogleCode(code);
+
+  // Try find existing user by email
+  let user = await storage.getUserByEmail(profile.email);
+  let isNew = false;
+
+  if (user) {
+    // Existing user — log them in
+    debugLogger.success('auth', `Google SSO login: ${profile.email}`);
+  } else {
+    // New user — create account
+    const username = `${(profile.given_name || 'user').toLowerCase()}${(profile.family_name || '').toLowerCase()}${Math.floor(Math.random() * 100)}`;
+    const randomPassword = crypto.randomBytes(32).toString('hex');
+    const hashedPassword = await hashPassword(randomPassword);
+
+    user = await storage.createUser({
+      username,
+      firstName: profile.given_name || null,
+      lastName: profile.family_name || null,
+      email: profile.email,
+      password: hashedPassword,
+      subscriptionTier: 'free',
+      isSubscribed: false,
+    });
+    isNew = true;
+    debugLogger.success('auth', `Google SSO new account: ${profile.email} (${username})`);
+  }
+
+  // Set session
+  req.session.userId = user.id;
+
+  const { password: _, ...userWithoutPassword } = user;
+  return { user: userWithoutPassword, isNew };
 }

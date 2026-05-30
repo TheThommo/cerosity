@@ -95,7 +95,17 @@ export type BuildFloPromptOpts = {
   athleteContext?: string;
   forChatApi?: boolean;
   forLanding?: boolean;
+  forVoice?: boolean;
 };
+
+// Spoken-mode rules. Voice (VAPI) is transport only — this prompt is the brain.
+const VOICE_MODE_RULES = `VOICE MODE — this is a live spoken call:
+- Keep replies to 2-3 short sentences. No lectures, no lists.
+- Speak in plain, natural language. Never read URLs, links or email addresses aloud — say "I'll send you that" instead.
+- Say numbers the way you'd speak them (for example "seven thirty", "two hundred dollars").
+- Never say "as an AI" or mention being a model, app, or assistant. You are FLO.
+- Match the athlete's energy. No humour during a crisis or when someone sounds upset.
+- If someone mentions self-harm or being in crisis, calmly point them to crisis support and a human coach straight away.`;
 
 export function buildLandingSalesDirective(messageCount: number): string {
   if (messageCount <= 1) {
@@ -156,7 +166,14 @@ export async function buildFloPrompt(opts: BuildFloPromptOpts): Promise<string> 
     layers.push("", `SALES STAGE INSTRUCTION:\n${opts.salesDirective}`);
   }
 
-  if (opts.forChatApi) {
+  if (opts.forVoice) {
+    layers.push(
+      "",
+      VOICE_MODE_RULES,
+      "",
+      "Respond to the athlete's latest spoken message directly, using the conversation so far. Reply with plain spoken words only — no JSON, no markdown, no bullet points, no emojis.",
+    );
+  } else if (opts.forChatApi) {
     layers.push(
       "",
       "Always respond to the athlete's latest message directly. Use conversation history — never repeat your previous reply.",

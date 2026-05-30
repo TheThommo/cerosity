@@ -31,52 +31,10 @@ async function ensureVapiConfig(): Promise<{ publicKey: string; assistantId: str
   return { publicKey: VAPI_PUBLIC_KEY, assistantId: VAPI_ASSISTANT_ID };
 }
 
-const FLO_ASSISTANT_CONFIG = {
-  name: "FLO",
-  model: {
-    provider: "openai" as const,
-    model: "gpt-4o",
-    messages: [
-      {
-        role: "system" as const,
-        content: `You are FLO, the Red2Blue AI mental performance coach. You are stern yet empathetic, with light humor when appropriate.
-
-PERSONALITY:
-- Direct and no-nonsense. You don't sugarcoat. If someone is making excuses, you call it out firmly but with care.
-- Empathetic — you understand the struggle, you've "seen it all." You validate feelings but don't let people wallow.
-- Light humor — you use brief, dry wit to defuse tension. Never sarcastic or mocking.
-- You speak like a respected coach who genuinely cares but demands accountability.
-- Short, punchy sentences. No rambling. Every word earns its place.
-
-VOICE STYLE:
-- Keep responses concise (2-4 sentences max for voice).
-- Use conversational language — no jargon, no corporate speak.
-- Ask one focused question at a time.
-- When someone is spiraling, ground them immediately with a technique.
-
-RED2BLUE METHODOLOGY:
-- Red Head = reactive, stressed, "I can't" thinking
-- Blue Head = focused, confident, "do it" thinking
-- Techniques: Box Breathing (4-4-4-4), Control Circles (focus on what you control), Pre-Performance Routine (25 seconds), 3-2-1 Focus Reset
-- Performance Equation: Performance = Structure + Skillset + Mindset
-- CIA Framework: Clarity (know what you want), Intensity (commit fully), Accuracy (execute precisely)
-- STUCK model: Stop, Think, Understand, Choose, Know-how
-
-RULES:
-- Never diagnose mental health conditions.
-- If someone mentions self-harm or crisis, direct them to appropriate helplines immediately.
-- You coach ALL sports and high-performance domains, not just golf.
-- Always bring it back to actionable next steps.`
-      }
-    ]
-  },
-  voice: {
-    provider: "11labs" as const,
-    voiceId: "21m00Tcm4TlvDq8ikWAM"
-  },
-  firstMessage: "Hey. I'm FLO, your mental performance coach. What's going on — what are you working through right now?",
-  endCallMessage: "Good chat. Remember — you control your next move. Go make it count.",
-};
+// NOTE: No inline assistant config / system prompt here by design.
+// FLO has ONE brain — Cerosity. The VAPI assistant (custom-llm provider) calls
+// back into the server for every reply. The client only starts the call by
+// assistant ID; it never defines coaching behaviour.
 
 export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
   const { toast } = useToast();
@@ -155,14 +113,20 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
 
   const startCall = useCallback(async () => {
     if (!vapiRef.current) return;
+    // FLO's brain lives server-side. We only start the call by assistant ID;
+    // there is no inline fallback (that would be a second brain).
+    if (!VAPI_ASSISTANT_ID) {
+      setCallStatus("idle");
+      toast({
+        title: "Voice unavailable",
+        description: "FLO voice isn't configured right now. Please try again later.",
+        variant: "destructive",
+      });
+      return;
+    }
     setCallStatus("connecting");
     try {
-      // Prefer dashboard-configured assistant over inline config
-      if (VAPI_ASSISTANT_ID) {
-        await vapiRef.current.start(VAPI_ASSISTANT_ID);
-      } else {
-        await vapiRef.current.start(FLO_ASSISTANT_CONFIG as any);
-      }
+      await vapiRef.current.start(VAPI_ASSISTANT_ID);
     } catch (err: any) {
       console.error("[FLO-VOICE] Start error:", err);
       setCallStatus("idle");

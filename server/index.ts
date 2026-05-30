@@ -4,6 +4,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import { debugLogger, runStartupDiagnostics, withErrorLogging } from "./debug";
 import { requireProductionEnv } from "./env";
 import { readDeployManifest } from "./deploy";
+import { reconcileFloVapiAssistant } from "./vapi";
+import { registerFloVoiceRoutes } from "./flo-routes";
 
 const app = express();
 app.use(express.json());
@@ -53,6 +55,10 @@ app.use((req, res, next) => {
     
     debugLogger.success('server', 'Registering routes...');
     const server = await withErrorLogging('server', 'route registration', registerRoutes)(app);
+
+    // FLO voice (VAPI custom-LLM bridge + admin reconcile). Registered before the
+    // error handler / static fallback so its routes match. Single brain: Cerosity.
+    registerFloVoiceRoutes(app);
 
     // Enhanced error handling with detailed logging
     app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
@@ -152,6 +158,15 @@ app.use((req, res, next) => {
       debugLogger.success('server', `Health check: http://localhost:${port}/api/health`);
       debugLogger.success('server', `Diagnostics: http://localhost:${port}/api/diagnostics`);
       log(`serving on port ${port}`);
+
+      // Enforce FLO single-brain architecture: push the live VAPI assistant onto
+      // the custom-LLM (Cerosity) config. Non-blocking; never crashes boot.
+      if (isProduction) {
+        reconcileFloVapiAssistant()
+          .then((r) => debugLogger.log('vapi', r.ok ? 'success' : 'warning',
+            r.ok ? 'FLO VAPI assistant reconciled to Cerosity brain' : `FLO VAPI reconcile skipped/failed: ${r.detail}`))
+          .catch((e) => debugLogger.warning('vapi', `FLO VAPI reconcile error: ${e?.message || e}`));
+      }
     });
     
   } catch (error: any) {

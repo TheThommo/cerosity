@@ -815,3 +815,145 @@ ALL PASS — commit b6a9e52
 One bug found and fixed in the harness itself: the submit selector `/create account|sign up/i` also matched **"Sign up with Google"**, so the first run clicked the SSO button and timed out. Now pinned to an exact `"Create Account"`.
 
 **Status: D3 PASS — API and browser.**
+
+## Phase 2 — A5, minting a paid tier without paying
+
+```
+39517c1  fix(security): stop signup-after-payment claiming a payment that never happened
+```
+
+**The server side was already closed.** Auditing every write of `subscriptionTier` in `server/`:
+
+| Site | Reachable without payment? |
+|---|---|
+| `server/auth.ts:377` → `'free'` | n/a — Google OAuth path, hardcoded free |
+| `server/routes.ts:466` → `tier` | No — inside `handlePaymentSuccess`, only called from the **signature-verified** Stripe webhook |
+| `server/routes.ts:496` → `tier` | No — `/api/demo/upgrade`, returns 404 when `NODE_ENV === 'production'` |
+| `server/storage.ts:225,254,280` | No — `MemStorage` seed data, dead code (`DatabaseStorage` is what's exported) |
+
+`registerUser` forces `'free'` unconditionally (shipped in `f2135f5`), and `StableSignUpForm` no longer sends tier fields at all. So there is **no path that grants a paid tier without a verified Stripe session.**
+
+Proven on production — registering with the paid-tier payload the old flow used to send:
+
+```
+POST /api/auth/register
+  Referer: https://cerosity.com/signup-after-payment?tier=ultimate
+  {"subscriptionTier":"ultimate","isSubscribed":true, …}
+
+→ id 11 | tier free | isSubscribed False
+→ re-read via /api/auth/me: tier free | isSubscribed False
+```
+
+**What was still wrong: the page lied.** `/signup-after-payment?tier=ultimate` is a public URL, and anyone who typed it got a green tick, "Payment Successful!", and an "Ultimate — $2,290 · Lifetime Access Purchased" summary, having paid nothing. That grants nothing, but it is the screen a support complaint gets built on, and it teaches users the confirmation means nothing.
+
+The page now requires the `session_id` Stripe appends on a real return from checkout. Without it the header reads "Create Your Account / Start free", the price summary is hidden, and the form is not told it is a paid signup.
+
+Browser-verified (`06-a5-no-payment-claim.png`): `"Payment Successful!" shown: false · price summary shown: false`.
+
+**Status: A5 PASS for the negative path.** The positive path (real Stripe `session_id` → confirmation renders) was not exercised — live Stripe money is out of scope tonight.
+
+---
+
+## Phase 3 — D4, session hardening
+
+```
+f3c04fa  fix(security): session regenerate + sameSite hardening
+```
+
+**Finding on the iframe question, as instructed.** `sameSite: 'none'` was justified in-line as "Allow cross-site in iframe". A grep of the whole repository returns exactly one match for `iframe|X-Frame|frame-ancestors`:
+
+```
+$ grep -rniE "iframe|X-Frame|frame-ancestors" server client/src
+server/auth.ts:67:    sameSite: isProduction ? 'none' : 'lax', // Allow cross-site in iframe
+```
+
+The only mention of an iframe is the comment justifying the setting. Nothing embeds the app, and the Replit preview it was written for is gone (CLAUDE.md Rule 4). **No embed requirement exists**, so `'none'` was a dead artifact that made every state-changing endpoint CSRF-reachable. Now `'lax'`, which still sends the cookie on top-level navigations — sign-in and email links are unaffected.
+
+`req.session.regenerate()` now runs on both register and login before `userId` is written, so the session id rotates when privilege changes and a pre-set session cannot be reused.
+
+Cookie flags observed on a real production signup:
+
+```
+set-cookie: connect.sid=s%3A…; Path=/; Expires=Tue, 18 Aug 2026 13:37:49 GMT;
+            HttpOnly; Secure; SameSite=Lax
+```
+
+Playwright confirms auth still works after the regenerate change — step 11: `HTTP 200 · me.id=13 · cookie sameSite=Lax secure=true httpOnly=true`.
+
+**Status: D4 PASS (minimum).** Full CSRF tokens and helmet were deliberately not attempted.
+
+---
+
+## Phase 4 — Stretch
+
+```
+c9548cf  perf(db): ownership-lookup indexes + populate chat_sessions.message_count
+```
+
+Applied additively via Supabase migration `add_ownership_lookup_indexes` — **not** `db:push` (audit D2):
+
+```
+idx_chat_sessions_user_id           chat_sessions (user_id)
+idx_lesson_progress_user_lesson     lesson_progress (user_id, lesson_id)
+idx_athlete_profiles_user_id        athlete_profiles (user_id)
+idx_daily_moods_user_id             daily_moods (user_id)
+```
+
+Every ownership check added tonight is a lookup by `user_id`, and these tables now take real write traffic.
+
+`updateChatSession` never wrote `messageCount` or `updatedAt`, so every row read 0 and kept its creation timestamp. Both are now written — verified on the first session created after deploy:
+
+```sql
+select id, message_count, jsonb_array_length(messages), updated_at > created_at from chat_sessions order by id desc limit 2;
+
+→ 10 | message_count 2 | actual 2 | updated_at moves: true    ← after the fix
+→  9 | message_count 0 | actual 2 | updated_at moves: false   ← written before it
+```
+
+Gemini key rotation was **not** attempted — left for Mark, as instructed.
+
+---
+
+## Post-demo security night — final handoff
+
+| Item | Status | Evidence |
+|---|---|---|
+| D3 chat IDOR | **PASS** | Attacker jar: body-userId spoof → bound to attacker (`session.userId=7`, secret absent); `sessionId` spoof → **404**, no leak; session list → **403**; followup → **404**. Browser steps 7–9 on `f3c04fa`. |
+| Sibling IDORs | **PASS** | `PUT /api/daily-mood/1` (victim's row, attacker premium) → **404**; `POST /api/daily-mood` with `userId: 6` → stored `userId: 7`. Insights/recommendations checks added, though those routes 500 today because `DatabaseStorage` stubs them. |
+| Browser smoke (Playwright) | **PASS** | 11/11 on `f3c04fa`, two independent browser contexts against cerosity.com. Script + 6 screenshots + `results.json` in [`docs/evidence/d3-smoke/`](evidence/d3-smoke/). |
+| A5 payment mint | **PASS (negative path)** | Register with `subscriptionTier: ultimate` → `free`. No server path grants a tier without the signature-verified webhook. Page no longer claims a payment without `session_id`. Positive Stripe path not exercised — out of scope. |
+| D4 session | **PASS (minimum)** | `HttpOnly; Secure; SameSite=Lax` on production. `session.regenerate()` on register + login; login still works (browser step 11). Full CSRF tokens deliberately deferred. |
+| Investor bar still YES? | **YES** | Steps 1–5 of the browser smoke re-verify the whole stranger path on the post-fix build: signup → `/learn` → free lesson renders (1,896 chars) → FLO told a codeword → **after reload** replies `"Codeword: ZEBRA-16226. Sport: squash"`. |
+
+### Production final state
+
+```
+$ curl -s https://cerosity.com/api/health
+{"status":"ok","commit":"c9548cf","llmProvider":"anthropic","llmModel":"claude-sonnet-5",
+ "anthropicConfigured":true,"geminiConfigured":true,"vapiConfigured":true}
+```
+
+### Commits this run
+
+```
+c9548cf  perf(db): ownership-lookup indexes + populate chat_sessions.message_count
+f3c04fa  fix(security): session regenerate + sameSite hardening
+39517c1  fix(security): stop signup-after-payment claiming a payment that never happened
+7a8365b  docs: D3 evidence — two-jar API IDOR proof + Playwright browser smoke
+b6a9e52  fix(security): close D3 chat IDOR + sibling ownership checks
+```
+
+### Leftovers for Mark
+
+| # | Item | Severity | Note |
+|---|---|---|---|
+| **D1** | **Live Google API key in git history** | **CRITICAL** | **Untouched tonight, as instructed — rotate it.** Still the top item. |
+| A1 | Stripe webhook cannot verify (`express.json()` before the raw body) | CRITICAL | Blocks any real purchase from granting access. The webhook is also the *only* path that grants a paid tier, so today nobody can buy anything. |
+| A3/A6 | `create-payment-intent` / `create-checkout-session` trust a client-supplied `amount` | CRITICAL | Derive from `TIER_PRICING` server-side before taking money. |
+| B2 | `techniques` and `scenarios` are 0 rows | CRITICAL | Premium pages render empty. Seed data exists only in the dead `MemStorage`. |
+| — | `DatabaseStorage` stubs insights + recommendations | HIGH | `getUserInsights`, `acknowledgeInsight`, `getUserRecommendations`, `updateRecommendationFeedback`, `markRecommendationApplied` all `throw`. Those routes 500 today. Ownership checks are already in place for when they are implemented. |
+| B5 | No rate limiting; VAPI voice ungated | HIGH | Anthropic spend is part of this exposure now. |
+| D4+ | CSRF tokens / helmet | MEDIUM | `sameSite: 'lax'` closes the drive-by case; token-based CSRF was deliberately not attempted tonight. |
+| D5 | No foreign keys | MEDIUM | Indexes added tonight; FKs still absent. |
+| — | Unmatched `/api/*` falls through to the SPA (`200 text/html`) | LOW | Makes a deleted endpoint look alive to a naive check. |
+| — | Test accounts in production | LOW | `users` 3–14 with `@cerosity-test.com` addresses, created as evidence across both runs. Users 6 and 7 were briefly promoted to premium to exercise premium-gated IDOR paths and **were reverted to free** (verified). Delete when convenient. |

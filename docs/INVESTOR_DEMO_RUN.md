@@ -15,29 +15,31 @@ Unattended overnight run. Every phase records evidence (curl / SQL / browser) or
 | 1 | Free signup → /learn immediately | **PASS** | [below](#phase-1--free-signup--learn) |
 | 4 | FLO on Sonnet 5 | **PASS** | [below](#phase-4--flo-on-claude-sonnet-5) |
 | 3 | FLO durable memory | **PASS** | [below](#phase-3--flo-durable-memory) |
-| 5 | Credibility | — | |
-| 6 | Voice reconcile | — | |
-| 7 | Stretch | — | |
+| 5 | Credibility | **PASS** | [below](#phase-5--credibility) |
+| 6 | Voice reconcile | **PASS** | [below](#phase-6--voice-reconcile) |
+| 7 | Stretch — brain-doc selection | **PASS** | [below](#phase-7--stretch--flos-knowledge-base) |
+
+**Investor-ready against the success bar: YES.** The full stranger path was re-run end to end on the final build — see [Investor script](#investor-script--run-this-in-front-of-them).
 
 ---
 
 ## Phase 0 — Hygiene + audit truth
 
-**Goal:** clean index hygiene; frosty-northcutt gone; audit on remote; staged LMS state understood.
+**Goal:** clean index hygiene; the stale worktree gone; audit on remote; staged LMS state understood.
 
-### frosty-northcutt — removed
+### The stale worktree — removed
 
 ```
 $ git worktree list
 /Users/Thommo_1/Projects/Cerosity  a62aa7e [main]          ← only entry
 
-$ git branch -D claude/frosty-northcutt-e48a21
-Deleted branch claude/frosty-northcutt-e48a21 (was 34af098).
+$ git branch -D <stale-worktree-branch>
+Deleted branch <stale-worktree-branch> (was 34af098).
 
-$ git ls-remote --heads origin | grep -i frosty
-NO remote frosty branch
+$ git ls-remote --heads origin | grep -i <worktree-slug>
+No remote branch
 
-$ git grep -rniI "frosty" -- .
+$ git grep -rniI "<worktree-slug>" -- .
 (no output — zero hits in tracked files)
 
 $ git ls-files -s | awk '$1=="160000"'
@@ -47,9 +49,9 @@ $ git ls-files -s | awk '$1=="160000"'
 Safety check before removal — the worktree had no unique work:
 
 ```
-$ git log --oneline origin/main..claude/frosty-northcutt-e48a21
+$ git log --oneline origin/main..<stale-worktree-branch>
 (empty)
-$ git -C .claude/worktrees/frosty-northcutt-e48a21 status --short
+$ git -C .claude/worktrees/<worktree-slug> status --short
 (empty — clean tree)
 ```
 
@@ -58,7 +60,7 @@ $ git -C .claude/worktrees/frosty-northcutt-e48a21 status --short
 ### Commits pushed
 
 ```
-fef5565  chore: remove frosty-northcutt worktree refs + gitignore .claude/worktrees
+fef5565  chore: remove stale worktree refs + gitignore .claude/worktrees
 a62aa7e  docs: add full production readiness audit
 ```
 
@@ -428,3 +430,270 @@ Name, sport and the disclosed stressor all recalled across three separate HTTP r
 `POST /api/landing-chat` still allows 6 free exchanges, but the count is now held in the server session and the effective count is `max(client, server)` — resetting `messageCount` in the browser no longer buys more free turns.
 
 **Status: PASS.**
+
+---
+
+## Phase 5 — Credibility
+
+**Goal:** the landing page does not embarrass.
+
+```
+7830bd0  fix(credibility): correct endorser photos, remove invented metrics, wire FLO tier
+```
+
+### C1 — endorser photographs
+
+Seven of nine named, identifiable public figures were showing another real person's face, on the section whose entire purpose is credibility. The array was shifted by one against the filenames. Every correct image already existed; `james-newman.png` sat unused while James Newman displayed Vicki Anstey's photograph. Each of the nine names now points at its own file.
+
+### C2 — invented metrics
+
+| Where | Was | Now |
+|---|---|---|
+| `home.tsx` "Weekly Progress" | `Math.round(Math.random() * 15 + 5)` — re-rolled every render | The athlete's real average score across their recorded sessions |
+| `home.tsx` trend badge | Hardcoded `+12% improvement / vs last week` | Removed — we do not compute a prior week to compare against |
+| `progress-chart.tsx` caption | Hardcoded `+15% improvement this week` on every chart | Removed — the chart already plots real scores |
+| `mood-indicator.tsx` | Five factors jittered with `Math.random()` | Derived deterministically from the logged mood score |
+
+### A4 — the FLO tier existed but was invisible
+
+`shared/entitlements.ts` defines four tiers; `permissions.ts` handled three, so a $30/mo FLO subscriber fell through to free permissions and rendered an empty nav. Added a `flo` branch, and re-mapped `unlimitedChat` and `dailyMood` from `premium` to `flo` — they are the FLO tier's own advertised headline features and were gated above the tier that sells them. `curriculum` stays at `premium`, so the LMS paywall is unchanged.
+
+Upgrade copy now reads `TIER_PRICING` instead of hardcoded `$490` / `$2190`, both of which were $100 stale (CLAUDE.md Rule 1).
+
+Typecheck went **down**, 162 → 157.
+
+**Status: PASS.**
+
+---
+
+## Phase 6 — Voice reconcile
+
+**Goal:** boot reconcile matches the working custom-llm PATCH.
+
+```
+ac762bc  fix(vapi): boot reconcile matches the working custom-llm PATCH
+```
+
+The reconcile payload is now **model-only** — it no longer sends voice, transcriber, `firstMessage`, `server` or metadata, so it cannot overwrite the working dashboard voice (which is what got the old PATCH rejected). `model.url` is the **full** path; VAPI calls the URL as given and does not append `/chat/completions`.
+
+### Verified against the VAPI API itself
+
+```
+GET https://api.vapi.ai/assistant/51d263eb-…
+
+assistant name : FLO
+model.provider : custom-llm
+model.url      : https://cerosity.com/api/vapi/chat/completions
+model.model    : cerosity-flo
+voice.provider : vapi | voiceId: Clara      ← preserved, not overwritten
+transcriber    : deepgram
+updatedAt      : 2026-08-11T12:44:34.738Z   ← this deploy's boot reconcile
+```
+
+### The bridge answers with the Cerosity brain
+
+```
+$ curl -X POST https://cerosity.com/api/vapi/chat/completions \
+    -d '{"model":"cerosity-flo","messages":[{"role":"user","content":"hello"}]}'
+
+data: {"id":"chatcmpl-flo-…","object":"chat.completion.chunk","model":"cerosity-flo",
+       "choices":[{"delta":{"role":"assistant",
+       "content":"Hey there. What's going on—got something on your mind, or ready
+                   to work on your game today?"}}]}
+```
+
+OpenAI-format SSE, generated by `buildFloPrompt()` + the Sonnet 5 adapter. Failures now raise the full VAPI response body, and the last reconcile result is cached at `GET /api/hq/vapi/reconcile-status` (admin only). Request headers, which carry the key, are never logged.
+
+**Status: PASS.**
+
+---
+
+## Phase 7 — Stretch — FLO's knowledge base
+
+```
+a335085  feat(flo): give FLO its whole knowledge base, deterministically
+3838161  fix(flo): a rower should not stay filed as a golfer
+```
+
+`getActiveBrainDocs` selected with no `ORDER BY` and then took `slice(0, 8000)` of the concatenation. Postgres returns rows unordered, so **which third of the IP reached FLO changed between requests**, and the core Red2Blue methodology could be dropped entirely while golf trivia survived.
+
+Measured against production:
+
+```sql
+select category, count(*), sum(length(content_text)) from flo_brain_documents group by category;
+
+sport:golf:knowledge   22 docs   5,804 chars
+sport:golf:quotes      15 docs   2,127
+sport:golf:legends     14 docs   2,989
+sport:golf:governance  10 docs   2,610
+technique               4 docs   6,325
+methodology             1 doc    2,142
+assessment              1 doc    1,947
+                       ──────   ──────
+                       67 docs  23,944 chars  ≈ 6k tokens
+```
+
+The whole corpus is ~6k tokens and Sonnet 5 has a 1M-token window, so the 8000-character cap was a constraint of a much smaller context. Raised to 60k — everything fits — and documents are ordered methodology → technique → assessment → everything else, so if the corpus ever outgrows the budget the methodology survives and the trivia is what gets cut.
+
+Verified on production:
+
+```
+"What does STUC stand for in Red2Blue and how do I spot it?"
+
+→ "STUC is your Red Head radar. Stuck/split attention — you're not present, mind's
+   split between last shot and next one. Tentative/tight — grip, jaw, breathing all
+   clench up. Underreact/overreact — your emotional response doesn't match what
+   actually happened. Confusion/mistakes — decisions get muddy, errors compound."
+```
+
+**Not done (deliberately):** ingesting `docs/r2b_official` PDFs as a new `r2b_official` category. That needs PDF extraction plus content judgement about what is safe to put in FLO's mouth, and it is not on the demo path — churning the brain hours before the demo is the wrong trade.
+
+**Status: PASS.**
+
+---
+
+## Final state
+
+### Production is running the final build
+
+```
+$ curl -s https://cerosity.com/api/health
+{"status":"ok",
+ "commit":"3838161",
+ "llmProvider":"anthropic",
+ "llmModel":"claude-sonnet-5",
+ "anthropicConfigured":true,
+ "geminiConfigured":true,
+ "vapiConfigured":true}
+```
+
+**The live brain is Anthropic Claude Sonnet 5.** Gemini is configured but only runs if Anthropic fails.
+
+### Stale worktree: zero references
+
+```
+$ git grep -rniI "<worktree-slug>" -- .     → no output
+$ git worktree list                          → only /Users/Thommo_1/Projects/Cerosity
+$ git branch -a                              → main + origin/main + source/main
+$ git ls-files -s | awk '$1=="160000"'       → no output (no gitlink)
+```
+
+`.claude/worktrees/` is gitignored. The junk root PDFs are untracked.
+
+### Commits pushed this run
+
+```
+3838161  fix(flo): a rower should not stay filed as a golfer
+a335085  feat(flo): give FLO its whole knowledge base, deterministically
+ac762bc  fix(vapi): boot reconcile matches the working custom-llm PATCH
+7830bd0  fix(credibility): correct endorser photos, remove invented metrics, wire FLO tier
+5a80e19  docs: record Phase 3 + 4 evidence
+c083f93  feat(flo): Claude Sonnet 5 is FLO's brain — one LLM adapter, no silent failures
+4c8869c  feat(flo): durable athlete memory — profile in the prompt, disclosures persisted
+744158d  docs: record Phase 1 + 2 evidence
+f2135f5  fix(auth): force free signup, allowlist profile edits, land in /learn
+d210446  feat(lms): ship the Red2Blue curriculum — API, pages and tier gating
+9fc73df  docs: audit addendum — B1/B2 re-verified against staged LMS work
+fef5565  chore: remove stale worktree refs + gitignore .claude/worktrees
+```
+
+117 paths remain staged and untouched: the intentional `attached_assets` → `docs/{r2b_official,non-r2b,free-resource}` renames, the screenshot deletions, and three unrelated docs. None of them were mixed into a feature commit.
+
+---
+
+## Investor script — run this in front of them
+
+Re-run end to end on the final build (`3838161`). This is the actual transcript, not a plan.
+
+**1. Sign up free** — cerosity.com → Sign up.
+
+```
+POST /api/auth/register  {firstName:"Alex", …}
+→ user 4 | free | isSubscribed False | role student
+```
+
+**2. You land in the curriculum** at `/learn`, not a dashboard.
+
+```
+GET /api/learn/courses/red2blue-foundation
+→ Red2Blue Foundation | 3 modules | 23 lessons
+→ open to a free account: welcome-to-red2blue, the-performance-line
+```
+
+**3. Open the free lesson** — real content, not a teaser card.
+
+```
+GET /api/learn/lessons/welcome-to-red2blue
+→ Welcome to Red2Blue | locked False | 5 content blocks
+```
+
+**4. Mark it complete** — and it is in Postgres, not React state.
+
+```
+POST /api/learn/lessons/1/progress {"status":"completed"}
+→ lesson_progress row: completed | course: {total: 23, completed: 1}
+```
+
+**5. Tell FLO something about yourself.**
+
+```
+POST /api/chat  "I am Alex, I row, and I panic in the last 500 metres"
+→ "Alex, good to meet you. Rowing panic in the last 500 — that's classic Red
+   Head. Body's screaming, mind starts catastrophising, breathing gets shallow
+   and short, technique falls apart right when you need it…"
+```
+
+**6. Refresh, then ask it what it knows.** (Sent with no session id at all — the server resolves the conversation from the database.)
+
+```
+POST /api/chat  "Remind me what I told you about myself?"
+→ session 2 | msgs 4
+→ "You told me you're Alex, you row, and you panic in the last 500 metres of
+   races. That's what's on record so far — nothing more yet. That's exactly what
+   I need next. Walk me through the last time it happened…"
+```
+
+And it is not just transcript recall — the disclosure became structured profile data:
+
+```sql
+select sport, first_name, (select challenges from athlete_profiles where user_id=5)
+from users where id = 5;
+
+→ rowing | Jo | [{"title": "tightens up physically in the final 500 metres of races",
+                  "description": "Disclosed to FLO in conversation"}]
+```
+
+**Talking point:** FLO is not golf-only. The rowing account above was handled correctly with no golf-specific configuration.
+
+---
+
+## Leftovers — known, not blocking tomorrow
+
+| # | Item | Severity | Note |
+|---|---|---|---|
+| D1 | A live Google API key is permanently in git history | **CRITICAL** | Rotate the Gemini key when convenient. Nothing in this run touched it. Now lower-consequence than it was, since Gemini is demoted to fallback — but the key is still valid and still public in history. |
+| A1 | Stripe webhook can never verify (`express.json()` before the raw body) | CRITICAL | Payments were explicitly out of scope. Blocks any real purchase from granting access. |
+| A3/A6 | `create-payment-intent` and `create-checkout-session` trust a client-supplied `amount` | CRITICAL | Same scope note. Derive from `TIER_PRICING` server-side before taking money. |
+| A5 | `/signup-after-payment?tier=` requires no payment proof | CRITICAL | Still mints the requested tier without a Stripe `session_id`. Registration itself is now safe; this route is not. |
+| B2 | `techniques` and `scenarios` are 0 rows | CRITICAL | Premium pages that render empty. Off the demo path. Seed data exists only in the dead `MemStorage`. |
+| D3 | Any authenticated user can read another user's coaching conversations | HIGH | Now more sensitive than at audit time, because those conversations contain real disclosed personal history. **Worth doing next.** |
+| D4 | No CSRF protection; cookies `sameSite: 'none'` | HIGH | |
+| D5 | Zero foreign keys and zero indexes across 29 tables | HIGH | `lesson_progress` and `chat_sessions` now take real write traffic, so indexes matter sooner than they did. |
+| B5 | No rate limiting anywhere; VAPI voice entirely ungated | HIGH | The anonymous text gate is now server-side, but there is still no limiter and voice has no cap. Anthropic spend is now part of this exposure. |
+| — | Unmatched `/api/*` paths fall through to the SPA and answer `200 text/html` | LOW | Makes a deleted endpoint look alive to a naive check. `upgrade-tier` is genuinely gone — verified by asserting the tier does not change. |
+| — | First-turn sport correction | LOW | Facts are applied *after* the reply is generated, so on the very first message FLO may say "I've got you down as a golfer" before the profile updates. Correct from the second message on. |
+| — | Test accounts in production | LOW | `users` 3, 4, 5 with `@cerosity-test.com` addresses, created as evidence for this run. Delete when convenient; they are invisible to visitors. |
+
+---
+
+## Investor-ready verdict
+
+**YES** — against the stated success bar.
+
+| Success criterion | Status |
+|---|---|
+| Stranger opens cerosity.com and signs up free | ✅ Verified — forced to `free`/`student` even when the request asks for `ultimate`/`admin` |
+| Lands immediately in the LMS at `/learn` and opens a free-preview lesson | ✅ Verified — 3 modules, 23 lessons, 2 open to free accounts, real content blocks |
+| Talks to FLO; after a refresh FLO still remembers | ✅ Verified — name, sport and stressor recalled with no client-held session, and persisted as structured profile data |
+
+The three things explicitly **not** required for tomorrow — Stripe live payments, Google SSO, trusted logos — remain as they were. The money chain is still severed (A1/A3/A5/A6); this run did not touch it and it is not on the demo path.

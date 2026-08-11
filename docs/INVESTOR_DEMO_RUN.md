@@ -697,3 +697,121 @@ from users where id = 5;
 | Talks to FLO; after a refresh FLO still remembers | ✅ Verified — name, sport and stressor recalled with no client-held session, and persisted as structured profile data |
 
 The three things explicitly **not** required for tomorrow — Stripe live payments, Google SSO, trusted logos — remain as they were. The money chain is still severed (A1/A3/A5/A6); this run did not touch it and it is not on the demo path.
+
+---
+
+# Post-demo security night — D3
+
+Second unattended run, after the investor build shipped. Goal: close the IDOR that let any authenticated user read anyone else's coaching conversations, and the sibling ownership holes beside it.
+
+Starting production commit: `bcaedd3`.
+
+## Phase 0 — Ground truth
+
+```
+$ curl -s https://cerosity.com/api/health
+{"status":"ok","commit":"bcaedd3","llmProvider":"anthropic","llmModel":"claude-sonnet-5",…}
+```
+
+**D3 confirmed still open**, exactly as the audit describes. `POST /api/chat` at `server/routes.ts:1794` was `requireAuth` only; line 1796 destructured `userId` from `req.body` and never compared it to the session; `sessionId` went straight into `storage.getChatSession()` with no ownership check.
+
+### Route inventory
+
+| Route | Guard before | Verdict |
+|---|---|---|
+| `POST /api/chat` | `requireAuth` | **Vulnerable** — body `userId`, unchecked `sessionId` |
+| `GET /api/chat/:sessionId/followup` | `requireAuth`, `requirePremium` | **Vulnerable** — `generateChatFollowUp` reads the session's messages |
+| `GET /api/chat/sessions/:userId` | `requireAuth`, `requireOwnUserOrAdmin` | Already safe |
+| `GET /api/chat/limitations/:userId` | `requireAuth`, `requireOwnUserOrAdmin` | Already safe |
+| `POST /api/daily-mood` | `requireAuth`, `requirePremium` | **Vulnerable** — `userId` from parsed body |
+| `PUT /api/daily-mood/:id` | `requireAuth`, `requirePremium` | **Vulnerable** — no row ownership |
+| `POST /api/insights/:id/acknowledge` | `requireAuth`, `requirePremium` | **Vulnerable** — no row ownership |
+| `POST /api/recommendations/:id/feedback` | `requireAuth`, `requirePremium` | **Vulnerable** — no row ownership |
+| `POST /api/check-in` | `requireAuth`, `requirePremium` | Already checks body `userId` against session |
+| `POST /api/progress/practice-session` | `requireAuth`, `requirePremium` | Already checks body `userId` against session |
+
+Two findings worth recording:
+
+- `requireOwnUserOrAdmin` (`server/auth.ts:179`) already reads `req.params[paramName] ?? req.body?.[paramName]`, so it supports body params. It was simply never applied to the chat routes.
+- In `DatabaseStorage`, `getUserInsights`, `acknowledgeInsight`, `getUserRecommendations`, `updateRecommendationFeedback` and `markRecommendationApplied` all `throw new Error('Method not implemented')`. Those two routes therefore 500 today rather than leaking — the ownership checks added below are correct-by-construction for when the feature is finished, not a live-exploit fix. The genuinely exploitable holes were chat and daily-mood.
+
+## Phase 1 — D3 closed
+
+```
+b6a9e52  fix(security): close D3 chat IDOR + sibling ownership checks
+         server/routes.ts | 72 ++++---   server/storage.ts | 38 ++-
+```
+
+- `POST /api/chat` takes `userId` from `req.user!.id`. The body value is ignored rather than rejected, because live clients still send it.
+- Every `sessionId` is loaded and checked with a new `userOwnsChatSession` helper. Failure answers **404, not 403** — a 403 confirms the id exists and turns the endpoint into a session enumeration oracle.
+- `GET /api/chat/:sessionId/followup` performs the same check before calling `generateChatFollowUp`.
+- `POST /api/daily-mood` derives `userId` from the session. `PUT /api/daily-mood/:id`, `POST /api/insights/:id/acknowledge` and `POST /api/recommendations/:id/feedback` load the row and compare its `userId`. Three by-id getters were added to `IStorage` / `DatabaseStorage` / `MemStorage` to make that possible.
+- `POST /api/auth/register` stopped logging `req.body`, which contained the **plaintext password**. It logs the email only.
+
+Typecheck held at 157; build succeeded.
+
+```
+$ curl -s https://cerosity.com/api/health
+{"status":"ok","commit":"b6a9e52",…}        ← SHA moved
+```
+
+### API IDOR proof — two cookie jars on production
+
+VICTIM = user 6, VICTIM_SESSION = 4. ATTACKER = user 7, separate cookie jar.
+
+**A. Victim stores a unique secret**
+
+```
+POST /api/chat  (victim jar)  "My secret codeword is PLATYPUS-7731 and I am terrified of the 18th hole"
+→ session 4 | 2 messages
+```
+
+**B. Attacker attempts each attack**
+
+| # | Attack | Result |
+|---|---|---|
+| B1 | `POST /api/chat` body `{"userId":6}` | **HTTP 200 but bound to attacker** — `session.userId=7`, `session.id=5`. `PLATYPUS-7731` present: **false**. "18th" present: **false** |
+| B2 | `POST /api/chat` body `{"sessionId":4}` | **HTTP 404** `{"message":"Chat session not found"}` — secret present: **false** |
+| B3 | `GET /api/chat/sessions/6` | **HTTP 403** `{"message":"Forbidden"}` |
+| B4 | `GET /api/chat/4/followup` (attacker premium) | **HTTP 404** `{"message":"Chat session not found"}` |
+| B5 | `PUT /api/daily-mood/1` (victim's row, attacker premium) | **HTTP 404** `{"message":"Mood entry not found"}` |
+| B6 | `POST /api/daily-mood` body `{"userId":6}` | **HTTP 201, stored `userId=7`** — written to the attacker, not the victim |
+
+B4 and B5 initially returned 403 from `requirePremium` before reaching the new checks, which proves nothing about ownership. Both test accounts were temporarily promoted to premium in the database so the guarded path actually executed, then **reverted to free** — confirmed by query afterwards.
+
+**C. The victim is unaffected**
+
+| Check | Result |
+|---|---|
+| `GET /api/chat/sessions/6` (own) | HTTP 200 — 1 session, id 4 |
+| `GET /api/chat/4/followup` (own) | HTTP 200 |
+| `POST /api/chat` "What is my secret codeword?" *(no sessionId sent)* | Session 4 resumed — reply opens `"PLATYPUS-7731. Good memory test — but I'm more interested in testing your recall on the 18th tee…"` |
+| Victim's mood row after attacker's PUT | `moodScore: 72`, `notes: 'victim private note'` — **unchanged** |
+
+### Browser proof — Playwright against cerosity.com
+
+The browser gap from the first run is now closed. Headless Chromium, two independent browser contexts, run against production. Script and artefacts: [`docs/evidence/d3-smoke/`](evidence/d3-smoke/) (`smoke.mjs`, five screenshots, `results.json`).
+
+```
+$ node docs/evidence/d3-smoke/smoke.mjs
+
+PASS  1. Sign up free → lands in /learn              url=https://cerosity.com/learn
+PASS  2. Curriculum renders                           "Red2Blue Foundation" + free lesson visible
+PASS  3. Free-preview lesson opens with content       1896 chars rendered
+PASS  4. FLO accepts a message from the browser       HTTP 200 · session=6 · owner=8 (A=8)
+PASS  5. After reload FLO still remembers             recalled "ZEBRA-32038": true
+      → "Codeword: ZEBRA-32038. Sport: squash. Good — now that's confirmed, let's use it.
+         At match point, is your mind on winnin…"
+PASS  6. Second user signs up in a clean context      B id=9
+PASS  7. B reading A's session list → 403             HTTP 403 {"message":"Forbidden"}
+PASS  8. B posting into A's sessionId → 404, no leak  HTTP 404 · leaked "ZEBRA-32038": false
+PASS  9. B spoofing body userId → bound to B          session.userId=9 (B=9, A=8) · leaked: false
+
+ALL PASS — commit b6a9e52
+```
+
+`03-free-lesson.png` shows the rendered lesson: "Welcome to Red2Blue", the intro prose, a "What you will get from this course" panel and a "How to use this" callout — real content in a real browser, not an API payload.
+
+One bug found and fixed in the harness itself: the submit selector `/create account|sign up/i` also matched **"Sign up with Google"**, so the first run clicked the SSO button and timed out. Now pinned to an exact `"Create Account"`.
+
+**Status: D3 PASS — API and browser.**

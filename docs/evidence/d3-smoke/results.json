@@ -1,0 +1,56 @@
+{
+  "base": "https://cerosity.com",
+  "ranAt": "2026-08-11T13:31:27.061Z",
+  "commit": "b6a9e52",
+  "userA": 8,
+  "userB": 9,
+  "aSessionId": 6,
+  "results": [
+    {
+      "step": "1. Sign up free → lands in /learn",
+      "pass": true,
+      "detail": "url=https://cerosity.com/learn · 01-signup-lands-learn.png"
+    },
+    {
+      "step": "2. Curriculum renders",
+      "pass": true,
+      "detail": "\"Red2Blue Foundation\" + free lesson visible · 02-curriculum.png"
+    },
+    {
+      "step": "3. Free-preview lesson opens with content",
+      "pass": true,
+      "detail": "1896 chars rendered · 03-free-lesson.png"
+    },
+    {
+      "step": "4. FLO accepts a message from the browser session",
+      "pass": true,
+      "detail": "HTTP 200 · session=6 · owner=8 (A=8)"
+    },
+    {
+      "step": "5. After reload FLO still remembers",
+      "pass": true,
+      "detail": "recalled \"ZEBRA-32038\": true · reply: Codeword: ZEBRA-32038. Sport: squash.\n\nGood — now that's confirmed, let's use it. At match point, is your mind on winnin"
+    },
+    {
+      "step": "6. Second user signs up in a clean context",
+      "pass": true,
+      "detail": "B id=9 · 05-userB-learn.png"
+    },
+    {
+      "step": "7. B reading A's session list → 403",
+      "pass": true,
+      "detail": "HTTP 403 · {\"message\":\"Forbidden\"}"
+    },
+    {
+      "step": "8. B posting into A's sessionId → 404, no leak",
+      "pass": true,
+      "detail": "HTTP 404 · leaked \"ZEBRA-32038\": false"
+    },
+    {
+      "step": "9. B spoofing body userId → bound to B, no leak",
+      "pass": true,
+      "detail": "session.userId=9 (B=9, A=8) · leaked: false"
+    }
+  ],
+  "allPassed": true
+}

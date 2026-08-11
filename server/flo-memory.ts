@@ -12,6 +12,9 @@ import type { AthleteFacts } from "./gemini";
 const MAX_CHALLENGES = 12;
 const MAX_FACT_LENGTH = 200;
 
+/** users.sport carries this as a DB default, so it means "never set", not "is a golfer". */
+const DEFAULT_SPORT = "golf";
+
 /** Loose equality so "gets angry after bogeys" doesn't get stored twice. */
 function alreadyKnown(existing: string[], candidate: string): boolean {
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
@@ -42,11 +45,15 @@ export async function applyAthleteFacts(userId: number, facts: AthleteFacts | un
   if (!user) return [];
 
   // Sport and preferred name only fill gaps — a value the athlete set on their
-  // own profile outranks anything inferred from conversation.
-  const sport = clean(facts.sport);
-  if (sport && !user.sport) {
-    await storage.updateUser(userId, { sport: sport.toLowerCase() });
-    applied.push(`sport=${sport.toLowerCase()}`);
+  // own profile outranks anything inferred from conversation. users.sport has a
+  // DB default of 'golf', so an untouched profile is not the same as a stated
+  // one: a rower who tells FLO they row must not stay filed as a golfer.
+  const sport = clean(facts.sport)?.toLowerCase();
+  const storedSport = user.sport?.toLowerCase() ?? null;
+  const sportIsPlaceholder = !storedSport || storedSport === DEFAULT_SPORT;
+  if (sport && sport !== storedSport && sportIsPlaceholder) {
+    await storage.updateUser(userId, { sport });
+    applied.push(`sport=${sport}`);
   }
 
   const preferredName = clean(facts.preferredName);

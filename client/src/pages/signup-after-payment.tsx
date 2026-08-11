@@ -8,6 +8,12 @@ import { TIER_PRICING, type SubscriptionTier } from "@shared/entitlements";
 export default function SignupAfterPayment() {
   const [location] = useLocation();
   const [tier, setTier] = useState<string>('free');
+  // Stripe appends session_id on a real return-from-checkout. Without it, the
+  // visitor has typed this URL themselves — so we must not congratulate them on
+  // a payment that did not happen (audit A5). The tier here is cosmetic either
+  // way: it is never sent to the server, and registration always creates a free
+  // account. This only stops the page from lying.
+  const [hasPaymentProof, setHasPaymentProof] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.split('?')[1] || '');
@@ -16,6 +22,7 @@ export default function SignupAfterPayment() {
 
     const selectedTier = tierFromUrl || tierFromStorage || 'free';
     setTier(selectedTier);
+    setHasPaymentProof(Boolean(urlParams.get('session_id')));
 
     sessionStorage.removeItem('paidTier');
   }, [location]);
@@ -26,19 +33,30 @@ export default function SignupAfterPayment() {
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-2xl mx-auto px-4 py-8">
 
-        {/* Payment Success Header */}
+        {/* Header — only claims a payment when Stripe actually returned one */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
-              <CheckCircle className="text-white" size={32} />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Payment Successful!</h1>
-          <p className="text-slate-400">Complete your account setup to access your {pricing.name}</p>
+          {hasPaymentProof ? (
+            <>
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
+                  <CheckCircle className="text-white" size={32} />
+                </div>
+              </div>
+              <h1 className="text-3xl font-bold text-white mb-2">Payment Successful!</h1>
+              <p className="text-slate-400">Complete your account setup to access your {pricing.name}</p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-white mb-2">Create Your Account</h1>
+              <p className="text-slate-400">
+                Start free. You can upgrade any time from your account.
+              </p>
+            </>
+          )}
         </div>
 
-        {/* Payment Summary */}
-        {tier !== 'free' && (
+        {/* Payment Summary — only with proof of payment */}
+        {hasPaymentProof && tier !== 'free' && (
           <Card className="mb-8 bg-green-950/30 border-green-900/50">
             <CardHeader>
               <CardTitle className="text-green-300 flex items-center">
@@ -60,7 +78,7 @@ export default function SignupAfterPayment() {
 
         {/* Signup Form */}
         <StableSignUpForm
-          isPaidUser={true}
+          isPaidUser={hasPaymentProof}
           onBack={() => window.location.href = '/'}
         />
       </div>

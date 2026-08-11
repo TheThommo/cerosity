@@ -34,6 +34,23 @@ export interface AssessmentAnalysis {
 
 const DEFAULT_SPORT = "golf";
 
+/**
+ * Pull the "message" value out of JSON that will not parse. The character class
+ * accepts raw newlines on purpose — an unescaped newline inside the string is
+ * exactly the malformation this exists to survive.
+ */
+function salvageMessageField(jsonish: string): string | null {
+  const match = jsonish.match(/"message"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  if (!match) return null;
+  const unescaped = match[1]
+    .replace(/\\n/g, "\n")
+    .replace(/\\t/g, "\t")
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, "\\")
+    .trim();
+  return unescaped || null;
+}
+
 export async function getCoachingResponse(
   userMessage: string,
   conversationHistory: any[],
@@ -85,7 +102,14 @@ export async function getCoachingResponse(
         athleteFacts: parsed.athleteFacts
       };
     } catch {
-      // Model wrote prose containing braces — use it as-is rather than failing.
+      // The model emitted JSON-shaped text that will not parse — most often a
+      // literal newline inside the "message" string, which JSON forbids.
+      // Salvage the message rather than showing the athlete raw scaffolding:
+      // before this, a malformed reply rendered as `{ "message": "Codeword…`.
+      const salvaged = salvageMessageField(jsonMatch[0]);
+      if (salvaged) {
+        return { message: salvaged, suggestions: [], urgencyLevel: "low" };
+      }
     }
   }
 

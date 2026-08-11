@@ -1,0 +1,19 @@
+A1 — Stripe webhook signature verification
+Payload: 227 bytes · secret: locally generated, 54 chars (value not printed)
+
+FIXED order — express.raw() on the webhook path, then express.json()
+   req.body seen by handler : Buffer
+   HTTP                     : 200
+   signature verified       : true
+   would grant              : tier "premium" to user 4242
+
+BROKEN order — express.json() first (what production shipped before)
+   req.body seen by handler : object
+   HTTP                     : 400
+   signature verified       : false
+   error                    : Webhook payload must be provided as a string or a Buffer (https://nodejs.org/api/buffer.html) instance representing the _raw_ request body.Payload was provided as a parsed JavaScript object instead. 
+
+WRONG SECRET — correctly-signed payload, different secret
+   HTTP                     : 400 (must be 400)
+
+PASS — fixed order verifies and grants; old order fails exactly as A1 described; wrong secret rejected

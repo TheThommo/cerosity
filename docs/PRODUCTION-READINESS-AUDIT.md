@@ -31,22 +31,9 @@ Production has two user accounts, two captured leads and zero paying customers. 
 
 ### Process note — branch state
 
-This worktree (`claude/frosty-northcutt-e48a21`) is **9 commits behind `origin/main`**, which is what production runs. Missing here: Google SSO, the VAPI webhook handler, `server/vapi.ts`, `server/flo-routes.ts` and schema changes.
+This report was originally drafted from a stale detached worktree that sat 9 commits behind `origin/main`. That worktree has since been deleted; all work now happens directly on `main` in `/Users/Thommo_1/Projects/Cerosity`.
 
-Every CRITICAL finding below was verified against `origin/main` and/or the live site, so the report is accurate to production. **Start any work from a fresh branch off `main`, not from this worktree.**
-
-```
-git log --oneline HEAD..origin/main
-56c323f  feat(flo): voice on Cerosity custom-LLM brain - remove dual intelligence
-5385832  fix(assets): redo FLO hero cutout — hands preserved, fringe cleaned
-681849e  feat(auth): Google SSO — OAuth flow, sign-in/sign-up buttons wired
-c4f6e70  fix: Bugs 10 — logo transparent bg, resource cards clickable, dark theme auth forms
-3444b40  fix: health endpoint use RAILWAY_GIT_COMMIT_SHA, add DEPLOY_SYNC.md
-e7c5620  feat: landing chat fallbacks, /api/health, /api/public-config, VAPI runtime config
-fa429c3  chore: rebuild to bake VITE_VAPI env vars into client bundle
-cf30aa5  feat(voice): VAPI webhook handler, DB schema, assistant CRUD, FLO tools
-121a6ff  fix(assets): FLO hero transparent cutout — isnet model, hands preserved
-```
+Every CRITICAL finding below was verified against `origin/main` (commit `56c323f`) and/or the live site, so the report is accurate to production.
 
 ---
 

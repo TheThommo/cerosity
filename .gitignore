@@ -10,3 +10,4 @@ vite.config.ts.*
 cookies.txt
 tar
 .superpowers/
+.claude/worktrees/

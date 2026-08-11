@@ -74,6 +74,10 @@ function AppContent() {
           <Route path="/checkout-hosted" component={CheckoutHosted} />
           <Route path="/payment-redirect" component={PaymentRedirect} />
           <Route path="/admin-login" component={AdminLogin} />
+          {/* Bookmarkable auth URLs — both render the landing page opened
+              straight onto the relevant form (audit A5) */}
+          <Route path="/login">{() => <Landing initialView="signin" />}</Route>
+          <Route path="/signup">{() => <Landing initialView="signup" />}</Route>
           {/* Legal pages - accessible to everyone */}
           <Route path="/privacy-policy" component={PrivacyPolicy} />
           <Route path="/terms-of-service" component={TermsOfService} />
@@ -83,7 +87,7 @@ function AppContent() {
           <Route path="/acceptable-use" component={AcceptableUse} />
           <Route path="/help" component={Help} />
           <Route path="/community">{() => <Community userId={0} />}</Route>
-          <Route component={Landing} />
+          <Route>{() => <Landing />}</Route>
         </Switch>
       </ErrorBoundary>
     );

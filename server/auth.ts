@@ -213,8 +213,9 @@ export async function registerUser(userData: {
   golfExperience?: string;
   goals?: string;
   bio?: string;
-  subscriptionTier?: string;
-  isSubscribed?: boolean;
+  // Deliberately no subscriptionTier / isSubscribed. Registration always
+  // creates a free account; entitlement is granted by payment, never by the
+  // client asking for it (audit A3).
 }) {
   // Check if user already exists by username or email
   const existingUserByUsername = await storage.getUserByUsername(userData.username);
@@ -262,8 +263,10 @@ export async function registerUser(userData: {
     goals: userData.goals || null,
     bio: userData.bio || null,
     aiGeneratedProfile,
-    isSubscribed: userData.isSubscribed || false,
-    subscriptionTier: userData.subscriptionTier || 'free'
+    // Forced, not derived from input. Upgrades happen through the payment
+    // flow; nothing a registration request says can change these.
+    isSubscribed: false,
+    subscriptionTier: 'free'
   });
 
   return newUser;

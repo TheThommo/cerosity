@@ -4,7 +4,7 @@ import session from "express-session";
 import Stripe from "stripe";
 import { z } from "zod";
 import { storage } from "./storage";
-import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSchema, insertPreShotRoutineSchema, insertMentalSkillsXCheckSchema, insertControlCircleSchema, insertDailyMoodSchema, insertUserGoalSchema } from "@shared/schema";
+import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSchema, insertPreShotRoutineSchema, insertMentalSkillsXCheckSchema, insertControlCircleSchema, insertDailyMoodSchema, insertUserGoalSchema, type User } from "@shared/schema";
 import { hasFeatureAccess } from "@shared/entitlements";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback } from "./auth";
@@ -179,8 +179,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("[GOOGLE-AUTH] Session save error:", err);
           return res.redirect("/?error=session");
         }
-        // Redirect to home — frontend picks up session via /api/auth/me
-        res.redirect(isNew ? "/?welcome=1" : "/");
+        // Land in the curriculum — frontend picks up session via /api/auth/me
+        res.redirect(isNew ? "/learn?welcome=1" : "/learn");
       });
     } catch (error: any) {
       console.error("[GOOGLE-AUTH] Callback error:", error.message);
@@ -287,47 +287,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Demo route to upgrade subscription tier
-  app.post("/api/auth/upgrade-tier", async (req: AuthRequest, res) => {
-    if (!req.session.userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
+  // NOTE: POST /api/auth/upgrade-tier was deleted (audit A3). It let any
+  // authenticated session write its own subscriptionTier, which handed out
+  // paid tiers — and, now that the curriculum is tier-gated, paid content —
+  // for free. Tier changes belong to the payment flow only.
 
-    try {
-      const { tier } = req.body;
-      if (!['free', 'premium', 'ultimate'].includes(tier)) {
-        return res.status(400).json({ message: 'Invalid tier' });
-      }
-      
-      const updatedUser = await storage.updateUser(req.session.userId, { 
-        subscriptionTier: tier,
-        isSubscribed: tier !== 'free'
-      });
-      
-      const { password, ...userWithoutPassword } = updatedUser;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error('Upgrade tier error:', error);
-      res.status(500).json({ message: 'Failed to upgrade tier' });
-    }
-  });
+  // Profile fields a user may edit about themselves. This is an allowlist on
+  // purpose (audit A2): the previous denylist stripped password and the Stripe
+  // ids but left role, subscriptionTier and isSubscribed writable, so one
+  // PATCH against your own account made you an admin on the paid tier.
+  const EDITABLE_PROFILE_FIELDS = [
+    "username",
+    "firstName",
+    "lastName",
+    "bio",
+    "goals",
+    "dateOfBirth",
+    "dexterity",
+    "gender",
+    "golfHandicap",
+    "golfExperience",
+    "profileImageUrl",
+    "sport",
+  ] as const;
 
   // User profile update endpoint
   app.patch("/api/users/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
       const userId = parseInt(req.params.id);
-      const updateData = req.body;
+      const updateData = req.body ?? {};
 
       // Ensure user can only update their own profile
       if (req.session.userId !== userId) {
         return res.status(403).json({ message: "Cannot update another user's profile" });
       }
 
-      // Remove sensitive fields that shouldn't be updated via this endpoint
-      const { password, stripeCustomerId, stripeSubscriptionId, ...safeUpdateData } = updateData;
+      const safeUpdateData: Partial<User> = {};
+      for (const field of EDITABLE_PROFILE_FIELDS) {
+        if (Object.prototype.hasOwnProperty.call(updateData, field)) {
+          (safeUpdateData as Record<string, unknown>)[field] = updateData[field];
+        }
+      }
 
       const updatedUser = await storage.updateUser(userId, safeUpdateData);
-      
+
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
       }

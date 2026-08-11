@@ -54,37 +54,6 @@ export default function FreeDashboard() {
     enabled: !!user?.id,
   });
 
-  const upgradeUser = async (tier: string) => {
-    setIsUpgrading(true);
-    try {
-      const response = await apiRequest("POST", "/api/auth/upgrade-tier", { tier });
-      const result = await response.json();
-      
-      // Refresh user data
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      
-      toast({
-        title: "Upgrade Successful!",
-        description: `You now have ${tier} access. Redirecting to your dashboard...`,
-      });
-      
-      // Redirect after upgrade
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1500);
-      
-    } catch (error) {
-      console.error('Upgrade error:', error);
-      toast({
-        title: "Upgrade Failed",
-        description: "There was an error upgrading your account. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpgrading(false);
-    }
-  };
-
   const handleUpgrade = async (tier: 'premium' | 'ultimate') => {
     setIsUpgrading(true);
     try {

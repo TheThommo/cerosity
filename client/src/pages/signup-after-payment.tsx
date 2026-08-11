@@ -60,7 +60,6 @@ export default function SignupAfterPayment() {
 
         {/* Signup Form */}
         <StableSignUpForm
-          selectedTier={tier}
           isPaidUser={true}
           onBack={() => window.location.href = '/'}
         />

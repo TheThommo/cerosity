@@ -6,14 +6,13 @@ import { CerosityLogo } from "@/components/cerosity-logo";
 
 interface StableSignUpFormProps {
   onBack: () => void;
-  selectedTier?: string;
   isPaidUser?: boolean;
 }
 
 const inputClass = "w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none";
 const labelClass = "block text-sm font-medium text-slate-300 mb-1";
 
-export function StableSignUpForm({ onBack, selectedTier = 'free', isPaidUser = false }: StableSignUpFormProps) {
+export function StableSignUpForm({ onBack, isPaidUser = false }: StableSignUpFormProps) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -61,8 +60,8 @@ export function StableSignUpForm({ onBack, selectedTier = 'free', isPaidUser = f
           gender: formData.gender,
           goals: formData.goals,
           bio: formData.bio,
-          subscriptionTier: selectedTier,
-          isSubscribed: selectedTier !== 'free'
+          // No tier is sent. Registration always creates a free account
+          // server-side; the server ignores tier fields anyway (audit A3).
         }),
       });
 
@@ -74,7 +73,8 @@ export function StableSignUpForm({ onBack, selectedTier = 'free', isPaidUser = f
       }
 
       setSuccess(true);
-      setTimeout(() => { window.location.href = '/'; }, 2000);
+      // Straight into the curriculum — that is the product, not the dashboard.
+      setTimeout(() => { window.location.href = '/learn'; }, 2000);
     } catch {
       setError('Network error occurred. Please try again.');
       setIsLoading(false);

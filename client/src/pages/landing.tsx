@@ -13,13 +13,15 @@ import { StableSignUpForm } from "@/components/stable-signup-form";
 import { CerosityLogo } from "@/components/cerosity-logo";
 import Checkout from "./checkout";
 
-export default function Landing() {
+// initialView lets /login and /signup open straight onto the right form, so
+// both are bookmarkable and linkable from email (audit A5).
+export default function Landing({ initialView }: { initialView?: "signin" | "signup" }) {
   const [, setLocation] = useLocation();
-  const [showSignUp, setShowSignUp] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(initialView === "signup");
   const [showCheckout, setShowCheckout] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string>('free');
   const [showFloatingChat, setShowFloatingChat] = useState(false);
-  const [showSignIn, setShowSignIn] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(initialView === "signin");
 
   // DISABLED: IntersectionObserver to prevent memory leaks and crashes
   // useEffect(() => {
@@ -44,7 +46,7 @@ export default function Landing() {
   }
 
   if (showSignUp) {
-    return <StableSignUpForm onBack={() => setShowSignUp(false)} selectedTier={selectedTier} />;
+    return <StableSignUpForm onBack={() => setShowSignUp(false)} />;
   }
 
   if (showSignIn) {
@@ -1114,9 +1116,9 @@ function SignInForm({ onBack }: { onBack: () => void }) {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({
         title: "Welcome back!",
-        description: "Redirecting to your dashboard...",
+        description: "Taking you to your curriculum...",
       });
-      setTimeout(() => { setLocation('/'); }, 500);
+      setTimeout(() => { setLocation('/learn'); }, 500);
     },
     onError: (error: any) => {
       toast({

@@ -10,7 +10,7 @@
 import type { Express, Request, Response } from "express";
 import { buildFloPrompt } from "./flo-prompt";
 import { getCoachingResponse } from "./gemini";
-import { reconcileFloVapiAssistant, getVapiAssistant, FLO_VAPI_ASSISTANT_ID } from "./vapi";
+import { reconcileFloVapiAssistant, getVapiAssistant, getLastReconcileResult, FLO_VAPI_ASSISTANT_ID } from "./vapi";
 import { requireAuth, requireAdmin } from "./auth";
 
 function contentToText(content: any): string {
@@ -135,6 +135,12 @@ export function registerFloVoiceRoutes(app: Express) {
   app.post("/api/hq/vapi/reconcile", requireAuth, requireAdmin, async (_req: Request, res: Response) => {
     const result = await reconcileFloVapiAssistant();
     res.status(result.ok ? 200 : 502).json(result);
+  });
+
+  // Last reconcile result cached from boot (or the most recent manual run).
+  // Use this to confirm the boot reconcile succeeded without tailing Railway logs.
+  app.get("/api/hq/vapi/reconcile-status", requireAuth, requireAdmin, (_req: Request, res: Response) => {
+    res.json(getLastReconcileResult() ?? { ok: false, detail: "no_reconcile_run_yet" });
   });
 
   app.get("/api/hq/vapi/assistant", requireAuth, requireAdmin, async (_req: Request, res: Response) => {

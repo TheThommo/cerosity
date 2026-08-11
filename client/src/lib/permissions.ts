@@ -1,5 +1,6 @@
 // User permissions and access control for subscription tiers and user roles
 import type { ClientUser } from "@/hooks/useAuth";
+import { TIER_PRICING } from "@shared/entitlements";
 
 export interface PermissionCheck {
   hasAccess: boolean;
@@ -40,10 +41,25 @@ const FREE_TIER_FEATURES = {
   advancedAnalytics: false,
 };
 
+// FLO subscription tier — the $30/mo AI-coaching plan. It is not "free with
+// extras": its whole proposition is unlimited FLO with memory, so those must be
+// on. Without this branch a paying FLO subscriber fell through to the free
+// permissions and saw an empty product (audit A4).
+const FLO_TIER_FEATURES = {
+  ...FREE_TIER_FEATURES,
+
+  unlimitedChat: true,
+  aiCoaching: true,
+  personalizedRecommendations: true,
+  basicInsights: true,
+  dashboard: true,
+  progress: true,
+};
+
 // Premium tier permissions
 const PREMIUM_TIER_FEATURES = {
-  // Everything free has plus:
-  ...FREE_TIER_FEATURES,
+  // Everything FLO has plus:
+  ...FLO_TIER_FEATURES,
   
   // Full access to core features
   dashboard: true,
@@ -120,6 +136,9 @@ export function checkFeatureAccess(
     case 'free':
       permissions = FREE_TIER_FEATURES;
       break;
+    case 'flo':
+      permissions = FLO_TIER_FEATURES;
+      break;
     case 'premium':
       permissions = PREMIUM_TIER_FEATURES;
       break;
@@ -140,13 +159,14 @@ export function checkFeatureAccess(
     };
   }
 
-  // Determine required tier for upgrade message
+  // Prices come from TIER_PRICING, never inline literals (CLAUDE.md Rule 1).
+  // These were hardcoded at $490 / $2190 — both stale by $100.
   let requiredTier = "premium";
-  let upgradeMessage = "Upgrade to Premium ($490) for full access to all Cerosity tools and techniques.";
-  
+  let upgradeMessage = `Upgrade to Premium ($${TIER_PRICING.premium.price}) for full access to all Cerosity tools and techniques.`;
+
   if (feature === 'humanCoaching') {
     requiredTier = "ultimate";
-    upgradeMessage = "Upgrade to Ultimate ($2190) for human coaching access.";
+    upgradeMessage = `Upgrade to Ultimate ($${TIER_PRICING.ultimate.price}) for human coaching access.`;
   }
 
   return {
@@ -187,6 +207,9 @@ export function getAllowedFeatures(user: ClientUser | null): string[] {
   switch (user.subscriptionTier) {
     case 'free':
       permissions = FREE_TIER_FEATURES;
+      break;
+    case 'flo':
+      permissions = FLO_TIER_FEATURES;
       break;
     case 'premium':
       permissions = PREMIUM_TIER_FEATURES;

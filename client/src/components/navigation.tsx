@@ -27,7 +27,8 @@ export function Navigation() {
   const getNavItems = () => {
     const baseItems = [];
 
-    // Only show Dashboard for Premium/Ultimate users
+    // Dashboard for FLO/Premium/Ultimate users. FLO subscribers were falling
+    // through to free permissions and rendering an empty nav (audit A4).
     if (canAccessDashboard(user)) {
       baseItems.push({ href: "/dashboard", label: "Dashboard", icon: BarChart3 });
     }

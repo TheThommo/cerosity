@@ -50,13 +50,9 @@ export function ProgressChart({ data }: ProgressChartProps) {
           ))}
         </div>
         
-        <div className="mt-6 p-4 bg-success/10 rounded-xl">
-          <div className="flex items-center space-x-2">
-            <TrendingUp className="text-success" size={16} />
-            <span className="text-success font-medium">+15% improvement this week</span>
-          </div>
-          <p className="text-sm text-gray-600 mt-1">Your Blue Head consistency is trending upward</p>
-        </div>
+        {/* Removed a hardcoded "+15% improvement this week" caption that was
+            shown to every athlete regardless of their data (audit C2). The
+            chart above already renders their real scores. */}
       </CardContent>
     </Card>
   );

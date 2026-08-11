@@ -52,15 +52,18 @@ export function MoodIndicator() {
     enabled: !!user?.id,
   });
 
-  // Calculate mood factors from real mood data
+  // Derived from the athlete's logged mood score, deterministically. These were
+  // previously jittered with Math.random(), so the same mood produced different
+  // numbers on every render — an athlete watching their own "focus" score move
+  // while they sat still was watching noise (audit C2).
   const calculateMoodFactors = (moodScore: number) => {
-    // Base factors on actual mood score with realistic variations
-    const baseConfidence = Math.max(10, Math.min(90, moodScore + (Math.random() - 0.5) * 20));
-    const baseFocus = Math.max(10, Math.min(90, moodScore + (Math.random() - 0.5) * 15));
-    const baseEnergy = Math.max(10, Math.min(90, moodScore + (Math.random() - 0.5) * 25));
-    const baseStress = Math.max(10, Math.min(90, 100 - moodScore + (Math.random() - 0.5) * 20)); // Inverse relationship
-    const baseMotivation = Math.max(10, Math.min(90, moodScore + (Math.random() - 0.5) * 18));
-    
+    const clamp = (n: number) => Math.max(10, Math.min(90, n));
+    const baseConfidence = clamp(moodScore);
+    const baseFocus = clamp(moodScore);
+    const baseEnergy = clamp(moodScore);
+    const baseStress = clamp(100 - moodScore); // inverse of mood
+    const baseMotivation = clamp(moodScore);
+
     return {
       confidence: Math.round(baseConfidence),
       focus: Math.round(baseFocus),

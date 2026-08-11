@@ -99,7 +99,8 @@ export const FEATURE_MIN_TIER: Record<FeatureKey, SubscriptionTier> = {
   progress: "premium",
   community: "premium",
   leaderboard: "premium",
-  unlimitedChat: "premium",
+  // Sold as the FLO tier's headline feature, so it cannot be gated above it.
+  unlimitedChat: "flo",
   recommendations: "premium",
   insights: "premium",
   coachingProfile: "premium",
@@ -107,7 +108,7 @@ export const FEATURE_MIN_TIER: Record<FeatureKey, SubscriptionTier> = {
   preShotRoutines: "premium",
   mentalSkillsXCheck: "premium",
   controlCircles: "premium",
-  dailyMood: "premium",
+  dailyMood: "flo", // also advertised in the FLO tier's feature list
   generatePlan: "premium",
   shareIdea: "premium",
   emergencyRelief: "premium",

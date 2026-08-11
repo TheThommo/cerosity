@@ -301,14 +301,14 @@ export default function Landing({ initialView }: { initialView?: "signin" | "sig
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               { name: "Brian Ashton", role: "England & Ireland Rugby Head Coach", desc: "English Rugby Union coach and former player. Head coach of England and Ireland national teams.", img: "/endorsers/brian-ashton.png" },
-              { name: "Ashley Giles MBE", role: "England Cricketer & Red2Blue Coach", desc: "Former English first-class cricketer. Current Red2Blue coach.", img: "/endorsers/adrian-larsson.png" },
-              { name: "Alice Powell", role: "Professional Racing Driver", desc: "Trailblazing professional racing driver, currently racing in the W Series and the Jaguar I Pace eTrophy.", img: "/endorsers/ashley-giles.png" },
-              { name: "Vicki Anstey", role: "Adventurer & Entrepreneur", desc: "Mid-Pacific ocean rower and entrepreneur.", img: "/endorsers/alice-powell.png" },
-              { name: "Imogen Hall", role: "Elite Golfer, Faldo Series & WAGR", desc: "Dubai-based elite golfer committed to GCU. Faldo Series WAGR winner and top 10 finisher in the English Amateur.", img: "/endorsers/kerry-inscker.png" },
-              { name: "James Newman", role: "Head Teacher, Epsom & Ewell High School", desc: "Head teacher of a co-educational academy for children from ages 11-18.", img: "/endorsers/vicki-anstey.png" },
-              { name: "Kerry Inscker", role: "Deputy CEO, Shaw Education Trust", desc: "Leads and manages academies in all phases, sectors and communities.", img: "/endorsers/imogen-hall.png" },
+              { name: "Ashley Giles MBE", role: "England Cricketer & Red2Blue Coach", desc: "Former English first-class cricketer. Current Red2Blue coach.", img: "/endorsers/ashley-giles.png" },
+              { name: "Alice Powell", role: "Professional Racing Driver", desc: "Trailblazing professional racing driver, currently racing in the W Series and the Jaguar I Pace eTrophy.", img: "/endorsers/alice-powell.png" },
+              { name: "Vicki Anstey", role: "Adventurer & Entrepreneur", desc: "Mid-Pacific ocean rower and entrepreneur.", img: "/endorsers/vicki-anstey.png" },
+              { name: "Imogen Hall", role: "Elite Golfer, Faldo Series & WAGR", desc: "Dubai-based elite golfer committed to GCU. Faldo Series WAGR winner and top 10 finisher in the English Amateur.", img: "/endorsers/imogen-hall.png" },
+              { name: "James Newman", role: "Head Teacher, Epsom & Ewell High School", desc: "Head teacher of a co-educational academy for children from ages 11-18.", img: "/endorsers/james-newman.png" },
+              { name: "Kerry Inscker", role: "Deputy CEO, Shaw Education Trust", desc: "Leads and manages academies in all phases, sectors and communities.", img: "/endorsers/kerry-inscker.png" },
               { name: "Stuart Lancaster", role: "England Rugby Union Head Coach", desc: "Rugby Union coach. Head coach of the English National Rugby Union team from 2011 to 2015.", img: "/endorsers/stuart-lancaster.png" },
-              { name: "Adrian Larsson", role: "Elite Golfer & R2B Coach", desc: "Signed to DePaul Men's Golf. GEM Amateur Open and Junior Masters Invitational winner.", img: "/endorsers/darren-cassidy.png" },
+              { name: "Adrian Larsson", role: "Elite Golfer & R2B Coach", desc: "Signed to DePaul Men's Golf. GEM Amateur Open and Junior Masters Invitational winner.", img: "/endorsers/adrian-larsson.png" },
             ].map((person) => (
               <div key={person.name} className="bg-slate-950 rounded-xl p-6 border border-slate-800 hover:border-slate-700 transition-colors">
                 <div className="flex items-center gap-3 mb-3">

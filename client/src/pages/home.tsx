@@ -23,7 +23,7 @@ export default function Home() {
     enabled: !!userId,
   });
 
-  const { data: progress } = useQuery({
+  const { data: progress } = useQuery<any[]>({
     queryKey: [`/api/progress/${userId}?days=7`],
     enabled: !!userId,
   });
@@ -306,12 +306,16 @@ export default function Home() {
                 <div className="bg-white rounded-lg p-4 border border-gray-200">
                   <div className="flex items-center space-x-3 mb-2">
                     <TrendingUp className="text-green-600" size={20} />
-                    <h4 className="font-medium text-gray-900">Weekly Progress</h4>
+                    <h4 className="font-medium text-gray-900">Average Score</h4>
                   </div>
+                  {/* Was Math.random() presented as the athlete's own progress —
+                      it re-rolled on every render. This is their real average. */}
                   <p className="text-2xl font-bold text-gray-900">
-                    {progress && progress.length > 0 ? `+${Math.round(Math.random() * 15 + 5)}%` : '--'}
+                    {progress && progress.length > 0
+                      ? Math.round(progress.reduce((acc: number, p: any) => acc + (p.score || 0), 0) / progress.length)
+                      : '--'}
                   </p>
-                  <p className="text-sm text-gray-600">Performance improvement</p>
+                  <p className="text-sm text-gray-600">Across {progress?.length ?? 0} recorded sessions</p>
                 </div>
               </div>
             </CardContent>
@@ -391,10 +395,9 @@ export default function Home() {
                       {Math.round(progress.reduce((acc: number, p: any) => acc + (p.score || 0), 0) / progress.length)}
                     </span>
                   </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="text-green-800 text-sm font-medium">+12% improvement</div>
-                    <div className="text-green-600 text-xs">vs last week</div>
-                  </div>
+                  {/* A week-over-week trend needs a prior week to compare
+                      against, which we do not compute yet. Showing a fixed
+                      "+12%" to every athlete was a fabricated number. */}
                 </div>
               ) : (
                 <div className="text-center py-4">

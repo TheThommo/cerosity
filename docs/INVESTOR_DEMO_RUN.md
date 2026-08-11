@@ -13,8 +13,8 @@ Unattended overnight run. Every phase records evidence (curl / SQL / browser) or
 | 0 | Hygiene + audit truth | **PASS** | [below](#phase-0--hygiene--audit-truth) |
 | 2 | Ship LMS | **PASS** | [below](#phase-2--ship-the-lms-shipped-before-phase-1) |
 | 1 | Free signup → /learn immediately | **PASS** | [below](#phase-1--free-signup--learn) |
-| 3 | FLO durable memory | — | |
-| 4 | FLO on Sonnet 5 | — | |
+| 4 | FLO on Sonnet 5 | **PASS** | [below](#phase-4--flo-on-claude-sonnet-5) |
+| 3 | FLO durable memory | **PASS** | [below](#phase-3--flo-durable-memory) |
 | 5 | Credibility | — | |
 | 6 | Voice reconcile | — | |
 | 7 | Stretch | — | |
@@ -286,5 +286,145 @@ login success   → t("/learn")  + "Taking you to your curriculum"   ✅ present
 The three remaining `window.location.href="/"` occurrences are logout, the nav home link and a Refresh Page button — all correct.
 
 **Not verified by browser:** the visual landing of a human signup. The API, the database and the shipped bundle all agree, but a clicked-through browser signup was not possible from this environment.
+
+**Status: PASS.**
+
+---
+
+## Phase 4 — FLO on Claude Sonnet 5
+
+**Goal:** live FLO coaches with Anthropic Sonnet 5; Gemini is fallback only.
+
+Shipped before Phase 3's proof because the memory test needs a working brain — the audit found FLO answering with a canned string, so memory could not have been demonstrated on top of it.
+
+### Commit
+
+```
+c083f93  feat(flo): Claude Sonnet 5 is FLO's brain — one LLM adapter, no silent failures
+```
+
+`server/llm.ts` is the single LLM call site. Landing chat, `/api/chat` and the VAPI voice bridge all reach it through `getCoachingResponse`. Model names come from env (`ANTHROPIC_MODEL` / `FLO_MODEL`, `GEMINI_MODEL`); the only literals are the two default constants in the adapter (CLAUDE.md Rule 1).
+
+Sonnet 5 rejects non-default sampling parameters, so no `temperature` is sent. Thinking is disabled — a sub-120-word coaching reply does not need it, and latency is the constraint.
+
+### Live provider, from production
+
+```
+$ curl -s https://cerosity.com/api/health
+{"status":"ok","commit":"c083f93",
+ "llmProvider":"anthropic",
+ "llmModel":"claude-sonnet-5",
+ "anthropicConfigured":true,"geminiConfigured":true,"vapiConfigured":true,
+ "timestamp":"2026-08-11T12:35:01.422Z"}
+```
+
+### Audit B3 closed — three distinct prompts, three distinct answers
+
+The audit sent three unrelated prompts to `POST /api/landing-chat` and got **byte-identical** text back (the catch-all of `generateFallbackResponse`). Re-run against production now:
+
+```
+"what is the capital of France"
+→ "Paris. Now — back to you. What sport are you playing, and what's actually
+   on your mind today?"                                              (93 chars)
+
+"explain quantum entanglement"
+→ "Quantum entanglement — particles linked so measuring one instantly tells you
+   about the other, no matter the distance. Wild physics, not my department
+   though. My department is what's happening between your ears when the p…"
+                                                                    (297 chars)
+
+"my dog is called Rex and I keep three-putting"
+→ "Cute name, Rex sounds like a good caddie. Now the three-putts — that's a Blue
+   Head issue hiding as a green-reading issue. Usually it's deceleration or a
+   rushed read, not your stroke. Walk me through it: are you missing s…"
+                                                                    (295 chars)
+```
+
+Three different answers, each on-persona, each obeying the one-short-answer-then-redirect rule. None is the fallback string.
+
+### Failure is now loud
+
+Every provider attempt logs its real error as `[FLO-LLM] provider=… FAILED: …` (never key material). When all providers fail the adapter throws `LlmUnavailableError`; `/api/chat` passes `strict: true` and answers **503** rather than handing a signed-in athlete scripted filler dressed up as coaching. The anonymous landing preview still soft-degrades.
+
+**Status: PASS.**
+
+---
+
+## Phase 3 — FLO durable memory
+
+**Goal:** everything the athlete tells FLO is stored and reused across a refresh.
+
+### Commit
+
+```
+4c8869c  feat(flo): durable athlete memory — profile in the prompt, disclosures persisted
+```
+
+- `buildFloPrompt` now reads `opts.athleteContext`, which it had accepted and silently dropped (audit B4).
+- `/api/chat` resumes the athlete's most recent session when the client sends no `sessionId`.
+- `server/flo-memory.ts` promotes disclosures into the athlete's profile from an `athleteFacts` object the model returns alongside its reply.
+- Both post-login chat surfaces moved off `/api/landing-chat`.
+
+### Proof on production — free account, user id 3
+
+**Message 1 — disclosure.**
+
+```
+POST /api/chat  {"userId":3,"message":"I'm Sam, I play golf, I get angry after bogeys"}
+
+session id: 1 | msgs stored: 2
+→ "Good to meet you, Sam. Anger after bogeys — that's a classic Red Head trap.
+   You bogey, you judge it, the emotion spikes, then the next shot pays the
+   price. That's the negative content loop in action. …"
+```
+
+Straight to Postgres — queried directly against Supabase:
+
+```sql
+select (select count(*) from chat_sessions)                        as sessions,
+       (select jsonb_array_length(messages) from chat_sessions where id=1) as msgs,
+       (select sport from users where id=3)                        as sport,
+       (select challenges from athlete_profiles where user_id=3)    as challenges;
+
+→ sessions   : 1
+  msgs       : 2
+  sport      : "golf"                       ← was null; learned from the message
+  challenges : [{"title": "gets angry after bogeys",
+                 "description": "Disclosed to FLO in conversation"}]
+```
+
+`chat_sessions` and `athlete_profiles` had **0 rows** at the start of this run — the audit's row counts confirm it. Both are now written by the live product.
+
+**Message 2 — new request, `sessionId` deliberately omitted** (what a refresh, a new tab, or a new device looks like):
+
+```
+POST /api/chat  {"userId":3,"message":"What should I do on the next tee?"}
+
+resumed session id: 1 | total msgs now: 4
+→ "Three breaths — 4 in, 6 out. … That bogey is done, it can't be changed, so it
+   goes in the Can't Control circle. Then run your normal pre-shot routine. …
+   The tell you're still in Red: gripping tighter, rushing, or replaying the
+   bogey mid-swing."
+```
+
+It picked up the bogey thread without being retold, and without the client holding any state.
+
+**Message 3 — explicit recall probe, still no `sessionId`:**
+
+```
+POST /api/chat  {"userId":3,"message":"Remind me what we said my problem was, and what sport I play?"}
+
+session: 1 | msgs: 6
+→ "Golf's your game, Sam — and the thing we're working on is the anger that
+   flares up after bogeys. It's a classic Red Head reaction: bogey happens, you
+   judge it, emotion spikes, next shot suffers. That's exactly why the tee
+   routine we just covered matters …"
+```
+
+Name, sport and the disclosed stressor all recalled across three separate HTTP requests, with the session resolved server-side from the database each time.
+
+### Anonymous gate hardened (audit B5)
+
+`POST /api/landing-chat` still allows 6 free exchanges, but the count is now held in the server session and the effective count is `max(client, server)` — resetting `messageCount` in the browser no longer buys more free turns.
 
 **Status: PASS.**

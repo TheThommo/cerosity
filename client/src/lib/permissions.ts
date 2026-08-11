@@ -24,7 +24,8 @@ const FREE_TIER_FEATURES = {
   // Content Access
   basicPDFs: true, // Master Your Moment, Ability to Focus, Mental Toughness
   allContent: false,
-  
+  curriculum: false, // Red2Blue learning curriculum (free-preview lessons handled server-side)
+
   // Tools & Features
   dashboard: false, // No full dashboard access
   techniques: false,
@@ -52,6 +53,7 @@ const PREMIUM_TIER_FEATURES = {
   aiCoaching: true,
   personalizedRecommendations: true,
   allContent: true,
+  curriculum: true,
   techniques: true,
   scenarios: true,
   goals: true,

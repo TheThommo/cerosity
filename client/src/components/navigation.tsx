@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Bell, Menu, X, BarChart3, MessageCircle, Zap, Wrench, Users, Trophy, User, Settings, LogOut, Lightbulb, HelpCircle, Target, ClipboardCheck } from "lucide-react";
+import { Bell, Menu, X, BarChart3, MessageCircle, Zap, Wrench, Users, Trophy, User, Settings, LogOut, Lightbulb, HelpCircle, Target, ClipboardCheck, BookOpen } from "lucide-react";
 import { CerosityLogo } from "@/components/cerosity-logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -31,6 +31,9 @@ export function Navigation() {
     if (canAccessDashboard(user)) {
       baseItems.push({ href: "/dashboard", label: "Dashboard", icon: BarChart3 });
     }
+
+    // Learning curriculum — available to every signed-in user (free sees a preview)
+    baseItems.push({ href: "/learn", label: "Curriculum", icon: BookOpen });
 
     // Only show Help button in header for free users (subscribed users see it in footer only)
     // Admin users should never see Help button

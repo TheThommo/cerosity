@@ -17,10 +17,13 @@ import {
   type Lead, type InsertLead, type FloBrainDocument, type InsertFloBrainDocument,
   floSportContexts, athleteProfiles,
   type FloSportContext, type InsertFloSportContext,
-  type AthleteProfile, type InsertAthleteProfile
+  type AthleteProfile, type InsertAthleteProfile,
+  courses, courseModules, lessons, lessonProgress, courseCertificates,
+  type Course, type CourseModule, type Lesson,
+  type LessonProgress, type CourseCertificate
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -1920,6 +1923,103 @@ export class DatabaseStorage implements IStorage {
       return updated;
     }
     const [created] = await db.insert(athleteProfiles).values({ userId, ...updates }).returning();
+    return created;
+  }
+
+  // ── LMS / Curriculum operations ───────────────────────────────────
+  async getPublishedCourses(): Promise<Course[]> {
+    return db.select().from(courses)
+      .where(eq(courses.isPublished, true))
+      .orderBy(asc(courses.sortOrder));
+  }
+
+  async getCourseBySlug(slug: string): Promise<Course | undefined> {
+    const [course] = await db.select().from(courses).where(eq(courses.slug, slug));
+    return course || undefined;
+  }
+
+  async getCourseById(id: number): Promise<Course | undefined> {
+    const [course] = await db.select().from(courses).where(eq(courses.id, id));
+    return course || undefined;
+  }
+
+  async getModulesForCourse(courseId: number): Promise<CourseModule[]> {
+    return db.select().from(courseModules)
+      .where(and(eq(courseModules.courseId, courseId), eq(courseModules.isPublished, true)))
+      .orderBy(asc(courseModules.sortOrder));
+  }
+
+  async getLessonsForCourse(courseId: number): Promise<Lesson[]> {
+    return db.select().from(lessons)
+      .where(and(eq(lessons.courseId, courseId), eq(lessons.isPublished, true)))
+      .orderBy(asc(lessons.sortOrder));
+  }
+
+  async getLessonBySlug(slug: string): Promise<Lesson | undefined> {
+    const [lesson] = await db.select().from(lessons).where(eq(lessons.slug, slug));
+    return lesson || undefined;
+  }
+
+  async getLessonById(id: number): Promise<Lesson | undefined> {
+    const [lesson] = await db.select().from(lessons).where(eq(lessons.id, id));
+    return lesson || undefined;
+  }
+
+  async getLessonProgressForUser(userId: number): Promise<LessonProgress[]> {
+    return db.select().from(lessonProgress).where(eq(lessonProgress.userId, userId));
+  }
+
+  async getLessonProgressForCourse(userId: number, courseId: number): Promise<LessonProgress[]> {
+    const courseLessons = await this.getLessonsForCourse(courseId);
+    const lessonIds = courseLessons.map((l) => l.id);
+    if (lessonIds.length === 0) return [];
+    return db.select().from(lessonProgress)
+      .where(and(eq(lessonProgress.userId, userId), inArray(lessonProgress.lessonId, lessonIds)));
+  }
+
+  async upsertLessonProgress(
+    userId: number,
+    lessonId: number,
+    status: "in_progress" | "completed"
+  ): Promise<LessonProgress> {
+    const [existing] = await db.select().from(lessonProgress)
+      .where(and(eq(lessonProgress.userId, userId), eq(lessonProgress.lessonId, lessonId)));
+    if (existing) {
+      // Never downgrade a completed lesson back to in_progress.
+      const nextStatus = existing.status === "completed" ? "completed" : status;
+      const nextCompletedAt = existing.completedAt ?? (status === "completed" ? new Date() : null);
+      const [updated] = await db.update(lessonProgress)
+        .set({ status: nextStatus, completedAt: nextCompletedAt, updatedAt: new Date() })
+        .where(eq(lessonProgress.id, existing.id))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(lessonProgress)
+      .values({ userId, lessonId, status, completedAt: status === "completed" ? new Date() : null })
+      .returning();
+    return created;
+  }
+
+  async getCertificate(userId: number, courseId: number): Promise<CourseCertificate | undefined> {
+    const [cert] = await db.select().from(courseCertificates)
+      .where(and(eq(courseCertificates.userId, userId), eq(courseCertificates.courseId, courseId)));
+    return cert || undefined;
+  }
+
+  async getCertificatesForUser(userId: number): Promise<CourseCertificate[]> {
+    return db.select().from(courseCertificates).where(eq(courseCertificates.userId, userId));
+  }
+
+  async issueCertificate(
+    userId: number,
+    courseId: number,
+    certificateCode: string
+  ): Promise<CourseCertificate> {
+    const existing = await this.getCertificate(userId, courseId);
+    if (existing) return existing;
+    const [created] = await db.insert(courseCertificates)
+      .values({ userId, courseId, certificateCode })
+      .returning();
     return created;
   }
 }

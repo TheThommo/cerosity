@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Brain, FileText, MessageCircle, Star, ArrowRight, Lock, TrendingUp, Calendar, CheckCircle } from "lucide-react";
+import { Brain, FileText, MessageCircle, Star, ArrowRight, Lock, TrendingUp, Calendar, CheckCircle, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { LandingChatStableV2 } from "@/components/landing-chat-stable-v2";
 import { apiRequest } from "@/lib/queryClient";
@@ -295,6 +295,30 @@ export default function FreeDashboard() {
               <Link href="/assessment">
                 <Button className="w-full bg-green-600 hover:bg-green-700">
                   {latestAssessment ? "Retake Assessment" : "Take Assessment"}
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Red2Blue Curriculum preview */}
+          <Card className="border-2 border-indigo-200 bg-indigo-50">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <BookOpen className="w-8 h-8 text-indigo-600" />
+                <Badge className="bg-indigo-600">Free Preview</Badge>
+              </div>
+              <CardTitle className="text-lg">Red2Blue Curriculum</CardTitle>
+              <CardDescription>
+                Start the Red2Blue learning path
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600 mb-4">
+                Try the first lessons free. Upgrade to unlock all three sessions, every tool, and your Foundation certificate.
+              </p>
+              <Link href="/learn">
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
+                  Start Learning
                 </Button>
               </Link>
             </CardContent>

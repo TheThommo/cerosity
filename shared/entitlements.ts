@@ -87,6 +87,7 @@ export type FeatureKey =
   | "emergencyRelief"
   | "practiceTechnique"
   | "assessmentHistory"
+  | "curriculum"
   | "humanCoaching";
 
 /** Minimum tier required for each feature. "premium" = premium or ultimate; "ultimate" = ultimate only. */
@@ -112,6 +113,7 @@ export const FEATURE_MIN_TIER: Record<FeatureKey, SubscriptionTier> = {
   emergencyRelief: "premium",
   practiceTechnique: "premium",
   assessmentHistory: "premium",
+  curriculum: "premium",
   humanCoaching: "ultimate",
 };
 

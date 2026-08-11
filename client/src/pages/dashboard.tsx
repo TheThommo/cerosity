@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Brain, Users, TrendingUp, Target, Flame, Crosshair, Eye, AlertTriangle, ClipboardCheck, Zap, Wrench, Lightbulb } from "lucide-react";
+import { Brain, Users, TrendingUp, Target, Flame, Crosshair, Eye, AlertTriangle, ClipboardCheck, Zap, Wrench, Lightbulb, BookOpen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -58,7 +58,20 @@ export default function Dashboard() {
 
       {/* Clean Navigation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        
+
+        {/* Curriculum Card */}
+        <Link href="/learn">
+          <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-blue-300 hover:border-blue-500 bg-blue-50/40">
+            <CardContent className="p-8 text-center">
+              <div className="mb-4">
+                <BookOpen className="mx-auto text-blue-primary group-hover:text-blue-600" size={48} />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Red2Blue Curriculum</h3>
+              <p className="text-gray-600 text-sm">Work through the full Red2Blue method, lesson by lesson, and earn your Foundation certificate</p>
+            </CardContent>
+          </Card>
+        </Link>
+
         {/* Assessment Card */}
         <Link href="/assessment">
           <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-blue-200 hover:border-blue-400">

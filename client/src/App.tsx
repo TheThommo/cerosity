@@ -17,6 +17,8 @@ import Tools from "@/pages/tools";
 import Community from "@/pages/community";
 import CoachDashboard from "@/pages/coach-dashboard";
 import Profile from "@/pages/profile-new";
+import Learn from "@/pages/learn";
+import Lesson from "@/pages/lesson";
 import RecommendationsPage from "@/pages/recommendations";
 import Goals from "@/pages/goals";
 import Scenarios from "@/pages/scenarios";
@@ -130,6 +132,12 @@ function AppContent() {
               )}
               
               {/* Available to all authenticated users */}
+              {/* Learning curriculum — visible to all tiers; free users see locked
+                  lessons + free-preview teasers, content gating is enforced server-side */}
+              <Route path="/learn" component={Learn} />
+              <Route path="/learn/lesson/:slug">
+                {(params) => <Lesson slug={params.slug} />}
+              </Route>
               <Route path="/profile" component={Profile} />
               <Route path="/demo" component={DemoAccess} />
               <Route path="/help" component={Help} />

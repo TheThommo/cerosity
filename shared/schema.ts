@@ -753,3 +753,127 @@ export type VoiceCallTranscript = typeof voiceCallTranscripts.$inferSelect;
 export type InsertVoiceCallTranscript = z.infer<typeof insertVoiceCallTranscriptSchema>;
 export type VoiceSession = typeof voiceSessions.$inferSelect;
 export type InsertVoiceSession = z.infer<typeof insertVoiceSessionSchema>;
+
+// ── LMS / Learning Curriculum ──────────────────────────────────────
+// Structured Red2Blue curriculum delivered behind the paywall.
+// Hierarchy: courses → course_modules → lessons. Per-user state in
+// lesson_progress; course completion issues a course_certificate.
+
+export const courses = pgTable("courses", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").unique().notNull(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  description: text("description"),
+  // Minimum subscription tier required for the full course. Read from the row
+  // (not hardcoded in logic) so gating stays config-driven per entitlements.
+  requiredTier: text("required_tier").notNull().default("premium"),
+  sport: text("sport").default("golf"), // optional sport filter; null = all sports
+  sortOrder: integer("sort_order").notNull().default(0),
+  isPublished: boolean("is_published").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const courseModules = pgTable("course_modules", {
+  id: serial("id").primaryKey(),
+  courseId: integer("course_id").notNull(),
+  slug: text("slug").unique().notNull(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  summary: text("summary"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isPublished: boolean("is_published").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const lessons = pgTable("lessons", {
+  id: serial("id").primaryKey(),
+  moduleId: integer("module_id").notNull(),
+  courseId: integer("course_id").notNull(), // denormalised for gating/queries
+  slug: text("slug").unique().notNull(),
+  title: text("title").notNull(),
+  lessonType: text("lesson_type").notNull().default("concept"), // concept | tool | exercise | scenario | assessment | intro
+  summary: text("summary"),
+  estimatedMinutes: integer("estimated_minutes").default(5),
+  content: jsonb("content").notNull(), // ordered array of content blocks (see LessonBlock)
+  toolKey: text("tool_key"), // optional link to an interactive tool (e.g. "controlCircles")
+  isFreePreview: boolean("is_free_preview").notNull().default(false), // visible to free tier as a teaser
+  sortOrder: integer("sort_order").notNull().default(0),
+  isPublished: boolean("is_published").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const lessonProgress = pgTable("lesson_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  lessonId: integer("lesson_id").notNull(),
+  status: text("status").notNull().default("in_progress"), // in_progress | completed
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const courseCertificates = pgTable("course_certificates", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  courseId: integer("course_id").notNull(),
+  certificateCode: text("certificate_code").unique().notNull(),
+  issuedAt: timestamp("issued_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCourseSchema = createInsertSchema(courses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCourseModuleSchema = createInsertSchema(courseModules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLessonSchema = createInsertSchema(lessons).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLessonProgressSchema = createInsertSchema(lessonProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCourseCertificateSchema = createInsertSchema(courseCertificates).omit({
+  id: true,
+  createdAt: true,
+  issuedAt: true,
+});
+
+export type Course = typeof courses.$inferSelect;
+export type InsertCourse = z.infer<typeof insertCourseSchema>;
+export type CourseModule = typeof courseModules.$inferSelect;
+export type InsertCourseModule = z.infer<typeof insertCourseModuleSchema>;
+export type Lesson = typeof lessons.$inferSelect;
+export type InsertLesson = z.infer<typeof insertLessonSchema>;
+export type LessonProgress = typeof lessonProgress.$inferSelect;
+export type InsertLessonProgress = z.infer<typeof insertLessonProgressSchema>;
+export type CourseCertificate = typeof courseCertificates.$inferSelect;
+export type InsertCourseCertificate = z.infer<typeof insertCourseCertificateSchema>;
+
+// Lesson content block shape (stored in lessons.content jsonb).
+export type LessonBlock =
+  | { type: "heading"; text: string }
+  | { type: "paragraph"; text: string }
+  | { type: "list"; ordered?: boolean; items: string[] }
+  | { type: "keyPoints"; title?: string; items: string[] }
+  | { type: "callout"; variant?: "info" | "blue" | "red" | "tip"; title?: string; text: string }
+  | { type: "quote"; text: string; attribution?: string }
+  | { type: "steps"; title?: string; items: string[] }
+  | { type: "scenarioPrompts"; scenario: string; prompts: string[] }
+  | { type: "toolEmbed"; toolKey: string; label?: string };

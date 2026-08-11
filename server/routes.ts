@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import { z } from "zod";
 import { storage } from "./storage";
 import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSchema, insertPreShotRoutineSchema, insertMentalSkillsXCheckSchema, insertControlCircleSchema, insertDailyMoodSchema, insertUserGoalSchema } from "@shared/schema";
+import { hasFeatureAccess } from "@shared/entitlements";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback } from "./auth";
 import { sendLeadRegistrationEmail, sendAdminLeadNotification } from "./email";
@@ -2529,6 +2530,211 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ── LMS / Learning Curriculum ───────────────────────────────────
+  // Read endpoints use requireAuth (not requirePremium) so free users can
+  // browse the curriculum and see locked lessons as an upsell. Access to
+  // lesson content + progress is gated per-lesson: full access via the
+  // "curriculum" entitlement, or individual lessons flagged isFreePreview.
+
+  const userHasCurriculumAccess = (user: { subscriptionTier?: string | null; role?: string | null }) =>
+    hasFeatureAccess((user.subscriptionTier as any) ?? "free", user.role, "curriculum");
+
+  const lessonIsAccessible = (
+    user: { subscriptionTier?: string | null; role?: string | null },
+    lesson: { isFreePreview: boolean }
+  ) => lesson.isFreePreview || userHasCurriculumAccess(user);
+
+  // GET /api/learn/courses — list published courses with access + progress summary
+  app.get("/api/learn/courses", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const allCourses = await storage.getPublishedCourses();
+      const progress = await storage.getLessonProgressForUser(user.id);
+      const completedIds = new Set(progress.filter((p) => p.status === "completed").map((p) => p.lessonId));
+      const result = await Promise.all(allCourses.map(async (course) => {
+        const courseLessons = await storage.getLessonsForCourse(course.id);
+        const completed = courseLessons.filter((l) => completedIds.has(l.id)).length;
+        return {
+          ...course,
+          hasAccess: userHasCurriculumAccess(user),
+          lessonCount: courseLessons.length,
+          completedCount: completed,
+          percentComplete: courseLessons.length ? Math.round((completed / courseLessons.length) * 100) : 0,
+        };
+      }));
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch courses", error: (error as Error).message });
+    }
+  });
+
+  // GET /api/learn/courses/:slug — full course outline (modules + lessons, no content) with per-lesson lock/status
+  app.get("/api/learn/courses/:slug", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const course = await storage.getCourseBySlug(req.params.slug);
+      if (!course || !course.isPublished) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+      const hasAccess = userHasCurriculumAccess(user);
+      const modules = await storage.getModulesForCourse(course.id);
+      const courseLessons = await storage.getLessonsForCourse(course.id);
+      const progress = await storage.getLessonProgressForCourse(user.id, course.id);
+      const statusByLesson = new Map(progress.map((p) => [p.lessonId, p.status]));
+
+      const modulesOut = modules.map((m) => ({
+        id: m.id,
+        slug: m.slug,
+        title: m.title,
+        subtitle: m.subtitle,
+        summary: m.summary,
+        sortOrder: m.sortOrder,
+        lessons: courseLessons
+          .filter((l) => l.moduleId === m.id)
+          .map((l) => ({
+            id: l.id,
+            slug: l.slug,
+            title: l.title,
+            lessonType: l.lessonType,
+            summary: l.summary,
+            estimatedMinutes: l.estimatedMinutes,
+            toolKey: l.toolKey,
+            isFreePreview: l.isFreePreview,
+            locked: !lessonIsAccessible(user, l),
+            status: statusByLesson.get(l.id) ?? "not_started",
+          })),
+      }));
+
+      const completed = courseLessons.filter((l) => statusByLesson.get(l.id) === "completed").length;
+      const certificate = await storage.getCertificate(user.id, course.id);
+
+      res.json({
+        course,
+        hasAccess,
+        modules: modulesOut,
+        progress: {
+          total: courseLessons.length,
+          completed,
+          percent: courseLessons.length ? Math.round((completed / courseLessons.length) * 100) : 0,
+        },
+        certificate: certificate ?? null,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch course", error: (error as Error).message });
+    }
+  });
+
+  // GET /api/learn/lessons/:slug — single lesson with content (withheld if locked)
+  app.get("/api/learn/lessons/:slug", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const lesson = await storage.getLessonBySlug(req.params.slug);
+      if (!lesson || !lesson.isPublished) {
+        return res.status(404).json({ message: "Lesson not found" });
+      }
+      const course = await storage.getCourseById(lesson.courseId);
+      const modules = await storage.getModulesForCourse(lesson.courseId);
+      const module = modules.find((m) => m.id === lesson.moduleId);
+      const courseLessons = await storage.getLessonsForCourse(lesson.courseId);
+      const idx = courseLessons.findIndex((l) => l.id === lesson.id);
+      const prev = idx > 0 ? courseLessons[idx - 1] : null;
+      const next = idx >= 0 && idx < courseLessons.length - 1 ? courseLessons[idx + 1] : null;
+      const locked = !lessonIsAccessible(user, lesson);
+      const [progressRow] = (await storage.getLessonProgressForCourse(user.id, lesson.courseId))
+        .filter((p) => p.lessonId === lesson.id);
+
+      res.json({
+        lesson: {
+          id: lesson.id,
+          slug: lesson.slug,
+          title: lesson.title,
+          lessonType: lesson.lessonType,
+          summary: lesson.summary,
+          estimatedMinutes: lesson.estimatedMinutes,
+          toolKey: locked ? null : lesson.toolKey,
+          content: locked ? [] : lesson.content,
+          isFreePreview: lesson.isFreePreview,
+        },
+        course: course ? { id: course.id, slug: course.slug, title: course.title } : null,
+        module: module ? { id: module.id, slug: module.slug, title: module.title } : null,
+        locked,
+        status: progressRow?.status ?? "not_started",
+        prev: prev ? { slug: prev.slug, title: prev.title } : null,
+        next: next ? { slug: next.slug, title: next.title } : null,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch lesson", error: (error as Error).message });
+    }
+  });
+
+  // POST /api/learn/lessons/:id/progress — mark a lesson in_progress or completed
+  app.post("/api/learn/lessons/:id/progress", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const lessonId = parseInt(req.params.id, 10);
+      if (Number.isNaN(lessonId)) return res.status(400).json({ message: "Invalid lesson id" });
+      const lesson = await storage.getLessonById(lessonId);
+      if (!lesson || !lesson.isPublished) return res.status(404).json({ message: "Lesson not found" });
+      if (!lessonIsAccessible(user, lesson)) {
+        return res.status(403).json({ message: "Upgrade required to track this lesson" });
+      }
+      const status = req.body?.status === "completed" ? "completed" : "in_progress";
+      const updated = await storage.upsertLessonProgress(user.id, lessonId, status);
+
+      // Recompute course progress; auto-issue certificate when every accessible lesson is done.
+      const courseLessons = await storage.getLessonsForCourse(lesson.courseId);
+      const accessibleLessons = courseLessons.filter((l) => lessonIsAccessible(user, l));
+      const progress = await storage.getLessonProgressForCourse(user.id, lesson.courseId);
+      const completedIds = new Set(progress.filter((p) => p.status === "completed").map((p) => p.lessonId));
+      const allDone =
+        accessibleLessons.length > 0 &&
+        userHasCurriculumAccess(user) &&
+        accessibleLessons.every((l) => completedIds.has(l.id));
+
+      let certificate = await storage.getCertificate(user.id, lesson.courseId);
+      if (allDone && !certificate) {
+        const code = `R2B-${lesson.courseId}-${user.id}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+        certificate = await storage.issueCertificate(user.id, lesson.courseId, code);
+      }
+
+      res.json({
+        progress: updated,
+        courseProgress: {
+          total: courseLessons.length,
+          completed: courseLessons.filter((l) => completedIds.has(l.id)).length,
+        },
+        certificate: certificate ?? null,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update progress", error: (error as Error).message });
+    }
+  });
+
+  // GET /api/learn/me — the user's curriculum progress + certificates
+  app.get("/api/learn/me", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const allCourses = await storage.getPublishedCourses();
+      const progress = await storage.getLessonProgressForUser(user.id);
+      const completedIds = new Set(progress.filter((p) => p.status === "completed").map((p) => p.lessonId));
+      const certificates = await storage.getCertificatesForUser(user.id);
+      const courses = await Promise.all(allCourses.map(async (course) => {
+        const courseLessons = await storage.getLessonsForCourse(course.id);
+        const completed = courseLessons.filter((l) => completedIds.has(l.id)).length;
+        return {
+          slug: course.slug,
+          title: course.title,
+          total: courseLessons.length,
+          completed,
+          percent: courseLessons.length ? Math.round((completed / courseLessons.length) * 100) : 0,
+        };
+      }));
+      res.json({ courses, certificates });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch learning progress", error: (error as Error).message });
     }
   });
 

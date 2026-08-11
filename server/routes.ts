@@ -12,6 +12,7 @@ import { sendLeadRegistrationEmail, sendAdminLeadNotification } from "./email";
 import { buildFloPrompt, buildLandingSalesDirective, clearBrainDocsCache, clearSportContextCache } from "./flo-prompt";
 import { formatAthleteContextForPrompt } from "./flo-athlete-context";
 import { applyAthleteFacts } from "./flo-memory";
+import { primaryProvider, anthropicModel, geminiModel } from "./llm";
 import { recommendationEngine } from "./recommendationEngine";
 import { debugLogger, withErrorLogging } from "./debug";
 import { handleVapiWebhook } from "./vapi";
@@ -63,6 +64,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({
       status: "ok",
       commit: sha ? sha.substring(0, 7) : "unknown",
+      // Which brain is actually live. Names only — never key material.
+      llmProvider: primaryProvider(),
+      llmModel: primaryProvider() === "anthropic" ? anthropicModel() : geminiModel(),
+      anthropicConfigured: !!process.env.ANTHROPIC_API_KEY,
       geminiConfigured: !!process.env.GEMINI_API_KEY,
       vapiConfigured: !!process.env.VAPI_API_KEY,
       timestamp: new Date().toISOString(),
@@ -1855,10 +1860,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parts: [{ text: msg.content }]
       }));
 
-      const aiResponse = await getCoachingResponse(message, formattedHistory, {
-        sport,
-        systemPromptOverride: systemPrompt,
-      });
+      let aiResponse;
+      try {
+        aiResponse = await getCoachingResponse(message, formattedHistory, {
+          sport,
+          systemPromptOverride: systemPrompt,
+          strict: true,
+        });
+      } catch (llmError: any) {
+        // Signed-in coaching never fakes a reply. Surfacing the outage is the
+        // only way an AI failure is distinguishable from FLO working (audit B3).
+        console.error("[FLO-CHAT] LLM unavailable for user", userId, llmError?.message || llmError);
+        return res.status(503).json({
+          message: "FLO is briefly unavailable. Nothing you told me is lost — try again in a moment.",
+          error: "llm_unavailable",
+        });
+      }
       const assistantMessage = {
         role: "assistant", 
         content: aiResponse.message,

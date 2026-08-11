@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateCoachingText, type LlmTurn } from "./llm";
 
 if (!process.env.GEMINI_API_KEY) {
   console.warn("[GEMINI] GEMINI_API_KEY not set — FLO chat will not work");
@@ -41,48 +42,39 @@ export async function getCoachingResponse(
     recentProgress?: any[];
     sport?: string;
     systemPromptOverride?: string;
+    /**
+     * Authenticated coaching. When every provider fails, throw instead of
+     * returning canned text — a paying athlete must never be handed scripted
+     * filler that reads as if FLO answered (audit B3).
+     */
+    strict?: boolean;
   }
 ): Promise<CoachingResponse> {
-  if (!process.env.GEMINI_API_KEY) {
-    console.error("[GEMINI] No API key — returning fallback");
+  const systemPrompt = userContext?.systemPromptOverride || "";
+
+  // History arrives in the Gemini shape the callers already build.
+  const history: LlmTurn[] = conversationHistory
+    .filter((msg: any) => msg.parts?.[0]?.text?.trim())
+    .slice(-12)
+    .map((msg: any) => ({
+      role: msg.role === "model" ? ("assistant" as const) : ("user" as const),
+      text: msg.parts[0].text,
+    }));
+
+  let text: string;
+  try {
+    const result = await generateCoachingText(systemPrompt, history, userMessage);
+    text = result.text;
+  } catch (error: any) {
+    console.error("[FLO] Coaching request failed:", error?.message || error);
+    if (userContext?.strict) throw error;
+    // Anonymous landing preview soft-degrades rather than showing an error page.
     return generateFallbackResponse(userMessage);
   }
 
-  try {
-    const systemPrompt = userContext?.systemPromptOverride || "";
-
-    const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
-      systemInstruction: systemPrompt,
-      generationConfig: {
-        maxOutputTokens: 800,
-        temperature: 0.7,
-      },
-    });
-
-    const validHistory = conversationHistory
-      .filter((msg: any) => msg.parts?.[0]?.text?.trim())
-      .slice(-12);
-    if (validHistory.length > 0 && validHistory[0].role !== "user") {
-      validHistory.shift();
-    }
-
-    const chat = model.startChat({ history: validHistory });
-
-    const sendWithTimeout = async () => {
-      return Promise.race([
-        chat.sendMessage(userMessage),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Gemini timeout after 12s")), 12000)
-        )
-      ]);
-    };
-
-    const result = await sendWithTimeout() as any;
-    const text = result.response.text();
-
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
       const parsed = JSON.parse(jsonMatch[0]);
       return {
         message: parsed.message || text,
@@ -92,14 +84,12 @@ export async function getCoachingResponse(
         urgencyLevel: parsed.urgencyLevel || "low",
         athleteFacts: parsed.athleteFacts
       };
+    } catch {
+      // Model wrote prose containing braces — use it as-is rather than failing.
     }
-
-    return { message: text.trim(), suggestions: [], urgencyLevel: "low" };
-
-  } catch (error: any) {
-    console.error("[GEMINI] Chat error:", error?.message || error);
-    return generateFallbackResponse(userMessage);
   }
+
+  return { message: text.trim(), suggestions: [], urgencyLevel: "low" };
 }
 
 // Intelligent fallback response generator

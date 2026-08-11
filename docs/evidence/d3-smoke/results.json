@@ -1,10 +1,10 @@
 {
   "base": "https://cerosity.com",
-  "ranAt": "2026-08-11T13:31:27.061Z",
-  "commit": "b6a9e52",
-  "userA": 8,
-  "userB": 9,
-  "aSessionId": 6,
+  "ranAt": "2026-08-11T13:44:36.618Z",
+  "commit": "f3c04fa",
+  "userA": 13,
+  "userB": 14,
+  "aSessionId": 8,
   "results": [
     {
       "step": "1. Sign up free → lands in /learn",
@@ -24,17 +24,17 @@
     {
       "step": "4. FLO accepts a message from the browser session",
       "pass": true,
-      "detail": "HTTP 200 · session=6 · owner=8 (A=8)"
+      "detail": "HTTP 200 · session=8 · owner=13 (A=13)"
     },
     {
       "step": "5. After reload FLO still remembers",
       "pass": true,
-      "detail": "recalled \"ZEBRA-32038\": true · reply: Codeword: ZEBRA-32038. Sport: squash.\n\nGood — now that's confirmed, let's use it. At match point, is your mind on winnin"
+      "detail": "recalled \"ZEBRA-16226\": true · reply: Codeword: ZEBRA-16226. Sport: squash — that's what you told me a second ago, so that's what's on record.\n\nNow let's use "
     },
     {
       "step": "6. Second user signs up in a clean context",
       "pass": true,
-      "detail": "B id=9 · 05-userB-learn.png"
+      "detail": "B id=14 · 05-userB-learn.png"
     },
     {
       "step": "7. B reading A's session list → 403",
@@ -44,12 +44,22 @@
     {
       "step": "8. B posting into A's sessionId → 404, no leak",
       "pass": true,
-      "detail": "HTTP 404 · leaked \"ZEBRA-32038\": false"
+      "detail": "HTTP 404 · leaked \"ZEBRA-16226\": false"
     },
     {
       "step": "9. B spoofing body userId → bound to B, no leak",
       "pass": true,
-      "detail": "session.userId=9 (B=9, A=8) · leaked: false"
+      "detail": "session.userId=14 (B=14, A=13) · leaked: false"
+    },
+    {
+      "step": "10. /signup-after-payment?tier=ultimate makes no payment claim",
+      "pass": true,
+      "detail": "\"Payment Successful!\" shown: false · price summary shown: false · 06-a5-no-payment-claim.png"
+    },
+    {
+      "step": "11. Login still works after session.regenerate()",
+      "pass": true,
+      "detail": "HTTP 200 · me.id=13 (A=13) · cookie sameSite=Lax secure=true httpOnly=true"
     }
   ],
   "allPassed": true

@@ -1320,7 +1320,10 @@ export class DatabaseStorage implements IStorage {
   async updateChatSession(id: number, messages: any[]): Promise<ChatSession> {
     const [session] = await db
       .update(chatSessions)
-      .set({ messages })
+      // messageCount and updatedAt were never written, so every row read 0 and
+      // kept its creation timestamp — useless for "most recent conversation"
+      // ordering and for any usage reporting built on top of it.
+      .set({ messages, messageCount: messages.length, updatedAt: new Date() })
       .where(eq(chatSessions.id, id))
       .returning();
     return session;

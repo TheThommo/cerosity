@@ -31,6 +31,10 @@ const record = (step, pass, detail) => {
 
 async function signUp(context, who) {
   const page = await context.newPage();
+  let registerStatus = null;
+  page.on("response", (r) => {
+    if (r.url().includes("/api/auth/register")) registerStatus = r.status();
+  });
   await page.goto(`${BASE}/signup`, { waitUntil: "domcontentloaded" });
   await page.getByPlaceholder("First name").fill(who.first);
   await page.getByPlaceholder("Last name").fill(who.last);
@@ -39,8 +43,17 @@ async function signUp(context, who) {
   await page.getByPlaceholder("Confirm your password").fill(who.password);
   // Exact name on purpose: a loose /sign up/i also matches "Sign up with Google".
   await page.getByRole("button", { name: "Create Account", exact: true }).click();
-  // The form redirects to /learn a couple of seconds after success.
-  await page.waitForURL(/\/learn/, { timeout: 45000 });
+  // The form redirects to /learn a couple of seconds after success. Wait on
+  // domcontentloaded, not load: /learn keeps fetching after first paint, so
+  // waiting for the load event can outlast the timeout even though the
+  // navigation already happened.
+  try {
+    await page.waitForURL(/\/learn/, { timeout: 60000, waitUntil: "domcontentloaded" });
+  } catch (e) {
+    await page.screenshot({ path: join(OUT, `FAIL-signup-${who.first}.png`) });
+    const visible = (await page.locator("body").innerText()).slice(0, 400).replace(/\n+/g, " | ");
+    throw new Error(`signUp(${who.first}) stuck at ${page.url()} · register HTTP ${registerStatus} · visible: ${visible}`);
+  }
   return page;
 }
 
@@ -48,8 +61,11 @@ const browser = await chromium.launch();
 try {
   // ── User A: the investor path ──────────────────────────────────────
   const ctxA = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  // The signup form derives the username from firstName+lastName, so the names
+  // have to be unique per run or the second run 400s with "Username already
+  // exists" and the redirect never fires.
   const userA = {
-    first: "Ada", last: "Smoke",
+    first: `Ada${stamp}`, last: "Smoke",
     email: `smoke.a.${stamp}@cerosity-test.com`,
     password: "SmokePass123!",
   };
@@ -88,7 +104,7 @@ try {
   // ── User B: a clean context tries to read A's data ─────────────────
   const ctxB = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const userB = {
-    first: "Mal", last: "Smoke",
+    first: `Mal${stamp}`, last: "Smoke",
     email: `smoke.b.${stamp}@cerosity-test.com`,
     password: "SmokePass123!",
   };
@@ -111,6 +127,25 @@ try {
   const boundToB = spoof?.session?.userId === meB.id;
   const noLeak = !JSON.stringify(spoof).includes(secret);
   record("9. B spoofing body userId → bound to B, no leak", boundToB && noLeak, `session.userId=${spoof?.session?.userId} (B=${meB.id}, A=${me.id}) · leaked: ${!noLeak}`);
+
+  // ── A5: the payment-success page must not claim a payment ──────────
+  const pageC = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+  await pageC.goto(`${BASE}/signup-after-payment?tier=ultimate`, { waitUntil: "domcontentloaded" });
+  await pageC.waitForSelector("text=/Create Your Account/i", { timeout: 30000 });
+  const a5Text = await pageC.locator("body").innerText();
+  const claimsPayment = /payment successful/i.test(a5Text);
+  const showsPrice = /2290|2,290|Lifetime Access Purchased/i.test(a5Text);
+  record("10. /signup-after-payment?tier=ultimate makes no payment claim", !claimsPayment && !showsPrice, `"Payment Successful!" shown: ${claimsPayment} · price summary shown: ${showsPrice} · ${await shot(pageC, "06-a5-no-payment-claim")}`);
+
+  // ── D4: sign-in still works after session.regenerate() ─────────────
+  const ctxD = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const loginResp = await ctxD.request.post(`${BASE}/api/auth/login`, {
+    data: { email: userA.email, password: userA.password },
+  });
+  const cookies = await ctxD.cookies(BASE);
+  const sid = cookies.find((c) => c.name === "connect.sid");
+  const meAfterLogin = loginResp.ok() ? await (await ctxD.request.get(`${BASE}/api/auth/me`)).json() : {};
+  record("11. Login still works after session.regenerate()", loginResp.status() === 200 && meAfterLogin.id === me.id, `HTTP ${loginResp.status()} · me.id=${meAfterLogin.id} (A=${me.id}) · cookie sameSite=${sid?.sameSite} secure=${sid?.secure} httpOnly=${sid?.httpOnly}`);
 
   const summary = {
     base: BASE,

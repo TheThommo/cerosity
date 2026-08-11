@@ -125,6 +125,19 @@ const TIER_ORDER: Record<SubscriptionTier, number> = {
   ultimate: 3,
 };
 
+/**
+ * Narrow an untrusted string (Stripe metadata, a query param) to a real tier.
+ * Derived from TIER_PRICING so the set of valid tiers lives in one place.
+ */
+export function isSubscriptionTier(value: unknown): value is SubscriptionTier {
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(TIER_PRICING, value);
+}
+
+/** Price in cents for Stripe. Dollars live in TIER_PRICING; never inline them. */
+export function tierAmountInCents(tier: SubscriptionTier): number {
+  return Math.round(TIER_PRICING[tier].price * 100);
+}
+
 export function hasFeatureAccess(
   subscriptionTier: SubscriptionTier | null | undefined,
   role: string | null | undefined,

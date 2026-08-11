@@ -8,6 +8,14 @@ import { reconcileFloVapiAssistant } from "./vapi";
 import { registerFloVoiceRoutes } from "./flo-routes";
 
 const app = express();
+
+// Stripe signs the exact bytes it sent. express.json() would parse them into an
+// object and the original payload could never be reconstructed, so every
+// signature check failed and the webhook was dead on arrival (audit A1). This
+// mount must stay ABOVE express.json(), and must stay scoped to the webhook
+// path — every other route still wants parsed JSON.
+app.use("/api/webhook/stripe", express.raw({ type: "application/json" }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

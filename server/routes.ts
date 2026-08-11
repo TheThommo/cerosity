@@ -5,7 +5,7 @@ import Stripe from "stripe";
 import { z } from "zod";
 import { storage } from "./storage";
 import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSchema, insertPreShotRoutineSchema, insertMentalSkillsXCheckSchema, insertControlCircleSchema, insertDailyMoodSchema, insertUserGoalSchema, type User } from "@shared/schema";
-import { hasFeatureAccess } from "@shared/entitlements";
+import { hasFeatureAccess, isSubscriptionTier, tierAmountInCents, TIER_PRICING, type SubscriptionTier } from "@shared/entitlements";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback } from "./auth";
 import { sendLeadRegistrationEmail, sendAdminLeadNotification } from "./email";
@@ -70,6 +70,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       anthropicConfigured: !!process.env.ANTHROPIC_API_KEY,
       geminiConfigured: !!process.env.GEMINI_API_KEY,
       vapiConfigured: !!process.env.VAPI_API_KEY,
+      // Presence only — the secret itself is never exposed. Without this the
+      // webhook refuses every event, so it needs to be visible at a glance.
+      stripeWebhookConfigured: !!process.env.STRIPE_WEBHOOK_SECRET,
       timestamp: new Date().toISOString(),
     });
   });
@@ -232,21 +235,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Stripe payment route for tier purchases
-  app.post("/api/create-payment-intent", async (req, res) => {
+  app.post("/api/create-payment-intent", async (req: AuthRequest, res) => {
     try {
-      const { amount, tier, description } = req.body;
-      
-      if (!amount || !tier) {
-        return res.status(400).json({ message: "Amount and tier are required" });
+      const { tier, description } = req.body;
+
+      // The client's `amount` is ignored. It used to be honoured verbatim, so
+      // anyone could pay $1 for the $2,290 tier (audit A3/A6). Price comes from
+      // TIER_PRICING, which is also what the marketing pages render.
+      if (!isSubscriptionTier(tier) || tier === 'free') {
+        return res.status(400).json({ message: "A valid paid tier is required" });
       }
 
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: tierAmountInCents(tier),
         currency: "usd",
-        description: description || `Cerosity ${tier} Access`,
+        description: description || `Cerosity ${TIER_PRICING[tier].name}`,
         metadata: {
-          tier: tier,
-          product: 'cerosity_access'
+          tier,
+          product: 'cerosity_access',
+          // Present only when a signed-in user is buying. The webhook needs it
+          // to know whose account to upgrade.
+          ...(req.user ? { userId: String(req.user.id) } : {}),
         }
       });
 
@@ -258,15 +267,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stripe hosted checkout session for tier purchases
-  app.post("/api/create-checkout-session", async (req, res) => {
+  app.post("/api/create-checkout-session", async (req: AuthRequest, res) => {
     try {
-      const { tier, amount, success_url, cancel_url } = req.body;
-      
-      console.log('Creating checkout session with:', { tier, amount, success_url, cancel_url });
-      
-      if (!tier || !amount) {
-        return res.status(400).json({ message: "Tier and amount are required" });
+      const { tier, success_url, cancel_url } = req.body;
+
+      // Client-supplied `amount` is deliberately not read (audit A3/A6).
+      if (!isSubscriptionTier(tier) || tier === 'free') {
+        return res.status(400).json({ message: "A valid paid tier is required" });
       }
+
+      console.log('Creating checkout session for tier:', tier);
 
       const sessionConfig = {
         payment_method_types: ['card'],
@@ -280,7 +290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   ? 'AI + Human elite coaching with personal sessions'
                   : tier === 'flo' ? 'Unlimited AI mental performance coaching' : 'Complete AI coaching with all features',
               },
-              unit_amount: Math.round(amount * 100), // Convert to cents
+              unit_amount: tierAmountInCents(tier),
             },
             quantity: 1,
           },
@@ -289,12 +299,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success_url: success_url || `https://${req.headers.host}/signup-after-payment?tier=${tier}&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: cancel_url || `https://${req.headers.host}/checkout-hosted?tier=${tier}`,
         metadata: {
-          tier: tier,
-          product: 'cerosity_access'
+          tier,
+          product: 'cerosity_access',
+          ...(req.user ? { userId: String(req.user.id) } : {}),
         }
       };
-
-      console.log('Session config:', JSON.stringify(sessionConfig, null, 2));
 
       const session = await stripe.checkout.sessions.create(sessionConfig as any);
       
@@ -398,24 +407,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateUser(user.id, { stripeCustomerId: customerId });
       }
 
-      // Define pricing based on tier using your product IDs
-      const productPricing = {
-        premium: {
-          productId: 'prod_SR3rZuRQG7JnqR',
-          amount: 59000, // $590.00 in cents
-          description: 'Elite Digital Coaching - Lifetime',
-        },
-        ultimate: {
-          productId: 'prod_SR3txKbR55uws2',
-          amount: 229000, // $2290.00 in cents
-          description: 'Master Human Coaching - Lifetime',
-        },
+      // Stripe product ids only. The amount comes from TIER_PRICING so a price
+      // change happens in one place (CLAUDE.md Rule 1) — these were hardcoded
+      // at 59000/229000 alongside a third, different set of prices elsewhere.
+      const productIds: Partial<Record<SubscriptionTier, string>> = {
+        premium: 'prod_SR3rZuRQG7JnqR',
+        ultimate: 'prod_SR3txKbR55uws2',
       };
 
-      const pricing = productPricing[tier as keyof typeof productPricing];
-      if (!pricing) {
+      if (!isSubscriptionTier(tier) || !productIds[tier]) {
         return res.status(400).json({ message: 'Invalid access tier' });
       }
+
+      const pricing = {
+        productId: productIds[tier]!,
+        amount: tierAmountInCents(tier),
+      };
 
       // Create checkout session for one-time payment
       const session = await stripe.checkout.sessions.create({
@@ -447,43 +454,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Webhook for Stripe events
+  // Webhook for Stripe events.
+  //
+  // This is the ONLY code path that may grant a paid tier. req.body arrives as
+  // a raw Buffer because server/index.ts mounts express.raw() on this exact
+  // path above express.json() — parsed JSON here would fail every signature
+  // check, which is what made the whole payment chain dead (audit A1).
   app.post("/api/webhook/stripe", async (req, res) => {
     const sig = req.headers['stripe-signature'];
-    let event;
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
 
+    if (!secret) {
+      // Never fall through to "accept unverified". Without a secret we cannot
+      // prove Stripe sent this, so we refuse rather than grant anything.
+      console.error('[STRIPE-WEBHOOK] STRIPE_WEBHOOK_SECRET is not set — refusing to process events');
+      return res.status(503).json({ message: 'Webhook not configured' });
+    }
+
+    if (!Buffer.isBuffer(req.body)) {
+      // Guards against someone reordering the middleware later and silently
+      // reintroducing A1. Loud, because the symptom is otherwise invisible.
+      console.error('[STRIPE-WEBHOOK] req.body is not a Buffer — express.raw() mount is missing or out of order');
+      return res.status(500).json({ message: 'Webhook misconfigured' });
+    }
+
+    let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig!, process.env.STRIPE_WEBHOOK_SECRET!);
+      event = stripe.webhooks.constructEvent(req.body, sig!, secret);
     } catch (err: any) {
-      console.log(`Webhook signature verification failed.`, err.message);
+      // err.message describes the mismatch; it never contains the secret.
+      console.warn(`[STRIPE-WEBHOOK] signature verification failed: ${err.message}`);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // Handle payment events
-    switch (event.type) {
-      case 'checkout.session.completed':
-        const session = event.data.object;
-        await handlePaymentSuccess(session);
-        break;
+    try {
+      switch (event.type) {
+        // Hosted Checkout (/api/payment/create, /api/create-checkout-session)
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          await grantPaidAccess(event.id, session.metadata, session.customer, 'checkout.session.completed');
+          break;
+        }
+        // Embedded card element (/api/create-payment-intent). The live checkout
+        // page uses PaymentIntents, which never emit checkout.session.completed
+        // — so this event had no handler at all.
+        case 'payment_intent.succeeded': {
+          const intent = event.data.object as Stripe.PaymentIntent;
+          await grantPaidAccess(event.id, intent.metadata, intent.customer, 'payment_intent.succeeded');
+          break;
+        }
+        default:
+          console.log(`[STRIPE-WEBHOOK] ignoring ${event.type}`);
+      }
+    } catch (err: any) {
+      // Returning 500 tells Stripe to retry, which is what we want if our own
+      // database write failed. The signature was already valid.
+      console.error(`[STRIPE-WEBHOOK] handler failed for ${event.type}:`, err?.message || err);
+      return res.status(500).json({ message: 'Webhook handler failed' });
     }
 
     res.json({ received: true });
   });
 
-  async function handlePaymentSuccess(session: any) {
-    // Get user ID and tier from session metadata
-    const userId = parseInt(session.metadata.userId);
-    const tier = session.metadata.tier;
-    
-    if (userId && tier) {
-      await storage.updateUser(userId, {
-        isSubscribed: true,
-        subscriptionTier: tier,
-        stripeCustomerId: session.customer,
-        subscriptionStartDate: new Date(),
-        subscriptionEndDate: null, // Lifetime access
-      });
+  /**
+   * Grant the purchased tier to the buyer named in the payment's metadata.
+   *
+   * metadata.userId is written when the purchase is made by a signed-in user.
+   * Anonymous buy-then-sign-up purchases have no user to grant to yet; those are
+   * logged loudly and left for manual reconciliation rather than guessed at.
+   */
+  async function grantPaidAccess(
+    eventId: string,
+    metadata: Stripe.Metadata | null,
+    customer: string | Stripe.Customer | Stripe.DeletedCustomer | null,
+    source: string
+  ) {
+    const userId = parseInt(String(metadata?.userId ?? ''), 10);
+    const tier = metadata?.tier;
+
+    if (!tier || !isSubscriptionTier(tier)) {
+      console.error(`[STRIPE-WEBHOOK] ${source} ${eventId}: missing or unknown tier in metadata (${tier}) — no access granted`);
+      return;
     }
+
+    if (Number.isNaN(userId)) {
+      console.error(`[STRIPE-WEBHOOK] ${source} ${eventId}: paid for "${tier}" with no userId in metadata — anonymous purchase needs manual reconciliation`);
+      return;
+    }
+
+    const customerId = typeof customer === 'string' ? customer : customer?.id ?? undefined;
+
+    await storage.updateUser(userId, {
+      isSubscribed: true,
+      subscriptionTier: tier,
+      ...(customerId ? { stripeCustomerId: customerId } : {}),
+      subscriptionStartDate: new Date(),
+      subscriptionEndDate: null, // Lifetime access
+    });
+
+    console.log(`[STRIPE-WEBHOOK] ${source} ${eventId}: granted "${tier}" to user ${userId}`);
   }
 
   // VAPI Voice Webhook — receives call events, tool calls, transcripts

@@ -110,21 +110,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Never log req.body here — it contains the plaintext password.
       console.log('Registration attempt for email:', req.body?.email);
       const user = await registerUser(req.body);
-      
-      // Set session
-      req.session.userId = user.id;
-      
-      // Save session explicitly
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
+
+      // New session id at the moment privilege changes, so a session fixed
+      // before sign-up cannot be reused afterwards (audit D4).
+      req.session.regenerate((regenErr) => {
+        if (regenErr) {
+          console.error('Session regenerate error:', regenErr);
           return res.status(500).json({ message: 'Session creation failed' });
         }
-        
-        // Remove password from response
-        const { password, ...userWithoutPassword } = user;
-        console.log('User registered successfully:', userWithoutPassword.id);
-        res.json(userWithoutPassword);
+
+        req.session.userId = user.id;
+
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ message: 'Session creation failed' });
+          }
+
+          // Remove password from response
+          const { password, ...userWithoutPassword } = user;
+          console.log('User registered successfully:', userWithoutPassword.id);
+          res.json(userWithoutPassword);
+        });
       });
     } catch (error: any) {
       console.error('Registration error:', error.message);
@@ -136,17 +143,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = req.body;
       const user = await loginUser(email, password);
-      req.session.userId = user.id;
-      
-      // Save session explicitly
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error on login:', err);
+
+      // Same reason as register: rotate the id when privilege changes.
+      req.session.regenerate((regenErr) => {
+        if (regenErr) {
+          console.error('Session regenerate error on login:', regenErr);
           return res.status(500).json({ message: 'Session creation failed' });
         }
-        
-        console.log('Session saved successfully for user:', user.username);
-        res.json(user);
+
+        req.session.userId = user.id;
+
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error on login:', err);
+            return res.status(500).json({ message: 'Session creation failed' });
+          }
+
+          console.log('Session saved successfully for user:', user.username);
+          res.json(user);
+        });
       });
     } catch (error: any) {
       res.status(401).json({ message: error.message });

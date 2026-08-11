@@ -64,7 +64,14 @@ export const sessionConfig = {
     secure: isProduction,
     httpOnly: true, // Prevent XSS access to session cookies
     maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-    sameSite: isProduction ? 'none' : 'lax', // Allow cross-site in iframe
+    // 'lax', not 'none'. The old value existed to survive the Replit preview
+    // iframe; Replit is gone (CLAUDE.md Rule 4) and the only remaining mention
+    // of an iframe anywhere in this repo was the comment on this line. With
+    // 'none' the session cookie rides along on every cross-site request, which
+    // is what made every state-changing endpoint CSRF-reachable (audit D4).
+    // 'lax' still sends the cookie on top-level navigations, so normal sign-in
+    // and email links are unaffected.
+    sameSite: 'lax' as const,
   },
   name: 'connect.sid', // Explicit session name
 };

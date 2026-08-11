@@ -54,6 +54,14 @@ BOX BREATHING: In 4 → Hold 4 → Out 4 → Hold 4. Instant nervous system rese
 let brainDocsCache: { content: string; fetchedAt: number } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
+// The whole knowledge base is ~24k characters (~6k tokens) and Sonnet 5 has a
+// 1M-token window, so everything fits. The old 8000 cap was a constraint of a
+// much smaller context and was silently discarding most of the IP.
+const MAX_BRAIN_DOC_CHARS = 60000;
+
+// Most load-bearing first. Anything uncategorised sorts last.
+const CATEGORY_PRIORITY = ["methodology", "technique", "assessment"];
+
 async function getActiveBrainDocs(): Promise<string> {
   if (brainDocsCache && Date.now() - brainDocsCache.fetchedAt < CACHE_TTL_MS) {
     return brainDocsCache.content;
@@ -65,11 +73,23 @@ async function getActiveBrainDocs(): Promise<string> {
       .from(floBrainDocuments)
       .where(eq(floBrainDocuments.isActive, true));
 
-    const combined = docs
+    // Postgres returns rows unordered, so an unordered slice(0, 8000) meant a
+    // different third of the IP reached FLO on every request — and the core
+    // Red2Blue methodology could be cut entirely. Order by how load-bearing the
+    // category is, so if the corpus ever outgrows the budget the methodology
+    // survives and the sport trivia is what gets dropped.
+    const ranked = [...docs].sort((a, b) => {
+      const rank = (c: string) => CATEGORY_PRIORITY.indexOf(c) >= 0
+        ? CATEGORY_PRIORITY.indexOf(c)
+        : CATEGORY_PRIORITY.length;
+      return rank(a.category) - rank(b.category) || a.title.localeCompare(b.title);
+    });
+
+    const combined = ranked
       .map((d) => `[${d.category.toUpperCase()}] ${d.title}:\n${d.contentText}`)
       .join("\n\n---\n\n");
 
-    const trimmed = combined.slice(0, 8000);
+    const trimmed = combined.slice(0, MAX_BRAIN_DOC_CHARS);
     brainDocsCache = { content: trimmed, fetchedAt: Date.now() };
     return trimmed;
   } catch (error) {

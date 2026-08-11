@@ -107,7 +107,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
-      console.log('Registration data:', req.body);
+      // Never log req.body here — it contains the plaintext password.
+      console.log('Registration attempt for email:', req.body?.email);
       const user = await registerUser(req.body);
       
       // Set session
@@ -297,6 +298,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // authenticated session write its own subscriptionTier, which handed out
   // paid tiers — and, now that the curriculum is tier-gated, paid content —
   // for free. Tier changes belong to the payment flow only.
+
+  /**
+   * A chat session belongs to exactly one athlete. Admins may read any of them
+   * (the HQ console needs it); nobody else may touch another user's row.
+   * Callers should answer 404 on failure, not 403 — see POST /api/chat.
+   */
+  const userOwnsChatSession = (
+    user: { id: number; role?: string | null },
+    session: { userId: number }
+  ) => session.userId === user.id || user.role === "admin";
 
   // Profile fields a user may edit about themselves. This is an allowlist on
   // purpose (audit A2): the previous denylist stripped password and the Stripe
@@ -1493,7 +1504,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Daily mood tracking routes
   app.post("/api/daily-mood", requireAuth, requirePremium, async (req: AuthRequest, res) => {
     try {
-      const validatedData = insertDailyMoodSchema.parse(req.body);
+      // userId comes from the session, not the body — otherwise one athlete can
+      // write mood entries into another's history (audit D3 table).
+      const validatedData = insertDailyMoodSchema.parse({ ...req.body, userId: req.user!.id });
       const mood = await storage.createDailyMood(validatedData);
       res.status(201).json(mood);
     } catch (error) {
@@ -1521,6 +1534,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { moodScore, notes } = req.body;
+
+      const existing = await storage.getDailyMoodById(id);
+      if (!existing || (existing.userId !== req.user!.id && req.user!.role !== "admin")) {
+        return res.status(404).json({ message: "Mood entry not found" });
+      }
+
       const mood = await storage.updateDailyMood(id, { moodScore, notes });
       res.json(mood);
     } catch (error) {
@@ -1690,7 +1709,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { feedback, comments, effectivenessMeasure } = req.body;
-      
+
+      const recommendation = await storage.getAiRecommendationById(id);
+      if (!recommendation || (recommendation.userId !== req.user!.id && req.user!.role !== "admin")) {
+        return res.status(404).json({ message: "Recommendation not found" });
+      }
+
       if (feedback !== undefined) {
         await storage.updateRecommendationFeedback(id, feedback, comments);
       }
@@ -1711,7 +1735,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const sessionId = parseInt(req.params.sessionId);
       const userId = req.userId!;
-      
+
+      // generateChatFollowUp reads the session's messages, so an unchecked id
+      // here leaks the contents of anyone's conversation (audit D3).
+      const session = await storage.getChatSession(sessionId);
+      if (!session || !userOwnsChatSession(req.user!, session)) {
+        return res.status(404).json({ message: "Chat session not found" });
+      }
+
       const followUpQuestions = await recommendationEngine.generateChatFollowUp(userId, sessionId);
       
       res.json({ followUpQuestions });
@@ -1736,7 +1767,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/insights/:id/acknowledge", requireAuth, requirePremium, async (req: AuthRequest, res) => {
     try {
       const id = parseInt(req.params.id);
-      
+
+      const insight = await storage.getCoachingInsightById(id);
+      if (!insight || (insight.userId !== req.user!.id && req.user!.role !== "admin")) {
+        return res.status(404).json({ message: "Insight not found" });
+      }
+
       await storage.acknowledgeInsight(id);
       
       res.json({ success: true });
@@ -1793,28 +1829,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced chat endpoint with FLO limitations and engagement tracking
   app.post("/api/chat", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const { userId, message, sessionId } = req.body;
-      
-      if (!userId || !message) {
-        return res.status(400).json({ message: "userId and message are required" });
+      const { message, sessionId } = req.body;
+
+      // The athlete is whoever the session cookie says they are. The client
+      // still sends a userId and we deliberately ignore it: trusting it let any
+      // authenticated user read someone else's coaching history, burn their
+      // chat quota and pull their assessment scores into a prompt (audit D3).
+      const userId = req.user!.id;
+
+      if (!message) {
+        return res.status(400).json({ message: "message is required" });
       }
 
       // Check FLO chat limitations
       const chatLimitations = await storage.getUserChatLimitations(userId);
-      
+
       if (!chatLimitations.canChat) {
-        return res.status(403).json({ 
-          message: "Chat limit reached", 
+        return res.status(403).json({
+          message: "Chat limit reached",
           limitations: chatLimitations,
           upgradeRequired: true
         });
       }
 
       let session;
-      
+
       if (sessionId) {
         session = await storage.getChatSession(sessionId);
-        if (!session) {
+        // 404 rather than 403 on someone else's session: a 403 would confirm
+        // the id exists and turn this into a session enumeration oracle.
+        if (!session || !userOwnsChatSession(req.user!, session)) {
           return res.status(404).json({ message: "Chat session not found" });
         }
       } else {

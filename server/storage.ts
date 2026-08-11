@@ -86,6 +86,9 @@ export interface IStorage {
   createDailyMood(mood: InsertDailyMood): Promise<DailyMood>;
   getDailyMood(userId: number, date: string): Promise<DailyMood | undefined>;
   updateDailyMood(id: number, updates: Partial<DailyMood>): Promise<DailyMood>;
+  // By-id lookups exist so routes that take a row id can prove ownership
+  // before mutating. Without them an :id route is an IDOR (audit D3 table).
+  getDailyMoodById(id: number): Promise<DailyMood | undefined>;
   getUserMoods(userId: number, days?: number): Promise<DailyMood[]>;
 
   // AI Recommendation Engine operations
@@ -97,10 +100,12 @@ export interface IStorage {
   getUserRecommendations(userId: number, isActive?: boolean): Promise<AiRecommendation[]>;
   updateRecommendationFeedback(id: number, feedback: number, comments?: string): Promise<AiRecommendation>;
   markRecommendationApplied(id: number, effectivenessMeasure?: number): Promise<AiRecommendation>;
+  getAiRecommendationById(id: number): Promise<AiRecommendation | undefined>;
   
   createCoachingInsight(insight: InsertCoachingInsight): Promise<CoachingInsight>;
   getUserInsights(userId: number, isAcknowledged?: boolean): Promise<CoachingInsight[]>;
   acknowledgeInsight(id: number): Promise<CoachingInsight>;
+  getCoachingInsightById(id: number): Promise<CoachingInsight | undefined>;
   
   createEngagementMetric(metric: InsertUserEngagementMetric): Promise<UserEngagementMetric>;
   getUserEngagementMetrics(userId: number, days?: number): Promise<UserEngagementMetric[]>;
@@ -938,6 +943,18 @@ export class MemStorage implements IStorage {
       .find(mood => mood.userId === userId && mood.date === date);
   }
 
+  async getDailyMoodById(id: number): Promise<DailyMood | undefined> {
+    return this.dailyMoods.get(id);
+  }
+
+  async getAiRecommendationById(id: number): Promise<AiRecommendation | undefined> {
+    return this.aiRecommendations.get(id);
+  }
+
+  async getCoachingInsightById(id: number): Promise<CoachingInsight | undefined> {
+    return this.coachingInsights.get(id);
+  }
+
   async updateDailyMood(id: number, updates: Partial<DailyMood>): Promise<DailyMood> {
     const existing = this.dailyMoods.get(id);
     if (!existing) {
@@ -1527,12 +1544,31 @@ export class DatabaseStorage implements IStorage {
   async getUserMoods(userId: number, days: number = 30): Promise<DailyMood[]> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
-    
+
     return await db
       .select()
       .from(dailyMoods)
       .where(eq(dailyMoods.userId, userId))
       .orderBy(desc(dailyMoods.date));
+  }
+
+  // ── Ownership lookups (audit D3) ──────────────────────────────────
+  // Routes keyed on a row id must load the row and compare its userId to the
+  // session before mutating it, or the id is a free-form pointer into other
+  // people's data.
+  async getDailyMoodById(id: number): Promise<DailyMood | undefined> {
+    const [mood] = await db.select().from(dailyMoods).where(eq(dailyMoods.id, id)).limit(1);
+    return mood || undefined;
+  }
+
+  async getAiRecommendationById(id: number): Promise<AiRecommendation | undefined> {
+    const [rec] = await db.select().from(aiRecommendations).where(eq(aiRecommendations.id, id)).limit(1);
+    return rec || undefined;
+  }
+
+  async getCoachingInsightById(id: number): Promise<CoachingInsight | undefined> {
+    const [insight] = await db.select().from(coachingInsights).where(eq(coachingInsights.id, id)).limit(1);
+    return insight || undefined;
   }
 
   // Placeholder methods for missing interface requirements

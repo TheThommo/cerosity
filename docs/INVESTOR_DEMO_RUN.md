@@ -957,3 +957,138 @@ b6a9e52  fix(security): close D3 chat IDOR + sibling ownership checks
 | D5 | No foreign keys | MEDIUM | Indexes added tonight; FKs still absent. |
 | — | Unmatched `/api/*` falls through to the SPA (`200 text/html`) | LOW | Makes a deleted endpoint look alive to a naive check. |
 | — | Test accounts in production | LOW | `users` 3–14 with `@cerosity-test.com` addresses, created as evidence across both runs. Users 6 and 7 were briefly promoted to premium to exercise premium-gated IDOR paths and **were reverted to free** (verified). Delete when convenient. |
+
+---
+
+# Post-demo — A1 Stripe
+
+Third unattended run. Goal: make the Stripe webhook actually verify, so a payment can grant access at all.
+
+Starting production commit: `09266a5`. Final: `d860177`.
+
+## The three breaks
+
+The audit called A1 "three independent breaks in one path", and all three were still live:
+
+1. **`express.json()` ate the raw body.** Mounted globally at `server/index.ts:11`, before routes. By the time `constructEvent` ran, `req.body` was a parsed object and the exact bytes Stripe signed were unrecoverable. Every delivery failed.
+2. **The live checkout emits an event nobody handled.** Only `checkout.session.completed` was handled; `CheckoutFinal` uses PaymentIntents, which emit `payment_intent.succeeded`.
+3. **`handlePaymentSuccess` read a field nobody wrote.** It parsed `session.metadata.userId`, but the session creators set `metadata: { tier, product }` only. `parseInt(undefined)` is `NaN`, so the guard failed and `updateUser` never ran.
+
+## The fix
+
+```
+e6b32a1  fix(payments): make the Stripe webhook verifiable, and price server-side
+d860177  fix(flo): salvage the reply when the model emits unparseable JSON
+```
+
+- `server/index.ts` mounts `express.raw({type:'application/json'})` on `/api/webhook/stripe` **above** `express.json()`, scoped to that one path.
+- The handler asserts `Buffer.isBuffer(req.body)` and returns 500 with a loud log if not, so reordering the middleware later cannot silently reintroduce A1.
+- Both `checkout.session.completed` and `payment_intent.succeeded` are handled, through one `grantPaidAccess` helper.
+- A missing `STRIPE_WEBHOOK_SECRET` returns **503**, distinct from a bad signature's **400** — "not configured" and "forged" are no longer the same symptom.
+- `metadata.userId` is written by both anonymous-capable creators whenever a signed-in user is buying. A payment that arrives with no user attached is logged loudly for manual reconciliation rather than guessed at.
+
+**A3/A6 closed in the same pass.** `create-payment-intent` and `create-checkout-session` both honoured a client-supplied `amount` — anyone could pay $1 for the $2,290 tier. Both now derive it from `TIER_PRICING` via a new `tierAmountInCents`, and `payment/create`'s hardcoded `59000`/`229000` (a third, separate price list) is gone. Tier strings arriving from Stripe metadata are validated with a new `isSubscriptionTier` guard.
+
+## Is the secret even set?
+
+Railway CLI is unauthorized in this environment, so the value cannot be read — and was not guessed at. `/api/health` now reports presence only:
+
+```
+$ curl -s https://cerosity.com/api/health
+{"status":"ok","commit":"d860177", …, "stripeWebhookConfigured": true}
+```
+
+**The secret is present in Railway.** No stop condition.
+
+## Negative path — production
+
+The decisive test needs no secret. With the raw mount working, a forged event reaches Stripe's *signature comparison* (400). If the mount were broken, it would instead hit the Buffer guard (500). Every attempt returned 400:
+
+| # | Attack | Result |
+|---|---|---|
+| 1 | No `stripe-signature` header | **400** `No stripe-signature header value was provided.` |
+| 2 | Garbage signature header | **400** `No signatures found matching the expected signature for payload.` |
+| 3 | **Correctly computed HMAC over the exact payload, signed with an attacker-chosen secret** | **400** `No signatures found matching the expected signature for payload.` |
+
+Test 3 is the one that matters: a properly-formed signature is still rejected, which proves the server compares against the real secret rather than merely checking the header's shape.
+
+Database after all three forged deliveries — each claimed `{"userId":"3","tier":"ultimate"}`:
+
+```sql
+select id, subscription_tier, is_subscribed, stripe_customer_id, subscription_start_date
+from users where id in (3,4,5,6,7);
+
+→ every row: free | false | null | null      ← nothing granted
+```
+
+## Positive path — mechanism proven, live event not
+
+A correctly-signed event against cerosity.com cannot be constructed without the Railway secret, and no secret was invented. Instead the mechanism is proven directly, running the fixed and broken middleware orders side by side against the same signed payload: [`docs/evidence/a1-stripe/verify-webhook.mjs`](evidence/a1-stripe/verify-webhook.mjs).
+
+```
+FIXED order — express.raw() on the webhook path, then express.json()
+   req.body seen by handler : Buffer
+   HTTP                     : 200
+   signature verified       : true
+   would grant              : tier "premium" to user 4242
+
+BROKEN order — express.json() first (what production shipped before)
+   req.body seen by handler : object
+   HTTP                     : 400
+   signature verified       : false
+   error                    : Webhook payload must be provided as a string or a Buffer …
+                              Payload was provided as a parsed JavaScript object instead.
+
+WRONG SECRET — correctly-signed payload, different secret
+   HTTP                     : 400 (must be 400)
+
+PASS
+```
+
+The broken order reproduces the audit's diagnosis word for word. That is the bug, and the fixed order verifies and grants.
+
+**What is still unproven: an end-to-end Stripe-originated payment.** That needs either the Railway secret or a `stripe login`, neither available here. The remaining risk is configuration (is the Railway endpoint URL and secret the one for *this* endpoint), not code.
+
+### For Mark — the one manual step
+
+```bash
+stripe listen --forward-to https://cerosity.com/api/webhook/stripe
+```
+
+Then trigger a test payment. Expect `200 {"received":true}` and a `[STRIPE-WEBHOOK] … granted "<tier>" to user <id>` line in the Railway logs.
+
+## Regression — browser
+
+Playwright, two independent contexts against production on `d860177`: **11/11 PASS**, unchanged from the security run.
+
+The smoke also caught a real defect on the demo path. Step 5 returned:
+
+```
+{ "message": "Codeword: ZEBRA-49581. Sport: squash.
+```
+
+The model had put a literal newline inside a JSON string, which JSON forbids, so `JSON.parse` threw and the catch added in `4c8869c` handed the athlete the raw envelope. `salvageMessageField` now recovers the message — its character class accepts raw newlines, which is exactly the malformation it exists to survive. After the fix:
+
+```
+PASS  5. After reload FLO still remembers
+      recalled "ZEBRA-21570": true
+      → "ZEBRA-21570. Squash. Good — memory's solid, both ours. Now let's use that
+         memory for something useful. Match point is wh…"
+```
+
+Worth noting: the browser smoke found this, not the API tests. A curl asserting `"ZEBRA" in body` passes happily on a malformed reply.
+
+## A1 handoff
+
+| Item | Status | Evidence |
+|---|---|---|
+| Webhook signature verifies | **PASS (mechanism)** | Fixed order verifies + grants; broken order reproduces A1 verbatim; wrong secret rejected |
+| Raw body not consumed by `express.json()` | **PASS (prod)** | Forged events reach Stripe's signature comparison (400), never the Buffer guard (500) |
+| Amounts server-side from `TIER_PRICING` | **PASS** | Client `amount` no longer read by either creator; `payment/create`'s hardcoded prices removed |
+| Forged/unsigned webhook → 400, no tier change | **PASS (prod)** | Three attack shapes all 400; all five users still `free`/`false`/`null` |
+| Live Stripe event → tier updates | **NOT PROVEN** | Needs the Railway secret or `stripe login`. One command for Mark, above. |
+| `/api/health` SHA moves | **PASS** | `09266a5` → `e6b32a1` → `d860177` |
+| `npm run check` clean for touched files | **PASS** | 156 total, unchanged; no error in `index.ts` / `routes.ts` / `entitlements.ts` / `gemini.ts` additions |
+| Browser regression | **PASS** | 11/11 on `d860177` |
+
+**Still for Mark:** rotate the Gemini key (**D1**) — untouched again tonight, as instructed. Then run the `stripe listen` command above to close the last piece of A1.

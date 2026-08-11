@@ -1,9 +1,10 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { MessageCircle, Send, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Message {
   id: string;
@@ -17,12 +18,44 @@ interface FloResponse {
 }
 
 export function StableChat({ isInlineWidget = false }: { isInlineWidget?: boolean }) {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [sessionId, setSessionId] = useState<number | null>(null);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Signed-in athletes get their conversation back after a refresh. The
+  // transcript lives in Postgres, so this is a rehydrate, not a cache.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/chat/sessions/${user.id}`, { credentials: "include" });
+        if (!res.ok) return;
+        const sessions = await res.json();
+        const latest = Array.isArray(sessions) ? sessions[0] : null;
+        if (!latest || cancelled) return;
+
+        setSessionId(latest.id);
+        const history = (latest.messages ?? []) as Array<{ role: string; content: string; timestamp?: string }>;
+        setMessages(history.map((m, i) => ({
+          id: `history-${latest.id}-${i}`,
+          role: m.role === "user" ? "user" : "flo",
+          content: m.content,
+          timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
+        })));
+      } catch {
+        // A failed rehydrate is not worth surfacing — the athlete can still chat.
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const sendMessage = useCallback(async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
@@ -39,24 +72,38 @@ export function StableChat({ isInlineWidget = false }: { isInlineWidget?: boolea
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/landing-chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: messageText.trim() }),
-      });
+      // Authenticated athletes go to /api/chat, which persists both turns and
+      // loads their profile and history into the prompt. /api/landing-chat is
+      // the anonymous preview only — it has no memory by design.
+      const response = user
+        ? await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              userId: user.id,
+              message: messageText.trim(),
+              sessionId: sessionId ?? undefined,
+            }),
+          })
+        : await fetch("/api/landing-chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: messageText.trim() }),
+          });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data: FloResponse = await response.json();
+      const data = await response.json();
+      const floText: string = user ? data.response?.message : (data as FloResponse).message;
+      if (user && data.session?.id) setSessionId(data.session.id);
 
       const floMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "flo",
-        content: data.message,
+        content: floText,
         timestamp: new Date()
       };
 
@@ -79,7 +126,7 @@ export function StableChat({ isInlineWidget = false }: { isInlineWidget?: boolea
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [isLoading, user, sessionId]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();

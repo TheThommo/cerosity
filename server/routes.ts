@@ -11,6 +11,7 @@ import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdm
 import { sendLeadRegistrationEmail, sendAdminLeadNotification } from "./email";
 import { buildFloPrompt, buildLandingSalesDirective, clearBrainDocsCache, clearSportContextCache } from "./flo-prompt";
 import { formatAthleteContextForPrompt } from "./flo-athlete-context";
+import { applyAthleteFacts } from "./flo-memory";
 import { recommendationEngine } from "./recommendationEngine";
 import { debugLogger, withErrorLogging } from "./debug";
 import { handleVapiWebhook } from "./vapi";
@@ -867,12 +868,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Message too long. Please keep it under 500 characters." });
       }
 
-      const count = typeof messageCount === 'number' ? messageCount : 1;
+      // The preview gate counts server-side. req.body.messageCount is a hint
+      // for pacing the sales directive, but resetting it to 1 must not buy more
+      // free turns (audit B5) — so the real count is whichever is higher.
+      const clientCount = typeof messageCount === 'number' && messageCount > 0 ? messageCount : 1;
+      const serverCount = (req.session.landingChatCount ?? 0) + 1;
+      req.session.landingChatCount = serverCount;
+      const count = Math.max(clientCount, serverCount);
+
       const history = Array.isArray(conversationHistory) ? conversationHistory : [];
       const name = typeof visitorName === 'string' ? visitorName.trim() : '';
       const sport = typeof visitorSport === 'string' ? visitorSport.trim() : '';
 
-      console.log(`[LANDING-CHAT] msg #${count}: "${message.substring(0, 80)}" name=${name} sport=${sport}`);
+      console.log(`[LANDING-CHAT] msg #${count} (client=${clientCount} server=${serverCount}): "${message.substring(0, 80)}" name=${name} sport=${sport}`);
 
       // Hard gate: after 6 messages, don't call Gemini — prompt signup only
       if (count > 6) {
@@ -1165,7 +1173,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/chat/sessions/:userId", requireAuth, requirePremium, requireOwnUserOrAdmin('userId'), async (req, res) => {
+  // requireAuth, not requirePremium: free athletes have durable conversations
+  // too and must be able to rehydrate their own transcript after a refresh.
+  // requireOwnUserOrAdmin still stops anyone reading someone else's.
+  app.get("/api/chat/sessions/:userId", requireAuth, requireOwnUserOrAdmin('userId'), async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const sessions = await storage.getUserChatSessions(userId);
@@ -1802,7 +1813,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Chat session not found" });
         }
       } else {
-        session = await storage.createChatSession({
+        // Resume the athlete's most recent conversation rather than opening a
+        // blank one. Memory has to survive a refresh, a new tab and a new
+        // device — it cannot depend on the client holding a session id.
+        const [mostRecent] = await storage.getUserChatSessions(userId);
+        session = mostRecent ?? await storage.createChatSession({
           userId,
           messages: []
         });
@@ -1854,6 +1869,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedMessages = [...messages, userMessage, assistantMessage];
       await storage.updateChatSession(session.id, updatedMessages);
+
+      // Promote anything durable the athlete just disclosed into their profile,
+      // so it reaches future prompts even after this conversation scrolls out
+      // of the 12-message window. Never fail the reply over this.
+      try {
+        const learned = await applyAthleteFacts(userId, aiResponse.athleteFacts);
+        if (learned.length) {
+          console.log(`[FLO-MEMORY] user=${userId} learned: ${learned.join(", ")}`);
+        }
+      } catch (memoryError) {
+        console.error("[FLO-MEMORY] Failed to persist athlete facts:", memoryError);
+      }
 
       // Increment user's chat count for free users
       if (chatLimitations.subscriptionStatus === "free" || chatLimitations.subscriptionStatus === "expired") {

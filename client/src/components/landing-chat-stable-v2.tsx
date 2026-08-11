@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Send, MessageCircle } from "lucide-react";
 import { CerosityLogo } from "@/components/cerosity-logo";
 import { ErrorBoundary, ChatErrorFallback } from "@/components/error-boundary";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Message {
   id: string;
@@ -26,11 +27,44 @@ function ChatComponent({ isInlineWidget = false }: LandingChatProps) {
     }
   ]);
   
+  const { user } = useAuth();
   const [input, setInput] = useState("");
   const [isExpanded, setIsExpanded] = useState(isInlineWidget);
   const [isLoading, setIsLoading] = useState(false);
   const [creditCount, setCreditCount] = useState(0);
+  const [sessionId, setSessionId] = useState<number | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Signed-in athletes get their real conversation back from Postgres. Without
+  // this the widget opens on the canned greeting every refresh, which is the
+  // opposite of the memory the product promises.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/chat/sessions/${user.id}`, { credentials: 'include' });
+        if (!res.ok) return;
+        const sessions = await res.json();
+        const latest = Array.isArray(sessions) ? sessions[0] : null;
+        const history = (latest?.messages ?? []) as Array<{ role: string; content: string; timestamp?: string }>;
+        if (cancelled || !history.length) return;
+
+        setSessionId(latest.id);
+        setMessages(history.map((m, i) => ({
+          id: `history-${latest.id}-${i}`,
+          role: m.role === 'user' ? 'user' as const : 'assistant' as const,
+          content: m.content,
+          timestamp: m.timestamp ? Date.parse(m.timestamp) : Date.now(),
+        })));
+      } catch {
+        // Rehydrate is best-effort; the athlete can still chat without it.
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   // Auto-scroll to bottom of chat container when messages update
   useEffect(() => {
@@ -53,8 +87,9 @@ function ChatComponent({ isInlineWidget = false }: LandingChatProps) {
     const messageText = input.trim();
     if (!messageText || isLoading) return;
     
-    // Check credit limit
-    if (creditCount >= 5) {
+    // The anonymous preview is credit-limited. Signed-in athletes are limited
+    // server-side by their tier instead, so this counter does not apply to them.
+    if (!user && creditCount >= 5) {
       addMessage({
         role: 'assistant',
         content: "You've used your 5 free credits! Sign up to keep using Flo and unlock personalized coaching, assessments, and unlimited conversations."
@@ -65,7 +100,7 @@ function ChatComponent({ isInlineWidget = false }: LandingChatProps) {
     // Clear input and update state
     setInput("");
     setIsLoading(true);
-    setCreditCount(prev => prev + 1);
+    if (!user) setCreditCount(prev => prev + 1);
 
     // Add user message
     addMessage({
@@ -75,17 +110,32 @@ function ChatComponent({ isInlineWidget = false }: LandingChatProps) {
 
     // Make API call
     try {
-      const response = await fetch('/api/landing-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: messageText }),
-      });
+      // Signed in → /api/chat, which persists both turns and feeds the athlete's
+      // profile and history into the prompt. Anonymous → the preview endpoint.
+      const response = user
+        ? await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              userId: user.id,
+              message: messageText,
+              sessionId: sessionId ?? undefined,
+            }),
+          })
+        : await fetch('/api/landing-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: messageText }),
+          });
 
       if (response.ok) {
         const data = await response.json();
+        if (user && data.session?.id) setSessionId(data.session.id);
         addMessage({
           role: 'assistant',
-          content: data.message || "I'm here to help with your mental game. What specific challenge are you facing on the course?"
+          content: (user ? data.response?.message : data.message)
+            || "I'm here to help with your mental game. What specific challenge are you facing on the course?"
         });
       } else {
         addMessage({

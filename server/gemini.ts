@@ -11,6 +11,15 @@ export interface CoachingResponse {
   redHeadIndicators?: string[];
   blueHeadTechniques?: string[];
   urgencyLevel: "low" | "medium" | "high";
+  /** Durable things the athlete disclosed this turn, for the profile. */
+  athleteFacts?: AthleteFacts;
+}
+
+export interface AthleteFacts {
+  preferredName?: string;
+  sport?: string;
+  challenges?: string[];
+  goals?: string[];
 }
 
 export interface AssessmentAnalysis {
@@ -80,7 +89,8 @@ export async function getCoachingResponse(
         suggestions: parsed.suggestions || [],
         redHeadIndicators: parsed.redHeadIndicators || [],
         blueHeadTechniques: parsed.blueHeadTechniques || [],
-        urgencyLevel: parsed.urgencyLevel || "low"
+        urgencyLevel: parsed.urgencyLevel || "low",
+        athleteFacts: parsed.athleteFacts
       };
     }
 

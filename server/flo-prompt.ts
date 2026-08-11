@@ -158,6 +158,21 @@ export async function buildFloPrompt(opts: BuildFloPromptOpts): Promise<string> 
     );
   }
 
+  // The athlete's own history. This block is why FLO can pick up mid-thought
+  // days later instead of reintroducing itself every session.
+  if (opts.athleteContext) {
+    layers.push(
+      "",
+      opts.athleteContext,
+      "",
+      "USING WHAT YOU KNOW:",
+      "- Everything above came from this athlete. Treat it as remembered, not as notes you were handed.",
+      "- Reference it naturally — 'last time you mentioned the short putts' — never recite it back as a list.",
+      "- Never ask for something already recorded above. Asking a returning athlete their sport again is a failure.",
+      "- If new information contradicts it, trust the newer thing and move on.",
+    );
+  }
+
   if (opts.assessmentContext) {
     layers.push("", `ASSESSMENT DATA: ${opts.assessmentContext}`);
   }
@@ -178,12 +193,26 @@ export async function buildFloPrompt(opts: BuildFloPromptOpts): Promise<string> 
       "",
       "Always respond to the athlete's latest message directly. Use conversation history — never repeat your previous reply.",
       "",
+      // athleteFacts is how the athlete's own disclosures become durable. Only
+      // emit a key when they actually said it this turn; omit the whole object
+      // otherwise. The server upserts these into the athlete's profile.
       `Format your response as JSON only:
 {
   "message": "Your coaching response",
   "suggestions": ["2-3 follow-up prompts"],
-  "urgencyLevel": "low"
-}`,
+  "urgencyLevel": "low",
+  "athleteFacts": {
+    "preferredName": "what they said to call them, if stated this turn",
+    "sport": "their sport, if stated this turn",
+    "challenges": ["a durable struggle they described, e.g. 'gets angry after bogeys'"],
+    "goals": ["a goal they stated, in their own words"]
+  }
+}
+
+Rules for athleteFacts: omit it entirely when they disclosed nothing new. Never
+guess, never restate something already in their profile above, and never put
+passing mood ("bad round today") in challenges — only things that will still be
+true next month.`,
     );
   } else {
     layers.push(

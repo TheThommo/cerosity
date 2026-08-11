@@ -20,6 +20,8 @@ declare module 'express-session' {
   interface SessionData {
     userId?: number;
     oauthState?: string;
+    /** Server-side count of anonymous landing-chat turns (audit B5). */
+    landingChatCount?: number;
   }
 }
 

@@ -122,6 +122,19 @@ interface UserDetails {
   engagementMetrics: any[];
 }
 
+/** GET a list endpoint with the filter controls actually attached to the URL. */
+async function fetchFiltered<T>(path: string, params: Record<string, string>): Promise<T> {
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    const trimmed = value?.trim();
+    if (trimmed && trimmed !== "all") qs.set(key, trimmed);
+  }
+  const query = qs.toString();
+  const res = await fetch(query ? `${path}?${query}` : path, { credentials: "include" });
+  if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
 export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -135,14 +148,20 @@ export default function AdminDashboard() {
     queryKey: ["/api/admin/stats"],
   });
 
-  // Fetch all users with filtering
+  // Fetch all users with filtering.
+  // The default queryFn fetches queryKey[0] and ignores the rest, so these
+  // controls used to change the cache key and refetch the same unfiltered
+  // URL — the filter and search boxes did nothing. The server has always
+  // supported ?filter and ?search; this actually sends them.
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/users", userFilter, searchTerm],
+    queryFn: () => fetchFiltered<User[]>("/api/admin/users", { filter: userFilter, search: searchTerm }),
   });
 
   // Fetch payment history
   const { data: payments = [], isLoading: paymentsLoading } = useQuery<Payment[]>({
     queryKey: ["/api/admin/payments", paymentFilter],
+    queryFn: () => fetchFiltered<Payment[]>("/api/admin/payments", { filter: paymentFilter }),
   });
 
   // Update user mutation

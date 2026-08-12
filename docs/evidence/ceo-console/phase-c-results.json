@@ -1,0 +1,51 @@
+{
+  "phase": "C",
+  "ranAt": "2026-08-12T06:07:05.404Z",
+  "app": "https://cerosity.com",
+  "hq": "https://hq.cerosity.com",
+  "athlete": "ceo-console-c-1786514782087@cerosity-test.invalid",
+  "passed": 8,
+  "total": 8,
+  "results": [
+    {
+      "step": "HQ login as admin",
+      "pass": true,
+      "detail": "landed on https://hq.cerosity.com/console"
+    },
+    {
+      "step": "fake pages are not in the HQ nav",
+      "pass": true,
+      "detail": "nav items: Cerosity HQ, OVERVIEW, Command Center, PEOPLE, Users, Curriculum, Support, BUSINESS, Subscriptions, FLO Chat, FLO Brain, FLO Sports, SYSTEM, DB Explorer, Settings, Light mode, hq-smoke-1786513894@cerosity-test.invalid, owner, Sign out"
+    },
+    {
+      "step": "every Command Center KPI key exists in /api/admin/stats",
+      "pass": true,
+      "detail": "all 11 keys numeric — sessions 18, chatters7d 18"
+    },
+    {
+      "step": "athlete has a real FLO conversation",
+      "pass": true,
+      "detail": "POST /api/chat 200, FLO replied 653 chars, session 19"
+    },
+    {
+      "step": "FLO KPIs move with the real session",
+      "pass": true,
+      "detail": "sessions 18->19, today 4->5, chatters7d 18->19"
+    },
+    {
+      "step": "admin transcript endpoint returns the real messages",
+      "pass": true,
+      "detail": "session 19, 2 messages, athlete marker present"
+    },
+    {
+      "step": "HQ renders the transcript in the console",
+      "pass": true,
+      "detail": "transcript shows the athlete marker and FLO's reply (screenshot c02-hq-transcript.png)"
+    },
+    {
+      "step": "transcripts are admin-only",
+      "pass": true,
+      "detail": "anonymous 401, the athlete themselves 403"
+    }
+  ]
+}

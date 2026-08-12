@@ -1295,3 +1295,59 @@ at `/learn`.
 ### Commit
 
 `c58bfcc` admin curriculum endpoints + HQ Curriculum page.
+
+---
+
+## CEO console C — FLO activity that is real (2026-08-12)
+
+**PASS. 8/8 on production at SHA `deea625`.**
+Evidence: `docs/evidence/ceo-console/phase-c-results.json` + screenshots `c01`–`c03`.
+Script: `docs/evidence/ceo-console/phase-c.mjs`.
+
+### What the CEO can now do
+
+Open any athlete's FLO history from HQ and read the actual conversation, and
+trust the numbers on Command Center because the smoke moves them on purpose and
+checks the delta.
+
+| Check | Result |
+|---|---|
+| Fake pages gone from HQ nav | **PASS** — no Analytics, no Coaching Data |
+| Every Command Center KPI key exists in the API | **PASS** — 11/11 numeric |
+| Athlete has a real FLO conversation | **PASS** — 200, FLO replied 306 chars |
+| FLO KPIs move with that one session | **PASS** — sessions +1, today +1, chatters7d +1 |
+| Transcript endpoint returns the real messages | **PASS** — athlete marker found |
+| HQ renders the transcript | **PASS** — athlete line and FLO's reply on screen |
+| Transcripts are admin-only | **PASS** — 401 anonymous, 403 as the athlete themselves |
+
+### Decisions worth knowing
+
+**The KPI test is a delta, not a snapshot.** Reading a number and asserting it is
+a number proves nothing. The smoke records the stats, has one athlete hold one
+real conversation, and then requires `totalChatSessions`, `floChatsToday` and
+`activeChatters7d` to each rise by exactly one. A hardcoded value cannot pass
+that.
+
+**Command Center's FLO and engagement cards were showing 0 because the keys did
+not exist.** `getAdminStats` never returned `floChatsToday`, `totalChatSessions`,
+`assessmentsToday` or `dailyCheckIns`, so four cards rendered a confident zero.
+They are now counts over `chat_sessions`, `assessments` and `daily_check_ins`.
+
+**The time-range tabs were removed, not fixed.** `getQueryFn` only reads
+`queryKey[0]`, so Today / 7 Days / 30 Days / All Time all refetched the same
+all-time figures. A control that silently does nothing is worse than no control.
+
+**Analytics and Coaching Data are hidden, not deleted.** Coaching Data filled a
+"readiness" column with `Math.random()`. Analytics falls back to invented
+weekly-signup and daily-check-in series whenever the stats endpoint has nothing
+for it. Both pages still exist and both come back the moment they are wired to
+real queries — but neither is in the nav for the demo.
+
+**An athlete cannot read their own transcript through the admin route.** It
+answers 403 to the athlete themselves and 401 to anonymous callers; only
+`role=admin` gets a transcript.
+
+### Commits
+
+`ff18ed7` real FLO aggregates, transcript endpoint, nav hiding ·
+`deea625` quota-counter label.

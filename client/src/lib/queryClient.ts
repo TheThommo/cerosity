@@ -3,7 +3,18 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    // These messages get rendered straight at the user — a failed sign-in was
+    // showing them `401: {"message":"Invalid email or password"}`. The server
+    // already writes a sentence worth reading, so use it, and keep the raw
+    // body only when there isn't one.
+    let message: string | null = null;
+    try {
+      const parsed = JSON.parse(text);
+      if (typeof parsed?.message === "string" && parsed.message) message = parsed.message;
+    } catch {
+      // not JSON — fall through to the raw body
+    }
+    throw new Error(message ?? `${res.status}: ${text}`);
   }
 }
 

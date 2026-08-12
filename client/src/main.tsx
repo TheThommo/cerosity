@@ -13,6 +13,16 @@ const renderApp = () => {
   root.render(<App />);
 };
 
+// Installability only. Registered after load and deliberately never awaited:
+// if the worker fails to register, the app must still render normally.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.warn("Service worker registration failed:", error);
+    });
+  });
+}
+
 // Execute with minimal error handling
 try {
   renderApp();

@@ -1351,3 +1351,92 @@ answers 403 to the athlete themselves and 401 to anonymous callers; only
 
 `ff18ed7` real FLO aggregates, transcript endpoint, nav hiding ·
 `deea625` quota-counter label.
+
+---
+
+# Andy meeting — run this script (2026-08-12)
+
+Eight minutes: five as the athlete on a phone, three in HQ. Every step below is
+covered by a smoke that passes on production — `docs/evidence/andy-meeting/`.
+
+**Before they arrive**
+
+- Phone on `cerosity.com`, signed out. Laptop on `hq.cerosity.com`, signed out.
+- Sarah is `sarah.demo@cerosity.com`, ultimate, active, with a lesson complete.
+- Check the build is up: `curl -s https://cerosity.com/api/health` → `status: ok`.
+
+## 5 minutes — the athlete, on the phone
+
+Do this on the phone in your hand, not the laptop. The product is built for a
+390-wide screen and it shows.
+
+**1. Sign in as Sarah** (~30s) — `cerosity.com` → Sign in.
+You land straight in the curriculum at `/learn`, not a dashboard.
+
+**2. The curriculum is hers** (~45s) — Red2Blue Foundation, 3 sessions, **23 of
+23 lessons unlocked**. Scroll so he sees the length of it.
+*Say:* this is the Red2Blue method as a real course, not a PDF.
+
+**3. Open a lesson and finish it** (~60s) — open any lesson, scroll the content,
+tap **Mark as complete**. The toast confirms, and the progress on `/learn` moves.
+*Say:* that just wrote to Postgres — it is on her record, not in the browser.
+
+**4. Ask FLO something personal** (~90s) — tap **Ask FLO**. Tell it something
+real, e.g. *"I'm Sarah, I play golf, I go tight over short putts."*
+Let him read the reply — it is Claude Sonnet 5 with the Red2Blue corpus behind it.
+
+**5. Pull the phone away, reload, ask FLO what it knows** (~75s) — the money
+shot. *"Remind me what I told you."* It comes back with her name, her sport and
+her stressor. Nothing was held in the browser; the conversation was resolved from
+the database.
+*Say:* this is the difference between a chatbot and a coach.
+
+**If you have 30 seconds spare:** Add to Home Screen. It installs as an app —
+the manifest and icons are real.
+
+## 3 minutes — HQ, on the laptop
+
+`hq.cerosity.com`, sign in as yourself. This is the half investors ask about and
+founders usually cannot show.
+
+**1. Command Center** (~45s) — the KPIs are live counts, not decoration. Point at
+FLO sessions and say the number moved when Sarah just talked to it.
+
+**2. Users → Sarah** (~60s) — open her row. Tier and role are grantable here
+without touching Stripe, and **Deactivate account** turns an athlete off without
+deleting them or their history. *Do not actually click it during the demo* —
+just say what it does.
+
+**3. Curriculum** (~45s) — her lesson-by-lesson progress, read from the same
+storage layer `/learn` uses, so HQ can never disagree with what she sees.
+
+**4. FLO Chat → her transcript** (~30s) — the conversation you just had on the
+phone, readable here. Admin only: the athlete gets a 403 on this route.
+
+## What not to open
+
+| Don't | Why |
+|---|---|
+| **Analytics** and **Coaching Data** in HQ | Hidden from the nav on purpose — one filled a column with `Math.random()`, the other invents series when the API has nothing. Reachable by URL; don't type it. |
+| **Any live purchase** | The webhook verifies and pricing is server-side now, but a real card has never been run end to end. Talk about the model, don't demo the checkout. |
+| **Techniques / Scenarios** pages | Both tables are 0 rows — they render empty. |
+| **DB Explorer** | Works, but it is raw tables on a screen. Nothing to gain. |
+| **A second athlete's data from Sarah's phone** | It correctly 403s/404s — but do that as a security answer, not an unplanned live test. |
+
+## If something goes wrong
+
+- **FLO is slow or errors** — it answers 503 rather than faking a reply. Say the
+  provider is having a moment and move to HQ; do not reload repeatedly.
+- **She looks signed out** — sign in again; the session cookie is 1 week and
+  `SameSite=Lax`, so a link from another app can drop it.
+- **A number looks wrong on Command Center** — every KPI there is a real count.
+  If it reads 0, it is genuinely 0, which is a fine answer for a pre-launch product.
+
+## Talking points worth having ready
+
+- **FLO is not golf-only.** A rowing athlete was handled with no sport-specific
+  configuration; sport is learned from the conversation.
+- **The paywall is at the API, not in CSS.** A locked lesson returns no content
+  to a free account — the gate is not a blurred div.
+- **Nothing on that screen is faked.** Where a number could not be made real, the
+  control was removed rather than filled with a placeholder.

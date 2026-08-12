@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getQueryFn } from '@/lib/queryClient';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest, getQueryFn } from '@/lib/queryClient';
+import { TIER_PRICING, type SubscriptionTier } from '@shared/entitlements';
 import { useConsoleTheme } from '../ConsoleThemeProvider';
 
 interface AdminUser {
@@ -9,11 +10,16 @@ interface AdminUser {
   email: string;
   role: string;
   subscriptionTier: string;
+  isSubscribed?: boolean;
   floChatsUsed?: number;
   createdAt?: string;
   assessmentCount?: number;
   goalCount?: number;
 }
+
+/** Tier names come from the entitlement config, never a literal list (Rule 1). */
+const TIERS = Object.keys(TIER_PRICING) as SubscriptionTier[];
+const ROLES = ['student', 'coach', 'admin'];
 
 function tierColor(tier: string): string {
   if (tier === 'ultimate') return '#E63946';
@@ -38,7 +44,44 @@ function TierBadge({ tier, theme }: { tier: string; theme: any }) {
   );
 }
 
-function UserDrawer({ user, onClose, theme }: { user: AdminUser; onClose: () => void; theme: any }) {
+/** Shared look for the small selects/inputs this page adds. */
+function fieldStyle(theme: any): React.CSSProperties {
+  return {
+    width: '100%', padding: '8px 10px', background: theme.surfaces.sunken,
+    border: `1px solid ${theme.border.default}`, borderRadius: 6,
+    color: theme.text.primary, fontSize: 13,
+  };
+}
+
+function labelStyle(theme: any): React.CSSProperties {
+  return { display: 'block', fontSize: 11, color: theme.text.muted, marginBottom: 4 };
+}
+
+function UserDrawer({ user, onClose, onSaved, theme }: { user: AdminUser; onClose: () => void; onSaved: (u: AdminUser) => void; theme: any }) {
+  const queryClient = useQueryClient();
+  const [tier, setTier] = useState(user.subscriptionTier || 'free');
+  const [role, setRole] = useState(user.role || 'student');
+  const [subscribed, setSubscribed] = useState(user.isSubscribed ?? false);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('PATCH', `/api/admin/users/${user.id}`, {
+        subscriptionTier: tier,
+        role,
+        isSubscribed: subscribed,
+      });
+      return res.json();
+    },
+    onSuccess: (updated: AdminUser) => {
+      onSaved(updated);
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    },
+  });
+
+  const dirty = tier !== (user.subscriptionTier || 'free')
+    || role !== (user.role || 'student')
+    || subscribed !== (user.isSubscribed ?? false);
+
   return (
     <div style={{
       position: 'fixed', top: 0, right: 0, width: 360, height: '100vh',
@@ -86,6 +129,47 @@ function UserDrawer({ user, onClose, theme }: { user: AdminUser; onClose: () => 
       )}
 
       <div style={{ borderTop: `1px solid ${theme.border.default}`, paddingTop: 20, marginTop: 20 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: theme.text.muted, marginBottom: 12 }}>Entitlement</div>
+        <div style={{ marginBottom: 12 }}>
+          <label style={labelStyle(theme)} htmlFor="drawer-tier">TIER</label>
+          <select
+            id="drawer-tier"
+            value={tier}
+            // Granting a paid tier is also what marks the athlete subscribed;
+            // dropping to free clears it. Overridable below.
+            onChange={e => { setTier(e.target.value); setSubscribed(e.target.value !== 'free'); }}
+            style={fieldStyle(theme)}
+          >
+            {TIERS.map(t => <option key={t} value={t}>{t} — {TIER_PRICING[t].name}</option>)}
+          </select>
+        </div>
+        <div style={{ marginBottom: 12 }}>
+          <label style={labelStyle(theme)} htmlFor="drawer-role">ROLE</label>
+          <select id="drawer-role" value={role} onChange={e => setRole(e.target.value)} style={fieldStyle(theme)}>
+            {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: theme.text.secondary, marginBottom: 16 }}>
+          <input type="checkbox" checked={subscribed} onChange={e => setSubscribed(e.target.checked)} />
+          Subscribed
+        </label>
+        <button
+          onClick={() => save.mutate()}
+          disabled={!dirty || save.isPending}
+          style={{
+            width: '100%', padding: '9px 12px', borderRadius: 6, border: 'none',
+            background: dirty ? theme.brand.blue : theme.surfaces.sunken,
+            color: dirty ? '#fff' : theme.text.muted,
+            fontSize: 13, fontWeight: 600, cursor: dirty ? 'pointer' : 'default',
+          }}
+        >
+          {save.isPending ? 'Saving...' : 'Save entitlement'}
+        </button>
+        {save.isError && <div style={{ color: theme.semantic.error, fontSize: 12, marginTop: 8 }}>{(save.error as Error).message}</div>}
+        {save.isSuccess && !dirty && <div style={{ color: theme.semantic.success, fontSize: 12, marginTop: 8 }}>Saved</div>}
+      </div>
+
+      <div style={{ borderTop: `1px solid ${theme.border.default}`, paddingTop: 20, marginTop: 20 }}>
         <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: theme.text.muted, marginBottom: 12 }}>Quick Actions</div>
         <a href={`/console/users?highlight=${user.id}`} style={{ display: 'block', padding: '8px 12px', background: theme.brand.blueMuted, color: theme.brand.blue, borderRadius: 6, textDecoration: 'none', fontSize: 13, fontWeight: 500, marginBottom: 8 }}>
           View Full Profile
@@ -98,10 +182,102 @@ function UserDrawer({ user, onClose, theme }: { user: AdminUser; onClose: () => 
   );
 }
 
+/** Create an athlete without Stripe. Temp password is shown once, on success. */
+function NewAthletePanel({ theme, onDone }: { theme: any; onDone: () => void }) {
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState({ email: '', firstName: '', lastName: '', password: '', subscriptionTier: 'free', role: 'student' });
+  const [created, setCreated] = useState<{ email: string; tempPassword: string | null } | null>(null);
+
+  const create = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/admin/users', {
+        email: form.email.trim(),
+        firstName: form.firstName || undefined,
+        lastName: form.lastName || undefined,
+        password: form.password || undefined,
+        subscriptionTier: form.subscriptionTier,
+        role: form.role,
+        isSubscribed: form.subscriptionTier !== 'free',
+      });
+      return res.json();
+    },
+    onSuccess: (user: any) => {
+      setCreated({ email: user.email, tempPassword: user.tempPassword ?? null });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    },
+  });
+
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  if (created) {
+    return (
+      <div style={{ background: theme.surfaces.raised, border: `1px solid ${theme.border.default}`, borderRadius: 10, padding: 20, marginBottom: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: theme.semantic.success, marginBottom: 8 }}>Athlete created</div>
+        <div style={{ fontSize: 13, color: theme.text.primary, marginBottom: 4 }}>{created.email}</div>
+        {created.tempPassword && (
+          <div style={{ fontSize: 13, color: theme.text.secondary, marginBottom: 12 }}>
+            Temporary password: <code data-testid="temp-password" style={{ background: theme.surfaces.sunken, padding: '2px 6px', borderRadius: 4 }}>{created.tempPassword}</code>
+            <div style={{ fontSize: 11, color: theme.text.muted, marginTop: 4 }}>Shown once. Copy it now.</div>
+          </div>
+        )}
+        <button onClick={onDone} style={{ padding: '8px 14px', background: theme.brand.blue, color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Done</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ background: theme.surfaces.raised, border: `1px solid ${theme.border.default}`, borderRadius: 10, padding: 20, marginBottom: 20 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: theme.text.primary, marginBottom: 16 }}>New athlete</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
+        <div>
+          <label style={labelStyle(theme)} htmlFor="new-email">EMAIL</label>
+          <input id="new-email" value={form.email} onChange={e => set('email', e.target.value)} style={fieldStyle(theme)} />
+        </div>
+        <div>
+          <label style={labelStyle(theme)} htmlFor="new-first">FIRST NAME</label>
+          <input id="new-first" value={form.firstName} onChange={e => set('firstName', e.target.value)} style={fieldStyle(theme)} />
+        </div>
+        <div>
+          <label style={labelStyle(theme)} htmlFor="new-last">LAST NAME</label>
+          <input id="new-last" value={form.lastName} onChange={e => set('lastName', e.target.value)} style={fieldStyle(theme)} />
+        </div>
+        <div>
+          <label style={labelStyle(theme)} htmlFor="new-password">PASSWORD (BLANK = GENERATE)</label>
+          <input id="new-password" value={form.password} onChange={e => set('password', e.target.value)} style={fieldStyle(theme)} />
+        </div>
+        <div>
+          <label style={labelStyle(theme)} htmlFor="new-tier">TIER</label>
+          <select id="new-tier" value={form.subscriptionTier} onChange={e => set('subscriptionTier', e.target.value)} style={fieldStyle(theme)}>
+            {TIERS.map(t => <option key={t} value={t}>{t} — {TIER_PRICING[t].name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle(theme)} htmlFor="new-role">ROLE</label>
+          <select id="new-role" value={form.role} onChange={e => set('role', e.target.value)} style={fieldStyle(theme)}>
+            {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <button
+          onClick={() => create.mutate()}
+          disabled={!form.email.includes('@') || create.isPending}
+          style={{ padding: '8px 14px', background: theme.brand.blue, color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: form.email.includes('@') ? 1 : 0.5 }}
+        >
+          {create.isPending ? 'Creating...' : 'Create athlete'}
+        </button>
+        <button onClick={onDone} style={{ padding: '8px 14px', background: 'transparent', color: theme.text.muted, border: `1px solid ${theme.border.default}`, borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+        {create.isError && <span style={{ color: theme.semantic.error, fontSize: 12 }}>{(create.error as Error).message}</span>}
+      </div>
+    </div>
+  );
+}
+
 export default function Users() {
   const { theme } = useConsoleTheme();
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<AdminUser | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const { data: users = [], isLoading, error } = useQuery<AdminUser[]>({
     queryKey: ['/api/admin/users'],
@@ -122,13 +298,23 @@ export default function Users() {
           <h1 style={{ fontSize: 22, fontWeight: 700, color: theme.text.primary, margin: 0 }}>Users</h1>
           <p style={{ fontSize: 13, color: theme.text.muted, margin: '4px 0 0' }}>{users.length} total users</p>
         </div>
-        <input
-          placeholder="Search email or username..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ padding: '8px 12px', background: theme.surfaces.sunken, border: `1px solid ${theme.border.default}`, borderRadius: 6, color: theme.text.primary, fontSize: 13, width: 260 }}
-        />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            placeholder="Search email or username..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ padding: '8px 12px', background: theme.surfaces.sunken, border: `1px solid ${theme.border.default}`, borderRadius: 6, color: theme.text.primary, fontSize: 13, width: 260 }}
+          />
+          <button
+            onClick={() => setCreating(c => !c)}
+            style={{ padding: '8px 14px', background: theme.brand.blue, color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            New athlete
+          </button>
+        </div>
       </div>
+
+      {creating && <NewAthletePanel theme={theme} onDone={() => setCreating(false)} />}
 
       {error && <div style={{ color: theme.semantic.error, marginBottom: 16, fontSize: 13 }}>Failed to load users</div>}
 
@@ -170,7 +356,8 @@ export default function Users() {
         )}
       </div>
 
-      {selected && <UserDrawer user={selected} onClose={() => setSelected(null)} theme={theme} />}
+      {/* key: the drawer seeds its controls from the user, so it must remount when a different row is picked. */}
+      {selected && <UserDrawer key={selected.id} user={selected} onClose={() => setSelected(null)} onSaved={setSelected} theme={theme} />}
     </div>
   );
 }

@@ -18,6 +18,7 @@ import { debugLogger, withErrorLogging } from "./debug";
 import { handleVapiWebhook } from "./vapi";
 import multer from "multer";
 import * as pdfParse from "pdf-parse";
+import { randomBytes } from "crypto";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
@@ -34,6 +35,60 @@ const stripe = new Stripe(stripeSecretKey, {
   apiVersion: "2025-05-28.basil",
 });
 debugLogger.success('stripe', 'Stripe initialized successfully');
+
+// ── Admin user administration ─────────────────────────────────────
+/** Roles HQ may assign. Console roles are derived from these (appRoleToConsoleRole). */
+const ADMIN_ASSIGNABLE_ROLES = ['student', 'coach', 'admin'];
+
+/** The admin user APIs return whole rows; the bcrypt hash is not theirs to hand out. */
+function stripPassword<T extends { password?: string }>(user: T): Omit<T, 'password'> {
+  const { password, ...rest } = user;
+  return rest;
+}
+
+/**
+ * The only fields HQ may write to a user. Anything else in the body is dropped —
+ * notably `password`, which the old pass-through PATCH would have written to the
+ * column as clear text, and `stripeCustomerId`, which must only ever come from
+ * Stripe.
+ */
+function pickAdminUserUpdates(body: any): { updates: Partial<User> } | { error: string } {
+  const updates: Partial<User> = {};
+  if (body?.subscriptionTier !== undefined) {
+    if (!isSubscriptionTier(body.subscriptionTier)) {
+      return { error: `Unknown subscription tier: ${body.subscriptionTier}` };
+    }
+    updates.subscriptionTier = body.subscriptionTier;
+  }
+  if (body?.role !== undefined) {
+    if (!ADMIN_ASSIGNABLE_ROLES.includes(body.role)) {
+      return { error: `Unknown role: ${body.role}` };
+    }
+    updates.role = body.role;
+  }
+  if (body?.isSubscribed !== undefined) updates.isSubscribed = Boolean(body.isSubscribed);
+  if (typeof body?.firstName === 'string') updates.firstName = body.firstName;
+  if (typeof body?.lastName === 'string') updates.lastName = body.lastName;
+  // The /admin edit form has always been able to correct an email; keep it,
+  // but only in a shape the login lookup can actually match.
+  if (body?.email !== undefined) {
+    if (typeof body.email !== 'string' || !body.email.includes('@')) {
+      return { error: 'Invalid email' };
+    }
+    updates.email = body.email.trim();
+  }
+  return { updates };
+}
+
+/** Usernames are unique and HQ shouldn't have to invent one. Derive from the email. */
+async function uniqueUsernameFromEmail(email: string): Promise<string> {
+  const base = (email.split('@')[0] || 'athlete').toLowerCase().replace(/[^a-z0-9]/g, '') || 'athlete';
+  for (let suffix = 0; suffix < 50; suffix++) {
+    const candidate = suffix === 0 ? base : `${base}${suffix}`;
+    if (!(await storage.getUserByUsername(candidate))) return candidate;
+  }
+  return `${base}${Date.now()}`;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   debugLogger.success('routes', 'Starting route registration...');
@@ -2439,19 +2494,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { filter, search } = req.query;
       const users = await storage.getAllUsers(filter as string, search as string);
-      res.json(users);
+      res.json(users.map(stripPassword));
     } catch (error: any) {
       console.error('Admin users error:', error);
       res.status(500).json({ message: 'Failed to fetch users' });
     }
   });
 
-  app.patch("/api/admin/users/:userId", requireAuth, requireAdmin, async (req, res) => {
+  // Create an athlete from HQ. registerUser still forces free/student; any tier
+  // or role the CEO asks for is applied afterwards through the same allowlist
+  // the PATCH route uses, so there is exactly one place that can grant
+  // entitlement without a payment.
+  app.post("/api/admin/users", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const body = req.body ?? {};
+      const email = typeof body.email === 'string' ? body.email.trim() : '';
+      if (!email.includes('@')) {
+        return res.status(400).json({ message: 'A valid email is required' });
+      }
+
+      // Only the entitlement fields go through the allowlist here; name and
+      // email are already carried by registerUser below.
+      const grant = pickAdminUserUpdates({
+        subscriptionTier: body.subscriptionTier,
+        role: body.role,
+        isSubscribed: body.isSubscribed,
+      });
+      if ('error' in grant) return res.status(400).json({ message: grant.error });
+
+      // A supplied password is used as-is; otherwise HQ gets a one-time temp
+      // password back in this response. It is hashed on the way in and never
+      // logged, so this response is the only place it exists in clear text.
+      const supplied = typeof body.password === 'string' ? body.password : '';
+      const tempPassword = supplied.length >= 8 ? null : randomBytes(9).toString('base64url');
+      const username = typeof body.username === 'string' && body.username.trim()
+        ? body.username.trim()
+        : await uniqueUsernameFromEmail(email);
+
+      const created = await registerUser({
+        username,
+        firstName: typeof body.firstName === 'string' ? body.firstName : undefined,
+        lastName: typeof body.lastName === 'string' ? body.lastName : undefined,
+        email,
+        password: tempPassword ?? supplied,
+      });
+
+      const user = Object.keys(grant.updates).length
+        ? await storage.updateUser(created.id, grant.updates)
+        : created;
+
+      const { pool } = await import('./db');
+      await pool.query(
+        `INSERT INTO admin_audit_log (admin_user_id, action, target_table, target_id, details) VALUES ($1, $2, $3, $4, $5)`,
+        [req.userId, 'create_user', 'users', user.id, JSON.stringify({ email, ...grant.updates })]
+      );
+
+      res.status(201).json({ ...stripPassword(user), tempPassword });
+    } catch (error: any) {
+      console.error('Admin user create error:', error.message);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/admin/users/:userId", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      const updates = req.body;
-      const updatedUser = await storage.updateUser(userId, updates);
-      res.json(updatedUser);
+      if (Number.isNaN(userId)) return res.status(400).json({ message: 'Invalid user ID' });
+
+      const picked = pickAdminUserUpdates(req.body);
+      if ('error' in picked) return res.status(400).json({ message: picked.error });
+      if (!Object.keys(picked.updates).length) {
+        return res.status(400).json({ message: 'No updatable fields supplied' });
+      }
+
+      const updatedUser = await storage.updateUser(userId, picked.updates);
+
+      const { pool } = await import('./db');
+      await pool.query(
+        `INSERT INTO admin_audit_log (admin_user_id, action, target_table, target_id, details) VALUES ($1, $2, $3, $4, $5)`,
+        [req.userId, 'update_user', 'users', userId, JSON.stringify(picked.updates)]
+      );
+
+      res.json(stripPassword(updatedUser));
     } catch (error: any) {
       console.error('Admin user update error:', error);
       res.status(500).json({ message: 'Failed to update user' });

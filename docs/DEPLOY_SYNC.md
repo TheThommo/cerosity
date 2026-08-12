@@ -1,5 +1,46 @@
 # DEPLOY_SYNC — Production Verification Report
 
+## 2026-05-30 (later) — boot reconcile fix + bridge confirmed PASS
+
+**Context**: `56c323f` shipped and is live (prod health shows `56c323f`,
+`geminiConfigured: true`, `vapiConfigured: true`). The custom-LLM bridge works in prod.
+
+**Bridge verification — PASS:**
+```bash
+curl -s -X POST https://cerosity.com/api/vapi/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"stream":false,"messages":[{"role":"user","content":"I am nervous before my match"}]}'
+# -> returns Red2Blue coaching from Cerosity (Gemini). Correct.
+```
+
+**Issue found**: the boot `reconcileFloVapiAssistant()` did NOT update the live assistant
+(stayed GPT-4.1 until Mark PATCHed it manually). Railway HAD `VAPI_API_KEY` set — the failure
+was payload/schema, not a missing key. Two causes:
+1. `model.url` was the base `/api/vapi` instead of the full `/api/vapi/chat/completions`.
+2. The reconcile payload overwrote the working dashboard voice (Clara/vapi) with ElevenLabs,
+   which VAPI rejected.
+
+**Manual fix (Mark, 2026-05-30)**: PATCHed assistant `51d263eb-5724-4471-bc27-44341a90c038` to
+`custom-llm`, `model.url = https://cerosity.com/api/vapi/chat/completions` (full path),
+`model.model = cerosity-flo`, delivery-only system message, Flow firstMessage, dashboard voice
+kept. Confirmed working.
+
+**Fix in this commit**:
+- `buildFloVapiAssistantConfig()` now sends a MODEL-ONLY PATCH with the FULL custom-LLM URL and a
+  delivery-only system message. It no longer sends voice/transcriber/firstMessage/server, so it
+  cannot overwrite the working Clara voice.
+- `updateVapiAssistant()` throws/logs the FULL VAPI response body on non-2xx (key never logged).
+- `reconcileFloVapiAssistant()` returns `{ ok, detail, url, at }` and caches the last result.
+- New `GET /api/hq/vapi/reconcile-status` (admin) returns the cached boot result.
+
+**Status**: bridge = PASS. Boot reconcile = fixed (to be confirmed on next deploy via the log
+line `[VAPI] FLO assistant reconciled` and `GET /api/hq/vapi/reconcile-status`). Voice mic test
+= Mark to confirm on the live site.
+
+**Note**: `VAPI_API_KEY` is being rotated after an accidental exposure. Code never logs the key.
+
+---
+
 ## 2026-05-30 — FLO single-brain (voice on custom-LLM)
 
 **Change**: Voice (VAPI) moved off its hosted LLM + inline dashboard prompt onto the Cerosity

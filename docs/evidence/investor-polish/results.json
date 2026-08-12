@@ -1,0 +1,106 @@
+{
+  "ranAt": "2026-08-12T02:15:55.116Z",
+  "base": "https://cerosity.com",
+  "commit": "d685417",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "results": [
+    {
+      "step": "landing preview still allows 6 turns, then gates with a signup CTA",
+      "pass": true,
+      "detail": "answered through turn 6, gated on 7, CTA from 6"
+    },
+    {
+      "step": "paid athlete holds an unlimited chat entitlement",
+      "pass": true,
+      "detail": "tier=ultimate chatLimit=-1 status=ultimate_included"
+    },
+    {
+      "step": "11 consecutive chat turns as a paid athlete, none refused",
+      "pass": true,
+      "detail": "distinct status codes: 200"
+    },
+    {
+      "step": "curriculum offers an Ask FLO entry at a 44px touch target",
+      "pass": true,
+      "detail": "123x44px"
+    },
+    {
+      "step": "Ask FLO reaches the coach in one tap",
+      "pass": true,
+      "detail": "/learn -> /flo"
+    },
+    {
+      "step": "coach surface mounts push-to-talk",
+      "pass": true,
+      "detail": "control: \"Talk to FLO\""
+    },
+    {
+      "step": "FLO recalls a fact given before the reload",
+      "pass": true,
+      "detail": "looked for \"Rupert7980\" in: Rupert7980. That's three different Rupert numbers you've given me now across our chats — "
+    },
+    {
+      "step": "mobile bottom-nav Coach is a real link at a 44px target",
+      "pass": true,
+      "detail": "95x61px"
+    },
+    {
+      "step": "bottom-nav Coach opens FLO",
+      "pass": true,
+      "detail": "/ -> /flo"
+    },
+    {
+      "step": "document opens as a PDF: Master Your Moment by Cero Golf.pdf",
+      "pass": true,
+      "detail": "HTTP 200 application/pdf"
+    },
+    {
+      "step": "document opens as a PDF: Ability to Focus - Book.pdf",
+      "pass": true,
+      "detail": "HTTP 200 application/pdf"
+    },
+    {
+      "step": "document opens as a PDF: Mental Toughness - Book.pdf",
+      "pass": true,
+      "detail": "HTTP 200 application/pdf"
+    },
+    {
+      "step": "manifest serves as JSON, not the SPA's index.html",
+      "pass": true,
+      "detail": "HTTP 200 application/manifest+json"
+    },
+    {
+      "step": "manifest meets the install bar (standalone + 192 and 512 icons)",
+      "pass": true,
+      "detail": "display=standalone icons=192x192,512x512,512x512"
+    },
+    {
+      "step": "service worker is served",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "step": "index.html carries the iOS Add to Home Screen tags",
+      "pass": true,
+      "detail": "manifest + apple-mobile-web-app-capable + apple-touch-icon"
+    },
+    {
+      "step": "free athlete is still metered at 5 chats",
+      "pass": true,
+      "detail": "chatLimit=5 used=5 canChat=false status=free"
+    },
+    {
+      "step": "free athlete still sees only the 2 preview lessons",
+      "pass": true,
+      "detail": "2 of 23 unlocked, hasAccess=false"
+    },
+    {
+      "step": "D3 ownership holds — free athlete cannot read the paid athlete's chat data",
+      "pass": true,
+      "detail": "HTTP 403 for another user's limitations"
+    }
+  ]
+}

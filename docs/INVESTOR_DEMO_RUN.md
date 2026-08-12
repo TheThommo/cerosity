@@ -1092,3 +1092,97 @@ Worth noting: the browser smoke found this, not the API tests. A curl asserting 
 | Browser regression | **PASS** | 11/11 on `d860177` |
 
 **Still for Mark:** rotate the Gemini key (**D1**) — untouched again tonight, as instructed. Then run the `stripe listen` command above to close the last piece of A1.
+
+---
+
+# Investor polish night
+
+Ran 2026-08-12, unattended. Target production, phone viewport 390x844.
+Final SHA **`d685417`**. Mobile smoke **19/19**.
+
+## What was actually broken
+
+Three of these were invisible from a desk and only appear on a phone or on a
+paid account, which is why they survived previous passes.
+
+| # | Symptom in a demo | Root cause |
+|---|---|---|
+| 1 | FLO refuses on the 6th message to a **paying** athlete | `getUserChatLimitations` granted unlimited chat only with an active `flo_subscriptions` row **or** a `subscription_start_date`. `flo_subscriptions` is empty and every user row has a null start date, so every paid account fell through to the free allowance |
+| 2 | Bottom-nav **Coach** does nothing | It was a `<button>` with no `onClick` |
+| 3 | Signing in **loses** the microphone | `FloVoicePTT` was mounted only on the logged-out landing page |
+| 4 | Every PDF button returns an error | Buttons pointed at `/api/downloads/*`, which resolves from `ASSETS_PATH` — unset on Railway, so 503. The third file wasn't in the image at all |
+| 5 | No Add to Home Screen | No manifest and no service worker existed; `/manifest.json` fell through to the SPA catch-all and answered `200 text/html` |
+| 6 | Whole app renders tiny on a phone | Home's welcome row and Human Coaching card never wrapped, forcing a 666px layout viewport. The browser then scaled the app to ~59%, so every "44px" target was ~26 physical px — and the Human Coaching button covered the fixed bottom nav, swallowing taps meant for Coach |
+
+Items 6 and the missing accessible name on the voice button were **found by the
+smoke script**, not predicted.
+
+## Phase results
+
+| Phase | Done | Proof |
+|---|---|---|
+| 1 — chat limits | Unlimited is now decided by `hasFeatureAccess(tier, role, "unlimitedChat")` alone | 11 consecutive turns as `ultimate`, all 200, `chatsUsed` stays 0 |
+| 2 — post-login FLO + voice | New `/flo` surface with text + push-to-talk; nav Coach and a curriculum FAB both reach it | `/learn` → `/flo` in one tap; FAB 123x44px; recall survives reload |
+| 3 — documents | All three buttons point at static `/downloads/*` already in the image | 3/3 serve `200 application/pdf` |
+| 4 — PWA | Manifest, 192/512 + apple-touch icons, iOS meta, minimal service worker | `200 application/manifest+json`, `display=standalone`, sw 200 |
+| 5 — evidence | `docs/evidence/investor-polish/` | 19/19 at `d685417`, screenshots + `results.json` |
+
+## Decisions worth knowing
+
+**The annual-renewal rule is gone.** Premium/ultimate used to get unlimited chat
+for a year from `subscription_start_date`, then drop back to the free limit.
+It contradicted `FEATURE_MIN_TIER.unlimitedChat`, which already includes
+unlimited chat from the `flo` tier upward, and no production account relied on
+it (zero rows carry a start date). If that revenue rule is wanted, it belongs in
+`shared/entitlements.ts` as config, not inline in a storage method.
+
+**Free stays at 5 signed-in turns**, now named `FREE_CHAT_MESSAGE_LIMIT` rather
+than a bare literal. Deliberately *not* the "6 messages" in the free tier's
+marketing copy — that 6 is the logged-out landing preview, gated per session in
+`/api/landing-chat`, and it still behaves exactly as before (answers 6, gates
+on 7).
+
+**The service worker is almost empty on purpose.** It precaches four icons and
+passes everything else to the network. It does not cache `index.html`, the
+bundle, or any `/api` response: a cached index pins users to a dead build after
+a deploy, and a stale FLO reply would be worse than no reply.
+
+**`/api/downloads/*` was left in place.** It has no callers now, but it is still
+a valid way to serve these from outside the image if `ASSETS_PATH` is ever set.
+
+## Add to Home Screen — steps
+
+*iOS Safari:* open `cerosity.com` → Share → **Add to Home Screen** → Add. Launches
+without Safari chrome (`apple-mobile-web-app-capable`), 180px icon.
+*Android Chrome:* open `cerosity.com` → ⋮ → **Install app** / **Add to Home screen**.
+Standalone, 192/512 icons, theme `#2563eb`.
+
+## Regression
+
+| Check | Result |
+|---|---|
+| Landing still 6 turns + CTA | **PASS** — answers through 6, `previewEnded` on 7 |
+| Free still 5 chats | **PASS** — `chatLimit=5`, `canChat=false` at 5 |
+| Free still 2 preview lessons | **PASS** — 2 of 23 unlocked, `hasAccess=false` |
+| D3 ownership intact | **PASS** — 403 reading another athlete's data |
+| `npm run check` | **156 errors, unchanged** — all pre-existing; zero introduced (verified by diffing the error set against a stashed baseline) |
+
+## Commits
+
+`2132747` unlimited chat · `27e2f56` always-on coach · `94a02d6` PDFs ·
+`2a95bdf` PWA · `97eb113` phone layout · `06e0745` voice a11y ·
+`cde9df6` + `d685417` nav labels
+
+Health SHA moved every phase: `c44e316` → `2132747` → `2a95bdf` → `97eb113` →
+`06e0745` → `cde9df6` → `d685417`.
+
+## Leftovers for Mark
+
+1. **There is no way to create a user from the admin UI.** `/api/admin/users` is
+   read-only and `PATCH /api/admin/users/:userId` only edits. Accounts can only
+   be born through public signup or Google SSO. If manual account creation is
+   wanted, it needs a new admin-only create endpoint.
+2. **18 of 20 rows in `users` are test accounts** from this and previous nights
+   (`@cerosity-test.com` / `@cerosity-test.invalid`). Only id 1 (Mark) and id 2
+   (Andrew Hurt) are real. Worth purging before any investor looks at the console.
+3. **D1 — rotate the Gemini key.** Untouched again, as instructed.

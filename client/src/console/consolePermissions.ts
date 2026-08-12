@@ -4,6 +4,7 @@ export type ConsoleRole = typeof CONSOLE_ROLE_HIERARCHY[number];
 export interface ConsoleNavVisibility {
   commandCenter: boolean;
   users: boolean;
+  curriculum: boolean;
   subscriptions: boolean;
   coachingData: boolean;
   floChat: boolean;
@@ -28,6 +29,7 @@ export function consoleNav(role: string): ConsoleNavVisibility {
   return {
     commandCenter: hasMinLevel(role, 'read_only'),
     users: hasMinLevel(role, 'support'),
+    curriculum: hasMinLevel(role, 'support'),
     subscriptions: hasMinLevel(role, 'admin'),
     coachingData: hasMinLevel(role, 'support'),
     floChat: hasMinLevel(role, 'admin'),

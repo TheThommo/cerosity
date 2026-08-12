@@ -3037,6 +3037,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Admin: LMS progress ─────────────────────────────────────────
+  // Read-only views over lesson_progress. Nothing here is derived or
+  // estimated: every number is a row count.
+
+  // GET /api/admin/users/:userId/curriculum — one athlete's lesson-by-lesson state
+  app.get("/api/admin/users/:userId/curriculum", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId, 10);
+      if (Number.isNaN(userId)) return res.status(400).json({ message: 'Invalid user ID' });
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: 'User not found' });
+
+      const [allCourses, progress, certificates] = await Promise.all([
+        storage.getPublishedCourses(),
+        storage.getLessonProgressForUser(userId),
+        storage.getCertificatesForUser(userId),
+      ]);
+      const progressByLesson = new Map(progress.map((p) => [p.lessonId, p]));
+
+      const courses = await Promise.all(allCourses.map(async (course) => {
+        const [modules, courseLessons] = await Promise.all([
+          storage.getModulesForCourse(course.id),
+          storage.getLessonsForCourse(course.id),
+        ]);
+        const moduleTitle = new Map(modules.map((m) => [m.id, m.title]));
+        const lessons = courseLessons.map((l) => {
+          const row = progressByLesson.get(l.id);
+          return {
+            id: l.id,
+            slug: l.slug,
+            title: l.title,
+            moduleTitle: moduleTitle.get(l.moduleId) ?? null,
+            isFreePreview: l.isFreePreview,
+            status: row?.status ?? "not_started",
+            completedAt: row?.completedAt ?? null,
+          };
+        });
+        const completed = lessons.filter((l) => l.status === "completed").length;
+        return {
+          slug: course.slug,
+          title: course.title,
+          total: lessons.length,
+          completed,
+          inProgress: lessons.filter((l) => l.status === "in_progress").length,
+          percent: lessons.length ? Math.round((completed / lessons.length) * 100) : 0,
+          certificate: certificates.find((c) => c.courseId === course.id) ?? null,
+          lessons,
+        };
+      }));
+
+      res.json({
+        user: { id: user.id, email: user.email, role: user.role, subscriptionTier: user.subscriptionTier },
+        courses,
+      });
+    } catch (error: any) {
+      console.error('Admin user curriculum error:', error);
+      res.status(500).json({ message: 'Failed to fetch curriculum progress' });
+    }
+  });
+
+  // GET /api/admin/curriculum/summary — how many athletes started/finished each course
+  app.get("/api/admin/curriculum/summary", requireAuth, requireAdmin, async (_req, res) => {
+    try {
+      const { pool } = await import('./db');
+      const { rows } = await pool.query(`
+        WITH lesson_counts AS (
+          SELECT course_id, COUNT(*)::int AS total
+          FROM lessons WHERE is_published = true
+          GROUP BY course_id
+        ),
+        per_user AS (
+          SELECT l.course_id,
+                 lp.user_id,
+                 COUNT(*) FILTER (WHERE lp.status = 'completed')::int AS completed
+          FROM lesson_progress lp
+          JOIN lessons l ON l.id = lp.lesson_id
+          WHERE l.is_published = true
+          GROUP BY l.course_id, lp.user_id
+        )
+        SELECT c.slug,
+               c.title,
+               lc.total AS "lessonCount",
+               COUNT(pu.user_id)::int AS "athletesStarted",
+               COUNT(pu.user_id) FILTER (WHERE pu.completed >= lc.total)::int AS "athletesCompleted",
+               COALESCE(SUM(pu.completed), 0)::int AS "lessonsCompleted",
+               (SELECT COUNT(*)::int FROM course_certificates cc WHERE cc.course_id = c.id) AS "certificatesIssued"
+        FROM courses c
+        JOIN lesson_counts lc ON lc.course_id = c.id
+        LEFT JOIN per_user pu ON pu.course_id = c.id
+        WHERE c.is_published = true
+        GROUP BY c.id, c.slug, c.title, lc.total
+        ORDER BY c.sort_order, c.id
+      `);
+      res.json(rows);
+    } catch (error: any) {
+      console.error('Admin curriculum summary error:', error);
+      res.status(500).json({ message: 'Failed to fetch curriculum summary' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

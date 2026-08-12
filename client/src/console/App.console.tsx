@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 const ConsoleLogin = lazy(() => import('./pages/ConsoleLogin'));
 const CommandCenter = lazy(() => import('./pages/CommandCenter'));
 const Users = lazy(() => import('./pages/Users'));
+const Curriculum = lazy(() => import('./pages/Curriculum'));
 const Subscriptions = lazy(() => import('./pages/Subscriptions'));
 const CoachingData = lazy(() => import('./pages/CoachingData'));
 const FloChat = lazy(() => import('./pages/FloChat'));
@@ -47,6 +48,7 @@ function ConsoleRouter() {
               <Switch>
                 <Route path="/console" component={CommandCenter} />
                 <Route path="/console/users" component={Users} />
+                <Route path="/console/curriculum" component={Curriculum} />
                 <Route path="/console/subscriptions" component={Subscriptions} />
                 <Route path="/console/coaching" component={CoachingData} />
                 <Route path="/console/flo" component={FloChat} />

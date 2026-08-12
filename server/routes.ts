@@ -280,6 +280,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not found" });
       }
 
+      // This route checks the session itself instead of going through
+      // requireAuth, so it needs its own deactivation check — without it the
+      // client keeps treating a turned-off athlete as signed in.
+      if (user.isActive === false) {
+        return res.status(401).json({ message: "This account has been deactivated. Contact Cerosity support." });
+      }
+
       // Remove password from response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);

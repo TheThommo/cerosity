@@ -1186,3 +1186,66 @@ Health SHA moved every phase: `c44e316` → `2132747` → `2a95bdf` → `97eb113
    (`@cerosity-test.com` / `@cerosity-test.invalid`). Only id 1 (Mark) and id 2
    (Andrew Hurt) are real. Worth purging before any investor looks at the console.
 3. **D1 — rotate the Gemini key.** Untouched again, as instructed.
+
+---
+
+## CEO console A — provision + grant (2026-08-12)
+
+**PASS. 9/9 on production at SHA `b908029`.**
+Evidence: `docs/evidence/ceo-console/results.json` + screenshots `01`–`04`.
+Script: `docs/evidence/ceo-console/phase-a.mjs` (Playwright, Chromium, 1440×900,
+against `hq.cerosity.com` and `cerosity.com` — not a local build).
+
+### What the CEO can now do
+
+Create an athlete from HQ and put them on any tier without a Stripe payment.
+Before this, `/api/admin/users` was read-only and accounts could only be born
+through public signup or Google SSO.
+
+| Check | Result |
+|---|---|
+| HQ sign-in lands in the console | **PASS** — `/console` |
+| Create athlete, generated temp password | **PASS** — 12-char password, shown once |
+| Created athlete starts free/student | **PASS** — `{tier: free, role: student, subscribed: false}` |
+| `GET /api/admin/users` withholds the bcrypt hash | **PASS** — `password` undefined |
+| Free athlete sees a locked curriculum | **PASS** — 21/23 lessons locked, `hasAccess=false` |
+| HQ drawer grants ultimate, no Stripe | **PASS** — `tier=ultimate`, `stripeCustomerId=null` |
+| Granted athlete gets the full curriculum | **PASS** — 23/23 unlocked, was 2/23 |
+| PATCH allowlist drops `password` + `stripeCustomerId` | **PASS** — 200, original password still valid |
+| Unknown tier rejected | **PASS** — 400 `Unknown subscription tier: godmode` |
+
+### Decisions worth knowing
+
+**Creation never grants entitlement.** `POST /api/admin/users` still goes through
+`registerUser`, which forces free/student. A tier the CEO asks for is applied
+afterwards, through the same allowlist `PATCH` uses — so there is exactly one
+code path that can grant entitlement without a payment, and it is admin-only and
+written to `admin_audit_log`.
+
+**`PATCH /api/admin/users/:id` used to be a pass-through.** It handed `req.body`
+straight to `storage.updateUser`, which would have written a client-supplied
+plaintext password into the `password` column and let any admin-session request
+forge `stripeCustomerId`. It is now an allowlist: tier (validated against
+`shared/entitlements.ts`), role, `isSubscribed`, first/last name, email.
+
+**Tier names are never literals in the UI.** The HQ selects are built from
+`TIER_PRICING`, so `flo` showed up in the console the moment it existed in
+config (CLAUDE.md Rule 1).
+
+**Two bugs found on the way, both shipped.** HQ sign-in left you sitting on the
+login form: `useAuth` caches `/api/auth/me` for five minutes and had already
+cached the pre-sign-in 401, so a client-side navigate re-rendered
+`ConsoleRouter` before the cache turned over and it redirected straight back.
+Sign-in now does a full page load, the same thing sign-out already did.
+
+### Commits
+
+`d3cf3ff` admin create + grant + allowlist · `e11d6fd` + `b908029` HQ sign-in.
+Health SHA moved `783164c` → `d3cf3ff` → `e11d6fd` → `b908029`.
+
+### Test accounts
+
+The run creates one athlete per execution at `ceo-console-<ts>@cerosity-test.invalid`.
+A temporary admin (`hq-smoke-…@cerosity-test.invalid`) was created for this run
+because the smoke cannot use Mark's password; it was deleted afterwards. Both are
+removed in the cleanup below.

@@ -1,0 +1,56 @@
+{
+  "phase": "A",
+  "ranAt": "2026-08-12T05:43:11.409Z",
+  "app": "https://cerosity.com",
+  "hq": "https://hq.cerosity.com",
+  "athlete": "ceo-console-1786513352537@cerosity-test.invalid",
+  "passed": 9,
+  "total": 9,
+  "results": [
+    {
+      "step": "HQ login as admin",
+      "pass": true,
+      "detail": "landed on https://hq.cerosity.com/console"
+    },
+    {
+      "step": "HQ creates athlete with generated temp password",
+      "pass": true,
+      "detail": "ceo-console-1786513352537@cerosity-test.invalid, temp password 12 chars (screenshot 01-hq-new-athlete-form.png)"
+    },
+    {
+      "step": "created athlete starts free/student",
+      "pass": true,
+      "detail": "{\"tier\":\"free\",\"role\":\"student\",\"subscribed\":false}"
+    },
+    {
+      "step": "GET /api/admin/users withholds the password hash",
+      "pass": true,
+      "detail": "password field on the returned row: undefined"
+    },
+    {
+      "step": "temp password works and free athlete sees a locked curriculum",
+      "pass": true,
+      "detail": "login 200, hasAccess=false, 21/23 lessons locked"
+    },
+    {
+      "step": "HQ drawer grants ultimate without Stripe",
+      "pass": true,
+      "detail": "tier=ultimate, subscribed=true, stripeCustomerId=null (screenshot 03-hq-granted-ultimate.png)"
+    },
+    {
+      "step": "granted athlete gets the full curriculum",
+      "pass": true,
+      "detail": "hasAccess=true, 23/23 lessons unlocked (was 2/23)"
+    },
+    {
+      "step": "PATCH allowlist drops password and stripeCustomerId",
+      "pass": true,
+      "detail": "PATCH 200, stripeCustomerId=null, original password still valid (200)"
+    },
+    {
+      "step": "unknown tier is rejected",
+      "pass": true,
+      "detail": "PATCH subscriptionTier=godmode -> 400 Unknown subscription tier: godmode"
+    }
+  ]
+}

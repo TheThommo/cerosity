@@ -16,6 +16,81 @@ interface AdminStats {
   totalChatSessions?: number;
   floChatsToday?: number;
   avgMessagesPerSession?: number;
+  activeChatters7d?: number;
+}
+
+interface SessionSummary {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  messageCount: number;
+}
+
+interface ChatMessage {
+  role: string;
+  content: string;
+  timestamp?: string;
+}
+
+/** The transcript itself: pick a session, read what FLO actually said. */
+function Transcript({ user, theme }: { user: ChatUser; theme: any }) {
+  const [openSessionId, setOpenSessionId] = useState<number | null>(null);
+
+  const { data: history, isLoading } = useQuery<{ totalSessions: number; totalMessages: number; sessions: SessionSummary[] }>({
+    queryKey: [`/api/admin/users/${user.id}/chat-sessions`],
+    queryFn: getQueryFn({ on401: 'throw' }),
+  });
+
+  const { data: session } = useQuery<{ messages: ChatMessage[]; messageCount: number }>({
+    queryKey: [`/api/admin/chat-sessions/${openSessionId}`],
+    queryFn: getQueryFn({ on401: 'throw' }),
+    enabled: openSessionId !== null,
+  });
+
+  if (isLoading) return <div style={{ fontSize: 13, color: theme.text.muted }}>Loading sessions...</div>;
+  if (!history || history.sessions.length === 0) {
+    return <div style={{ fontSize: 13, color: theme.text.muted }}>No FLO sessions yet for this athlete.</div>;
+  }
+
+  return (
+    <div>
+      <div style={{ fontSize: 12, color: theme.text.muted, marginBottom: 12 }}>
+        {history.totalSessions} sessions · {history.totalMessages} messages
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+        {history.sessions.map(s => (
+          <button
+            key={s.id}
+            data-testid={`session-${s.id}`}
+            onClick={() => setOpenSessionId(s.id)}
+            style={{
+              padding: '6px 10px', borderRadius: 6, fontSize: 12, cursor: 'pointer',
+              background: openSessionId === s.id ? theme.brand.blueMuted : theme.surfaces.sunken,
+              color: openSessionId === s.id ? theme.brand.blue : theme.text.secondary,
+              border: `1px solid ${theme.border.default}`,
+            }}
+          >
+            #{s.id} · {s.messageCount} msgs · {new Date(s.updatedAt).toLocaleDateString()}
+          </button>
+        ))}
+      </div>
+      {openSessionId !== null && (
+        <div data-testid="transcript" style={{ borderTop: `1px solid ${theme.border.default}`, paddingTop: 12 }}>
+          {(session?.messages ?? []).map((m, i) => (
+            <div key={i} style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: m.role === 'user' ? theme.brand.blue : theme.brand.red, marginBottom: 2 }}>
+                {m.role === 'user' ? 'ATHLETE' : 'FLO'}
+              </div>
+              <div style={{ fontSize: 13, color: theme.text.primary, whiteSpace: 'pre-wrap' }}>{m.content}</div>
+            </div>
+          ))}
+          {session && session.messages.length === 0 && (
+            <div style={{ fontSize: 13, color: theme.text.muted }}>This session has no messages.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function FloChat() {
@@ -46,11 +121,12 @@ export default function FloChat() {
       <h1 style={{ fontSize: 22, fontWeight: 700, color: theme.text.primary, margin: '0 0 24px' }}>FLO Chat</h1>
 
       {/* Stats cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
         {[
           { label: 'Total Sessions', value: stats?.totalChatSessions ?? 0, color: theme.brand.blue },
           { label: 'Sessions Today', value: stats?.floChatsToday ?? 0, color: theme.semantic.success },
           { label: 'Avg Msgs/Session', value: stats?.avgMessagesPerSession ?? 0, color: theme.semantic.warning },
+          { label: 'Active Chatters (7d)', value: stats?.activeChatters7d ?? 0, color: theme.brand.red },
         ].map(card => (
           <div key={card.label} style={{ background: theme.surfaces.raised, border: `1px solid ${theme.border.default}`, borderRadius: 10, padding: '20px 24px', borderTop: `3px solid ${card.color}` }}>
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.text.muted, marginBottom: 8 }}>{card.label}</div>
@@ -124,7 +200,7 @@ export default function FloChat() {
       {selectedUser && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => setSelectedUser(null)}>
-          <div style={{ background: theme.surfaces.raised, border: `1px solid ${theme.border.default}`, borderRadius: 12, padding: 32, width: 480, maxHeight: '80vh', overflowY: 'auto' }}
+          <div style={{ background: theme.surfaces.raised, border: `1px solid ${theme.border.default}`, borderRadius: 12, padding: 32, width: 640, maxHeight: '80vh', overflowY: 'auto' }}
             onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: theme.text.primary }}>FLO History: {selectedUser.username}</h2>
@@ -139,14 +215,7 @@ export default function FloChat() {
               <div style={{ fontSize: 28, fontWeight: 700, color: theme.text.primary }}>{selectedUser.floChatsUsed ?? 0}</div>
             </div>
             <div style={{ borderTop: `1px solid ${theme.border.default}`, paddingTop: 16, marginTop: 16 }}>
-              <div style={{ fontSize: 12, color: theme.text.muted, textAlign: 'center' }}>
-                Chat message detail requires selecting a specific session from the DB Explorer.
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-              {['Good', 'Needs Review', 'Training Data'].map(label => (
-                <button key={label} style={{ flex: 1, padding: '6px 0', background: theme.surfaces.sunken, border: `1px solid ${theme.border.default}`, borderRadius: 6, color: theme.text.secondary, cursor: 'pointer', fontSize: 12 }}>{label}</button>
-              ))}
+              <Transcript user={selectedUser} theme={theme} />
             </div>
           </div>
         </div>

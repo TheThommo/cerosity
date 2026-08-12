@@ -554,6 +554,14 @@ export interface AdminStats {
   ultimateUsers: number;
   newUsersThisMonth: number;
   churnRate: number;
+  // Activity counters. Every one is a row count, shown exactly as it comes
+  // back — including when that is zero.
+  totalChatSessions: number;
+  floChatsToday: number;
+  avgMessagesPerSession: number;
+  activeChatters7d: number;
+  assessmentsToday: number;
+  dailyCheckIns: number;
 }
 
 export interface PaymentRecord {

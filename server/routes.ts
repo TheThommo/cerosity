@@ -2676,6 +2676,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // The list route above returns counts only. This one returns the transcript,
+  // so HQ can read what FLO actually said rather than trusting a number.
+  app.get("/api/admin/chat-sessions/:sessionId", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId, 10);
+      if (Number.isNaN(sessionId)) return res.status(400).json({ message: 'Invalid session ID' });
+      const chatSession = await storage.getChatSession(sessionId);
+      if (!chatSession) return res.status(404).json({ message: 'Chat session not found' });
+
+      const messages = Array.isArray(chatSession.messages) ? chatSession.messages : [];
+      res.json({
+        id: chatSession.id,
+        userId: chatSession.userId,
+        createdAt: chatSession.createdAt,
+        updatedAt: chatSession.updatedAt,
+        messageCount: messages.length,
+        messages,
+      });
+    } catch (error: any) {
+      console.error('Admin chat session error:', error);
+      res.status(500).json({ message: 'Failed to fetch chat session' });
+    }
+  });
+
   app.get("/api/admin/users/:userId/engagement", requireAuth, requireAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);

@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getQueryFn } from '@/lib/queryClient';
 import { useConsoleTheme } from '../ConsoleThemeProvider';
-
-type TimeRange = 'today' | '7d' | '30d' | 'all';
 
 interface KPIDefinition {
   label: string;
@@ -13,16 +11,20 @@ interface KPIDefinition {
   color?: string;
 }
 
+// Every key here is backed by a real count in /api/admin/stats. A card with no
+// query behind it is worse than no card, so it does not get an entry.
 const KPI_REGISTRY: KPIDefinition[] = [
   { label: 'Total Users', key: 'totalUsers', format: 'number', group: 'users' },
   { label: 'Free Tier', key: 'freeUsers', format: 'number', group: 'users' },
   { label: 'Premium', key: 'premiumUsers', format: 'number', group: 'users', color: '#1D7FBF' },
   { label: 'Ultimate', key: 'ultimateUsers', format: 'number', group: 'users', color: '#E63946' },
   { label: 'Active Subscriptions', key: 'activeSubscriptions', format: 'number', group: 'revenue' },
-  { label: 'FLO Chats Today', key: 'floChatsToday', format: 'number', group: 'flo' },
   { label: 'Total Chat Sessions', key: 'totalChatSessions', format: 'number', group: 'flo' },
+  { label: 'Sessions Today', key: 'floChatsToday', format: 'number', group: 'flo' },
+  { label: 'Avg Msgs / Session', key: 'avgMessagesPerSession', format: 'number', group: 'flo' },
+  { label: 'Active Chatters (7d)', key: 'activeChatters7d', format: 'number', group: 'flo' },
   { label: 'Assessments Today', key: 'assessmentsToday', format: 'number', group: 'engagement' },
-  { label: 'Daily Check-ins', key: 'dailyCheckIns', format: 'number', group: 'engagement' },
+  { label: 'Check-ins Today', key: 'dailyCheckIns', format: 'number', group: 'engagement' },
 ];
 
 function formatValue(value: unknown, format: KPIDefinition['format']): string {
@@ -58,19 +60,11 @@ function KPICard({ kpi, value, theme }: KPICardProps) {
   );
 }
 
-const TIME_RANGES: { label: string; value: TimeRange }[] = [
-  { label: 'Today', value: 'today' },
-  { label: '7 Days', value: '7d' },
-  { label: '30 Days', value: '30d' },
-  { label: 'All Time', value: 'all' },
-];
-
 export default function CommandCenter() {
   const { theme } = useConsoleTheme();
-  const [timeRange, setTimeRange] = useState<TimeRange>('all');
 
   const { data: stats, isLoading, error } = useQuery<Record<string, unknown>>({
-    queryKey: ['/api/admin/stats', timeRange],
+    queryKey: ['/api/admin/stats'],
     queryFn: getQueryFn({ on401: 'throw' }),
   });
 
@@ -78,21 +72,12 @@ export default function CommandCenter() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: theme.text.primary, margin: 0 }}>Command Center</h1>
-          <p style={{ fontSize: 13, color: theme.text.muted, margin: '4px 0 0' }}>Platform overview at a glance</p>
-        </div>
-        <div style={{ display: 'flex', gap: 4, background: theme.surfaces.sunken, borderRadius: 8, padding: 4 }}>
-          {TIME_RANGES.map(tr => (
-            <button key={tr.value} onClick={() => setTimeRange(tr.value)} style={{
-              padding: '6px 14px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 13,
-              background: timeRange === tr.value ? theme.brand.blue : 'transparent',
-              color: timeRange === tr.value ? '#fff' : theme.text.secondary,
-              fontWeight: timeRange === tr.value ? 600 : 400,
-            }}>{tr.label}</button>
-          ))}
-        </div>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: theme.text.primary, margin: 0 }}>Command Center</h1>
+        {/* The time-range tabs that used to sit here did nothing: getQueryFn
+            only reads queryKey[0], so every range refetched the same all-time
+            stats. Removed rather than left as a control that lies. */}
+        <p style={{ fontSize: 13, color: theme.text.muted, margin: '4px 0 0' }}>Platform totals, live from the database</p>
       </div>
 
       {error && (

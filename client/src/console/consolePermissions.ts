@@ -31,11 +31,15 @@ export function consoleNav(role: string): ConsoleNavVisibility {
     users: hasMinLevel(role, 'support'),
     curriculum: hasMinLevel(role, 'support'),
     subscriptions: hasMinLevel(role, 'admin'),
-    coachingData: hasMinLevel(role, 'support'),
+    // Hidden, not deleted. CoachingData invents a "readiness" column with
+    // Math.random(); Analytics falls back to made-up weekly-signup and
+    // check-in series whenever the stats endpoint has nothing to give it.
+    // Both come back the moment they are wired to real queries.
+    coachingData: false,
     floChat: hasMinLevel(role, 'admin'),
     floBrain: hasMinLevel(role, 'admin'),
     floSports: hasMinLevel(role, 'admin'),
-    analytics: hasMinLevel(role, 'read_only'),
+    analytics: false, // see coachingData above
     dbExplorer: hasMinLevel(role, 'owner'),
     settings: hasMinLevel(role, 'admin'),
     support: hasMinLevel(role, 'support'),

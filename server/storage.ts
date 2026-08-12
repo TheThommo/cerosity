@@ -22,8 +22,8 @@ import {
   type Course, type CourseModule, type Lesson,
   type LessonProgress, type CourseCertificate
 } from "@shared/schema";
-import { hasFeatureAccess, isSubscriptionTier, FREE_CHAT_MESSAGE_LIMIT } from "@shared/entitlements";
-import { db } from "./db";
+import { hasFeatureAccess, isSubscriptionTier, FREE_CHAT_MESSAGE_LIMIT, TIER_PRICING } from "@shared/entitlements";
+import { db, pool } from "./db";
 import { eq, desc, sql, and, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -1695,13 +1695,28 @@ export class DatabaseStorage implements IStorage {
     const activeSubscriptions = premiumUsers + ultimateUsers;
     const newUsersThisMonth = regularUsers.filter(u => new Date(u.createdAt) >= monthStart).length;
     
-    // Calculate revenue from REAL paying users only (premium $490, ultimate $2190)
-    const monthlyRevenue = (premiumUsers * 490) + (ultimateUsers * 2190);
+    // Prices come from the entitlement config, never from literals here. The two
+    // that used to be inlined ($490/$2190) had also drifted from what the
+    // platform actually charges (CLAUDE.md Rule 1).
+    const monthlyRevenue = (premiumUsers * TIER_PRICING.premium.price) + (ultimateUsers * TIER_PRICING.ultimate.price);
     const totalRevenue = monthlyRevenue; // Simplified for now
-    
+
     // Calculate churn rate (simplified)
     const churnRate = 5; // Placeholder - would need historical data
-    
+
+    // Activity counters, straight out of the tables, in one round trip.
+    const { rows: [activity] } = await pool.query(`
+      SELECT
+        (SELECT COUNT(*)::int FROM chat_sessions) AS "totalChatSessions",
+        (SELECT COUNT(*)::int FROM chat_sessions WHERE updated_at >= CURRENT_DATE) AS "floChatsToday",
+        (SELECT COALESCE(ROUND(AVG(jsonb_array_length(messages))), 0)::int
+           FROM chat_sessions WHERE jsonb_typeof(messages) = 'array') AS "avgMessagesPerSession",
+        (SELECT COUNT(DISTINCT user_id)::int FROM chat_sessions
+           WHERE updated_at >= NOW() - INTERVAL '7 days') AS "activeChatters7d",
+        (SELECT COUNT(*)::int FROM assessments WHERE created_at >= CURRENT_DATE) AS "assessmentsToday",
+        (SELECT COUNT(*)::int FROM daily_check_ins WHERE created_at >= CURRENT_DATE) AS "dailyCheckIns"
+    `);
+
     return {
       totalUsers,
       activeSubscriptions,
@@ -1711,7 +1726,8 @@ export class DatabaseStorage implements IStorage {
       premiumUsers,
       ultimateUsers,
       newUsersThisMonth,
-      churnRate
+      churnRate,
+      ...activity,
     };
   }
 

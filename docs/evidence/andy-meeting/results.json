@@ -1,0 +1,41 @@
+{
+  "ranAt": "2026-08-12T11:44:54.233Z",
+  "base": "https://cerosity.com",
+  "commit": "4aa3b7b",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "results": [
+    {
+      "step": "Sarah signs in through the real form on a phone viewport",
+      "pass": true,
+      "detail": "landed on /learn as id=33 tier=ultimate role=student"
+    },
+    {
+      "step": "the whole curriculum is unlocked for her — 23 of 23",
+      "pass": true,
+      "detail": "23 of 23 unlocked, hasAccess=true"
+    },
+    {
+      "step": "she completes a lesson and it sticks on the server",
+      "pass": true,
+      "detail": "\"Welcome to Red2Blue\" in_progress -> completed; course 1/23"
+    },
+    {
+      "step": "FLO recalls what she told it before the reload",
+      "pass": true,
+      "detail": "looked for \"Rupert4931\" in: Rupert4931 — that's the latest. Three for three on caddie name recall, zero on what's actually both"
+    },
+    {
+      "step": "her document opens as a real PDF",
+      "pass": true,
+      "detail": "Master Your Moment by Cero Golf.pdf — HTTP 200 application/pdf"
+    },
+    {
+      "step": "the app is still installable — manifest is application/manifest+json",
+      "pass": true,
+      "detail": "HTTP 200 application/manifest+json"
+    }
+  ]
+}

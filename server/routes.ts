@@ -67,6 +67,7 @@ function pickAdminUserUpdates(body: any): { updates: Partial<User> } | { error: 
     updates.role = body.role;
   }
   if (body?.isSubscribed !== undefined) updates.isSubscribed = Boolean(body.isSubscribed);
+  if (body?.isActive !== undefined) updates.isActive = Boolean(body.isActive);
   if (typeof body?.firstName === 'string') updates.firstName = body.firstName;
   if (typeof body?.lastName === 'string') updates.lastName = body.lastName;
   // The /admin edit form has always been able to correct an email; keep it,
@@ -2565,6 +2566,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if ('error' in picked) return res.status(400).json({ message: picked.error });
       if (!Object.keys(picked.updates).length) {
         return res.status(400).json({ message: 'No updatable fields supplied' });
+      }
+
+      // Deactivating yourself locks you out of the console that undoes it,
+      // and only SQL gets you back in. Refuse.
+      if (picked.updates.isActive === false && userId === req.userId) {
+        return res.status(400).json({ message: 'You cannot deactivate your own account' });
       }
 
       const updatedUser = await storage.updateUser(userId, picked.updates);

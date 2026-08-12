@@ -11,6 +11,7 @@ interface AdminUser {
   role: string;
   subscriptionTier: string;
   isSubscribed?: boolean;
+  isActive?: boolean;
   floChatsUsed?: number;
   createdAt?: string;
   assessmentCount?: number;
@@ -70,6 +71,20 @@ function UserDrawer({ user, onClose, onSaved, theme }: { user: AdminUser; onClos
         role,
         isSubscribed: subscribed,
       });
+      return res.json();
+    },
+    onSuccess: (updated: AdminUser) => {
+      onSaved(updated);
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    },
+  });
+
+  // Turning an athlete off is a bigger deal than editing their tier, so it
+  // saves on its own rather than hiding inside "Save entitlement".
+  const active = user.isActive !== false;
+  const setActive = useMutation({
+    mutationFn: async (next: boolean) => {
+      const res = await apiRequest('PATCH', `/api/admin/users/${user.id}`, { isActive: next });
       return res.json();
     },
     onSuccess: (updated: AdminUser) => {
@@ -167,6 +182,30 @@ function UserDrawer({ user, onClose, onSaved, theme }: { user: AdminUser; onClos
         </button>
         {save.isError && <div style={{ color: theme.semantic.error, fontSize: 12, marginTop: 8 }}>{(save.error as Error).message}</div>}
         {save.isSuccess && !dirty && <div style={{ color: theme.semantic.success, fontSize: 12, marginTop: 8 }}>Saved</div>}
+      </div>
+
+      <div style={{ borderTop: `1px solid ${theme.border.default}`, paddingTop: 20, marginTop: 20 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: theme.text.muted, marginBottom: 12 }}>Account</div>
+        <p style={{ fontSize: 12, color: theme.text.muted, margin: '0 0 12px', lineHeight: 1.5 }}>
+          {active
+            ? 'Active — this athlete can sign in.'
+            : 'Deactivated — cannot sign in, and any open session is cut off. Their history is kept.'}
+        </p>
+        <button
+          onClick={() => setActive.mutate(!active)}
+          disabled={setActive.isPending}
+          data-testid="toggle-active"
+          style={{
+            width: '100%', padding: '9px 12px', borderRadius: 6,
+            border: `1px solid ${active ? theme.semantic.error : theme.semantic.success}`,
+            background: 'transparent',
+            color: active ? theme.semantic.error : theme.semantic.success,
+            fontSize: 13, fontWeight: 600, cursor: setActive.isPending ? 'default' : 'pointer',
+          }}
+        >
+          {setActive.isPending ? 'Saving...' : active ? 'Deactivate account' : 'Reactivate account'}
+        </button>
+        {setActive.isError && <div style={{ color: theme.semantic.error, fontSize: 12, marginTop: 8 }}>{(setActive.error as Error).message}</div>}
       </div>
 
       <div style={{ borderTop: `1px solid ${theme.border.default}`, paddingTop: 20, marginTop: 20 }}>
@@ -340,7 +379,17 @@ export default function Users() {
                   onMouseEnter={e => (e.currentTarget.style.background = theme.surfaces.sunken)}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                   <td style={{ ...tdStyle, color: theme.text.muted }}>#{u.id}</td>
-                  <td style={tdStyle}>{u.username}</td>
+                  <td style={tdStyle}>
+                    {u.username}
+                    {u.isActive === false && (
+                      <span style={{
+                        marginLeft: 8, padding: '2px 6px', borderRadius: 10, fontSize: 10, fontWeight: 700,
+                        color: theme.semantic.error, border: `1px solid ${theme.semantic.error}40`,
+                      }}>
+                        deactivated
+                      </span>
+                    )}
+                  </td>
                   <td style={tdStyle}>{u.email}</td>
                   <td style={tdStyle}>{u.role}</td>
                   <td style={tdStyle}><TierBadge tier={u.subscriptionTier || 'free'} theme={theme} /></td>

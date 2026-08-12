@@ -31,6 +31,9 @@ export const users = pgTable("users", {
   floSubscriptionStartDate: timestamp("flo_subscription_start_date"),
   floSubscriptionRenewalDate: timestamp("flo_subscription_renewal_date"),
   sport: text("sport").default("golf"), // primary sport context for coaching (e.g. "golf"); supports future multi-sport
+  // Soft deactivation: turning an athlete off keeps the person and their
+  // coaching history but stops them signing in. Deleting is still a last resort.
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

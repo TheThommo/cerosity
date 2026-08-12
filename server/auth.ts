@@ -107,6 +107,16 @@ export const requireAuth = withErrorLogging('auth', 'authentication check', asyn
       return res.status(401).json({ message: 'User not found' });
     }
 
+    // Deactivating has to cut off the sessions already open, otherwise turning
+    // an athlete off does nothing until their cookie happens to expire.
+    if (user.isActive === false) {
+      debugLogger.warning('auth', 'Session refused - account deactivated', {
+        userId: user.id,
+        path: req.path
+      });
+      return res.status(401).json({ message: 'This account has been deactivated. Contact Cerosity support.' });
+    }
+
     req.userId = user.id;
     req.user = user;
     debugLogger.success('auth', `User authenticated: ${user.email} (ID: ${user.id})`);
@@ -301,6 +311,14 @@ export async function loginUser(email: string, password: string) {
     throw new Error('Invalid email or password');
   }
 
+  // Deactivated accounts keep their history but cannot get back in. Said
+  // plainly rather than as "invalid password" so the athlete calls support
+  // instead of resetting a password that was never the problem.
+  if (user.isActive === false) {
+    console.log('Login refused — account deactivated:', user.username);
+    throw new Error('This account has been deactivated. Contact Cerosity support.');
+  }
+
   // Remove password from response
   const { password: _, ...userWithoutPassword } = user;
   console.log('Login successful for user:', userWithoutPassword.username);
@@ -367,7 +385,12 @@ export async function handleGoogleCallback(code: string, req: Request): Promise<
   let isNew = false;
 
   if (user) {
-    // Existing user — log them in
+    // Existing user — log them in, unless the account has been turned off.
+    // Google is a second front door; it has to honour the same lock.
+    if (user.isActive === false) {
+      debugLogger.warning('auth', `Google SSO refused - account deactivated: ${profile.email}`);
+      throw new Error('This account has been deactivated. Contact Cerosity support.');
+    }
     debugLogger.success('auth', `Google SSO login: ${profile.email}`);
   } else {
     // New user — create account

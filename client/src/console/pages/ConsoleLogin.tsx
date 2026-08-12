@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { ConsoleThemeProvider, useConsoleTheme } from '../ConsoleThemeProvider';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 function LoginForm() {
   const { theme } = useConsoleTheme();
@@ -22,6 +22,11 @@ function LoginForm() {
         setError('Access denied. HQ console requires admin or coach role.');
         return;
       }
+      // useAuth already cached the 401 from before sign-in, and nothing here
+      // refetches it, so navigating alone left the console redirecting straight
+      // back to this form until a hard reload. Seed the cache with the user we
+      // were just handed.
+      queryClient.setQueryData(['/api/auth/me'], user);
       navigate('/console');
     } catch (err: any) {
       setError(err.message || 'Login failed');

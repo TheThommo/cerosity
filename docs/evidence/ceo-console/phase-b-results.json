@@ -1,0 +1,61 @@
+{
+  "phase": "B",
+  "ranAt": "2026-08-12T05:53:51.212Z",
+  "app": "https://cerosity.com",
+  "hq": "https://hq.cerosity.com",
+  "athlete": "ceo-console-b-1786513998284@cerosity-test.invalid",
+  "passed": 10,
+  "total": 10,
+  "results": [
+    {
+      "step": "HQ login as admin",
+      "pass": true,
+      "detail": "landed on https://hq.cerosity.com/console"
+    },
+    {
+      "step": "curriculum summary returns real course totals",
+      "pass": true,
+      "detail": "Red2Blue Foundation: 23 lessons, 6 started, 0 completed, 0 certificates"
+    },
+    {
+      "step": "HQ provisions a granted athlete",
+      "pass": true,
+      "detail": "201, id=27, tier=ultimate"
+    },
+    {
+      "step": "new athlete starts at zero completed lessons",
+      "pass": true,
+      "detail": "0 of 23, 0%"
+    },
+    {
+      "step": "HQ Curriculum page renders the athlete at zero",
+      "pass": true,
+      "detail": "\"0 of 23 lessons · 0%\" (screenshot b01-hq-curriculum-zero.png)"
+    },
+    {
+      "step": "athlete completes one lesson",
+      "pass": true,
+      "detail": "lesson 1 \"Welcome to Red2Blue\" -> completed, course now 1/23"
+    },
+    {
+      "step": "admin curriculum endpoint shows the completion",
+      "pass": true,
+      "detail": "1 of 23 (4%), \"Welcome to Red2Blue\" completed at 2026-08-12T05:53:41.333Z"
+    },
+    {
+      "step": "HQ Curriculum page shows the completion",
+      "pass": true,
+      "detail": "\"0 of 23 lessons · 0%\" -> \"1 of 23 lessons · 4%\" (screenshot b02-hq-curriculum-one-complete.png)"
+    },
+    {
+      "step": "aggregate take-up counts move with the real row",
+      "pass": true,
+      "detail": "athletesStarted 6 -> 7, lessonsCompleted 2 -> 3"
+    },
+    {
+      "step": "curriculum endpoints reject an unauthenticated caller",
+      "pass": true,
+      "detail": "per-user 401, summary 401"
+    }
+  ]
+}

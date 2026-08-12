@@ -1249,3 +1249,49 @@ The run creates one athlete per execution at `ceo-console-<ts>@cerosity-test.inv
 A temporary admin (`hq-smoke-…@cerosity-test.invalid`) was created for this run
 because the smoke cannot use Mark's password; it was deleted afterwards. Both are
 removed in the cleanup below.
+
+---
+
+## CEO console B — LMS progress in HQ (2026-08-12)
+
+**PASS. 10/10 on production at SHA `c58bfcc`.**
+Evidence: `docs/evidence/ceo-console/phase-b-results.json` + screenshots `b01`–`b03`.
+Script: `docs/evidence/ceo-console/phase-b.mjs`.
+
+### What the CEO can now see
+
+A **Curriculum** item in HQ under People. Top of the page is course take-up;
+below it, pick any athlete and read their lesson-by-lesson state.
+
+| Check | Result |
+|---|---|
+| Summary returns real course totals | **PASS** — Red2Blue Foundation, 23 lessons, 6 athletes started |
+| HQ provisions a granted athlete | **PASS** — 201, ultimate |
+| New athlete starts at zero | **PASS** — 0 of 23, every lesson `not_started` |
+| Curriculum page renders that zero | **PASS** — "0 of 23 lessons · 0%" |
+| Athlete completes one lesson | **PASS** — lesson 1 "Welcome to Red2Blue" |
+| Admin endpoint shows the completion | **PASS** — 1 of 23 (4%), `completedAt` set |
+| Curriculum page shows the completion | **PASS** — "0 of 23 · 0%" → "1 of 23 · 4%" |
+| Aggregate counts move with the real row | **PASS** — started 6→7, lessons completed 2→3 |
+| Endpoints reject an anonymous caller | **PASS** — 401 on both |
+
+### Decisions worth knowing
+
+**Every number is a row count.** `GET /api/admin/curriculum/summary` is one SQL
+statement over `lesson_progress` joined to published `lessons`: athletes started
+is `COUNT(DISTINCT user_id)`, athletes completed is those whose completed-lesson
+count reaches the course total, certificates come from `course_certificates`.
+Nothing is estimated and nothing is seeded.
+
+**Zero is shown as zero.** Athletes-completed and certificates both read 0 today,
+because no athlete has finished all 23 lessons yet. That is the true number and
+it is what the console prints.
+
+**The per-athlete endpoint reuses the LMS storage layer**, not a second query
+path — `getPublishedCourses`, `getLessonsForCourse`, `getLessonProgressForUser`,
+`getCertificatesForUser` — so HQ can never disagree with what the athlete sees
+at `/learn`.
+
+### Commit
+
+`c58bfcc` admin curriculum endpoints + HQ Curriculum page.

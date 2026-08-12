@@ -211,7 +211,10 @@ export default function FloChat() {
               <div style={{ fontSize: 14, color: theme.text.primary }}>{selectedUser.email}</div>
             </div>
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, color: theme.text.muted, marginBottom: 4 }}>Total FLO Chats</div>
+              {/* floChatsUsed is the free-tier quota counter and only moves for
+                  free accounts, so labelling it "total chats" read as a
+                  contradiction next to a paid athlete's session list. */}
+              <div style={{ fontSize: 13, color: theme.text.muted, marginBottom: 4 }}>Free-quota chats used</div>
               <div style={{ fontSize: 28, fontWeight: 700, color: theme.text.primary }}>{selectedUser.floChatsUsed ?? 0}</div>
             </div>
             <div style={{ borderTop: `1px solid ${theme.border.default}`, paddingTop: 16, marginTop: 16 }}>

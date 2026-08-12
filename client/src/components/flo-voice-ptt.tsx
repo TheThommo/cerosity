@@ -177,7 +177,7 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
   if (!configReady) {
     return (
       <div className="relative group">
-        <button type="button" disabled className={cn("relative w-16 h-16 rounded-full flex items-center justify-center bg-slate-700 opacity-50 cursor-not-allowed")}>
+        <button type="button" disabled aria-label="Voice coaching unavailable" className={cn("relative w-16 h-16 rounded-full flex items-center justify-center bg-slate-700 opacity-50 cursor-not-allowed")}>
           <MicOff className="w-6 h-6 text-slate-400" />
         </button>
         <span className="absolute bottom-full right-0 mb-2 hidden group-hover:block text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded whitespace-nowrap">Voice unavailable</span>
@@ -192,6 +192,8 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
           type="button"
           onClick={toggleCall}
           disabled={callStatus === "connecting" || callStatus === "ending"}
+          // Icon-only, so without this the control announces as just "button".
+          aria-label={callStatus === "active" ? "End voice call with FLO" : "Talk to FLO"}
           className={cn(
             "relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300",
             "shadow-lg hover:shadow-xl transform hover:scale-105",

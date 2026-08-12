@@ -1,7 +1,7 @@
 {
-  "ranAt": "2026-08-12T12:08:14.592Z",
+  "ranAt": "2026-08-12T12:32:44.723Z",
   "base": "https://cerosity.com",
-  "commit": "b63c828",
+  "commit": "6f4b810",
   "viewport": {
     "width": 390,
     "height": 844
@@ -20,12 +20,12 @@
     {
       "step": "she completes a lesson and it sticks on the server",
       "pass": true,
-      "detail": "\"Performance Is Not All or Nothing\" not_started -> completed; course 2/23"
+      "detail": "\"The Performance Triangle\" not_started -> completed; course 3/23"
     },
     {
       "step": "FLO recalls what she told it before the reload",
       "pass": true,
-      "detail": "looked for \"Rupert9604\" in: Rupert9604 — the latest one. That's four rounds of caddie roulette. I'm happy to keep score, but it"
+      "detail": "looked for \"Rupert2822\" in: Rupert2822 — still the latest. That's five for five, coach. I'll keep the facts straight, but I'm mo"
     },
     {
       "step": "her document opens as a real PDF",

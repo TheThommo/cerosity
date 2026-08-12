@@ -257,12 +257,14 @@ export function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center justify-center min-h-[44px] py-3 px-2 transition-colors ${
+                className={`flex flex-col items-center justify-center min-w-0 min-h-[44px] py-3 px-1 transition-colors ${
                   isActive ? "text-blue-primary" : "text-gray-400 hover:text-gray-600"
                 }`}
               >
-                <item.icon size={20} className="mb-1" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <item.icon size={20} className="mb-1 shrink-0" />
+                <span className="w-full text-center text-[11px] leading-tight font-medium break-words">
+                  {item.label}
+                </span>
               </Link>
             );
           })}
@@ -271,12 +273,14 @@ export function Navigation() {
               most prominent route into FLO on a phone did nothing at all. */}
           <Link
             href="/flo"
-            className={`flex flex-col items-center justify-center min-h-[44px] py-3 px-2 transition-colors ${
+            className={`flex flex-col items-center justify-center min-w-0 min-h-[44px] py-3 px-1 transition-colors ${
               location === "/flo" ? "text-blue-primary" : "text-gray-400 hover:text-gray-600"
             }`}
           >
-            <MessageCircle size={20} className="mb-1" />
-            <span className="text-xs font-medium">Coach</span>
+            <MessageCircle size={20} className="mb-1 shrink-0" />
+            <span className="w-full text-center text-[11px] leading-tight font-medium break-words">
+              Coach
+            </span>
           </Link>
         </div>
       </div>

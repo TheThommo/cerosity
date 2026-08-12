@@ -587,7 +587,7 @@ export interface ChatLimitations {
   chatsUsed: number;
   hasAccess: boolean;
   canChat: boolean;
-  subscriptionStatus: "free" | "premium_included" | "ultimate_included" | "annual_renewal" | "expired";
+  subscriptionStatus: "free" | "unlimited" | "premium_included" | "ultimate_included" | "annual_renewal" | "expired";
   renewalDate?: Date;
 }
 

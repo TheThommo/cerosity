@@ -118,6 +118,13 @@ export const FEATURE_MIN_TIER: Record<FeatureKey, SubscriptionTier> = {
   humanCoaching: "ultimate",
 };
 
+/**
+ * Turns a free athlete gets on the signed-in FLO coach before upgrading.
+ * Distinct from the logged-out landing preview, which is gated per session in
+ * /api/landing-chat; this one counts for the lifetime of the free account.
+ */
+export const FREE_CHAT_MESSAGE_LIMIT = 5;
+
 const TIER_ORDER: Record<SubscriptionTier, number> = {
   free: 0,
   flo: 1,

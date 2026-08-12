@@ -22,6 +22,7 @@ import {
   type Course, type CourseModule, type Lesson,
   type LessonProgress, type CourseCertificate
 } from "@shared/schema";
+import { hasFeatureAccess, isSubscriptionTier, FREE_CHAT_MESSAGE_LIMIT } from "@shared/entitlements";
 import { db } from "./db";
 import { eq, desc, sql, and, asc, inArray } from "drizzle-orm";
 
@@ -1788,58 +1789,55 @@ export class DatabaseStorage implements IStorage {
   }
 
   // FLO Chat Limitation operations
+  /**
+   * Unlimited chat is an entitlement, decided by tier and role alone.
+   *
+   * It used to also require an active flo_subscriptions row or a
+   * subscription_start_date, and neither is ever written today — so every paid
+   * athlete on the platform fell through to the free allowance and hit a 403
+   * mid-conversation. Bookkeeping that was never backfilled must not be able to
+   * revoke access somebody paid for, so the entitlement table in
+   * shared/entitlements.ts is now the only thing consulted.
+   *
+   * The old "first year included, then expire back to the free limit" branch is
+   * deliberately gone: FEATURE_MIN_TIER.unlimitedChat already declares unlimited
+   * chat included from the flo tier upward, and an annual renewal policy that
+   * contradicts it belongs in that config, not in a storage method. No account
+   * in production relied on it — zero rows have a subscription_start_date.
+   */
   async getUserChatLimitations(userId: number): Promise<ChatLimitations> {
-    const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (!user[0]) {
+    const [userData] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!userData) {
       throw new Error("User not found");
     }
 
-    const userData = user[0];
     const chatsUsed = userData.floChatsUsed || 0;
-    
-    // Check subscription tier and FLO subscription status
-    const floSubscription = await this.getUserFloSubscription(userId);
-    const now = new Date();
+    const tier = isSubscriptionTier(userData.subscriptionTier) ? userData.subscriptionTier : "free";
 
-    // Determine subscription status and limits
-    let chatLimit = 5; // Default for free users
-    let hasAccess = true;
-    let subscriptionStatus: ChatLimitations['subscriptionStatus'] = "free";
-    let renewalDate: Date | undefined;
+    if (hasFeatureAccess(tier, userData.role, "unlimitedChat")) {
+      // Only meaningful for athletes on a renewing FLO subscription; the
+      // one-time tiers and staff have nothing to renew.
+      const floSubscription = await this.getUserFloSubscription(userId);
 
-    if (userData.subscriptionTier === "premium" || userData.subscriptionTier === "ultimate") {
-      // Check if they have an active FLO subscription
-      if (floSubscription && floSubscription.isActive && new Date(floSubscription.endDate) > now) {
-        chatLimit = -1; // Unlimited
-        subscriptionStatus = userData.subscriptionTier === "premium" ? "premium_included" : "ultimate_included";
-        renewalDate = floSubscription.endDate;
-      } else if (userData.subscriptionStartDate) {
-        // Check if they're in their first year (included FLO access)
-        const oneYearAfterSubscription = new Date(userData.subscriptionStartDate);
-        oneYearAfterSubscription.setFullYear(oneYearAfterSubscription.getFullYear() + 1);
-        
-        if (now < oneYearAfterSubscription) {
-          chatLimit = -1; // Unlimited for first year
-          subscriptionStatus = userData.subscriptionTier === "premium" ? "premium_included" : "ultimate_included";
-          renewalDate = oneYearAfterSubscription;
-        } else {
-          // First year has expired, need annual renewal
-          chatLimit = 5; // Back to free limit
-          subscriptionStatus = "expired";
-          hasAccess = chatsUsed < chatLimit;
-        }
-      }
+      return {
+        chatLimit: -1,
+        chatsUsed,
+        hasAccess: true,
+        canChat: true,
+        subscriptionStatus:
+          tier === "ultimate" ? "ultimate_included" :
+          tier === "premium" ? "premium_included" :
+          "unlimited",
+        renewalDate: floSubscription?.endDate ?? undefined,
+      };
     }
 
-    const canChat = chatLimit === -1 || chatsUsed < chatLimit;
-
     return {
-      chatLimit,
+      chatLimit: FREE_CHAT_MESSAGE_LIMIT,
       chatsUsed,
-      hasAccess,
-      canChat,
-      subscriptionStatus,
-      renewalDate
+      hasAccess: true,
+      canChat: chatsUsed < FREE_CHAT_MESSAGE_LIMIT,
+      subscriptionStatus: "free",
     };
   }
 

@@ -1,7 +1,7 @@
 {
-  "ranAt": "2026-08-12T12:28:25.517Z",
+  "ranAt": "2026-08-12T12:31:27.569Z",
   "base": "https://cerosity.com",
-  "commit": "320875c",
+  "commit": "6f4b810",
   "viewport": {
     "width": 390,
     "height": 844
@@ -13,14 +13,14 @@
       "detail": "HTTP 200 · browser landed on /learn"
     },
     {
-      "step": "deactivated: a deactivated athlete is refused, and told why",
-      "pass": true,
-      "detail": "HTTP 401 \"This account has been deactivated. Contact Cerosity support.\" · browser landed on /login · \"deactivated\" shown on screen: true"
-    },
-    {
       "step": "restored: an active athlete signs in",
       "pass": true,
       "detail": "HTTP 200 · browser landed on /learn"
+    },
+    {
+      "step": "deactivated: a deactivated athlete is refused, and told why",
+      "pass": true,
+      "detail": "HTTP 401 \"This account has been deactivated. Contact Cerosity support.\" · browser landed on /login · \"deactivated\" shown on screen: true"
     }
   ]
 }

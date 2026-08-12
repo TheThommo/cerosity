@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { useLocation } from 'wouter';
 import { ConsoleThemeProvider, useConsoleTheme } from '../ConsoleThemeProvider';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 
 function LoginForm() {
   const { theme } = useConsoleTheme();
-  const [, navigate] = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,12 +20,11 @@ function LoginForm() {
         setError('Access denied. HQ console requires admin or coach role.');
         return;
       }
-      // useAuth already cached the 401 from before sign-in, and nothing here
-      // refetches it, so navigating alone left the console redirecting straight
-      // back to this form until a hard reload. Seed the cache with the user we
-      // were just handed.
-      queryClient.setQueryData(['/api/auth/me'], user);
-      navigate('/console');
+      // Full page load, not a client-side navigate. useAuth has already cached
+      // the pre-sign-in 401, and a wouter navigate re-renders ConsoleRouter
+      // before that cache turns over — which redirected straight back to this
+      // form. Sign-out does the same thing for the same reason.
+      window.location.href = '/console';
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {

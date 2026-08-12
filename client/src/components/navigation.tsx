@@ -262,7 +262,7 @@ export function Navigation() {
                 }`}
               >
                 <item.icon size={20} className="mb-1 shrink-0" />
-                <span className="w-full text-center text-[11px] leading-tight font-medium break-words">
+                <span className="w-full text-center text-[10px] leading-tight font-medium">
                   {item.label}
                 </span>
               </Link>
@@ -278,7 +278,7 @@ export function Navigation() {
             }`}
           >
             <MessageCircle size={20} className="mb-1 shrink-0" />
-            <span className="w-full text-center text-[11px] leading-tight font-medium break-words">
+            <span className="w-full text-center text-[10px] leading-tight font-medium">
               Coach
             </span>
           </Link>

@@ -18,6 +18,7 @@ import Community from "@/pages/community";
 import CoachDashboard from "@/pages/coach-dashboard";
 import Profile from "@/pages/profile-new";
 import Learn from "@/pages/learn";
+import Flo from "@/pages/flo";
 import Lesson from "@/pages/lesson";
 import RecommendationsPage from "@/pages/recommendations";
 import Goals from "@/pages/goals";
@@ -138,6 +139,9 @@ function AppContent() {
               {/* Available to all authenticated users */}
               {/* Learning curriculum — visible to all tiers; free users see locked
                   lessons + free-preview teasers, content gating is enforced server-side */}
+              {/* FLO itself — every tier, since the chat limit is enforced
+                  server-side and a free athlete should still meet the coach */}
+              <Route path="/flo" component={Flo} />
               <Route path="/learn" component={Learn} />
               <Route path="/learn/lesson/:slug">
                 {(params) => <Lesson slug={params.slug} />}

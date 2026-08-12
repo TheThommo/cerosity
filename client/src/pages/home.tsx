@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { ResilienceGame } from "@/components/resilience-game";
 import { MoodIndicator } from "@/components/mood-indicator";
 import { StableChat } from "@/components/stable-chat";
+import { FloVoicePTT } from "@/components/flo-voice-ptt";
 import { MoodTracker } from "@/components/mood-tracker";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
@@ -418,6 +419,9 @@ export default function Home() {
       <div className="grid lg:grid-cols-2 gap-8 mt-8">
         {/* Flo Chat Interface */}
         <div>
+          <div className="mb-3">
+            <FloVoicePTT compact />
+          </div>
           <StableChat />
         </div>
 

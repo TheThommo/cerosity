@@ -245,14 +245,19 @@ export function Navigation() {
 
       {/* Mobile Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-40">
-        <div className="grid grid-cols-4 gap-1">
+        {/* Columns follow the item count: an admin sees six entries here, and a
+            fixed four-column grid wrapped them onto a second row. */}
+        <div
+          className="grid gap-1"
+          style={{ gridTemplateColumns: `repeat(${navItems.length + 1}, minmax(0, 1fr))` }}
+        >
           {navItems.map((item) => {
             const isActive = location === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center py-3 px-2 transition-colors ${
+                className={`flex flex-col items-center justify-center min-h-[44px] py-3 px-2 transition-colors ${
                   isActive ? "text-blue-primary" : "text-gray-400 hover:text-gray-600"
                 }`}
               >
@@ -261,12 +266,18 @@ export function Navigation() {
               </Link>
             );
           })}
-          
-          {/* AI Coach Quick Access */}
-          <button className="flex flex-col items-center py-3 px-2 text-gray-400 hover:text-gray-600 transition-colors">
+
+          {/* AI Coach Quick Access — this was a <button> with no handler, so the
+              most prominent route into FLO on a phone did nothing at all. */}
+          <Link
+            href="/flo"
+            className={`flex flex-col items-center justify-center min-h-[44px] py-3 px-2 transition-colors ${
+              location === "/flo" ? "text-blue-primary" : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
             <MessageCircle size={20} className="mb-1" />
             <span className="text-xs font-medium">Coach</span>
-          </button>
+          </Link>
         </div>
       </div>
     </>

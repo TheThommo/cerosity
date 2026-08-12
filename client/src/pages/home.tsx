@@ -49,9 +49,11 @@ export default function Home() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 lg:pb-8">
       {/* Welcome Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
+        {/* Stacks on a phone: side by side, the mood card forced the page to
+            666px wide, and the browser then scaled the whole app down to fit. */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               Welcome back, {user?.username}
             </h1>
             <p className="text-gray-600 mt-1">Ready to transform pressure into peak performance?</p>
@@ -66,18 +68,18 @@ export default function Home() {
       {user?.subscriptionTier === 'ultimate' && (
         <div className="mb-8">
           <Card className="bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-xl border-0">
-            <CardContent className="p-8">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-6 sm:p-8">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 shrink-0 bg-white/20 rounded-full flex items-center justify-center">
                     <Users className="text-white" size={32} />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold">Human Coaching Access</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold">Human Coaching Access</h2>
                     <p className="text-purple-100 mt-1">Connect with your certified AI performance coach</p>
                   </div>
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex flex-wrap gap-3">
                   <Link href="/human-coaching">
                     <Button className="bg-white text-purple-700 hover:bg-purple-50 font-semibold">
                       <Calendar className="mr-2" size={18} />

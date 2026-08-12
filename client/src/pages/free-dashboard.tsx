@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Brain, FileText, MessageCircle, Star, ArrowRight, Lock, TrendingUp, Calendar, CheckCircle, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { LandingChatStableV2 } from "@/components/landing-chat-stable-v2";
+import { FloVoicePTT } from "@/components/flo-voice-ptt";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -348,19 +349,19 @@ export default function FreeDashboard() {
               <div className="space-y-2">
                 <Button 
                   className="w-full bg-purple-600 hover:bg-purple-700 text-sm"
-                  onClick={() => window.open('/api/downloads/master-your-moment', '_blank')}
+                  onClick={() => window.open('/downloads/Master Your Moment by Cero Golf.pdf', '_blank')}
                 >
                   Download: Master Your Moment
                 </Button>
                 <Button 
                   className="w-full bg-purple-600 hover:bg-purple-700 text-sm"
-                  onClick={() => window.open('/api/downloads/ability-to-focus', '_blank')}
+                  onClick={() => window.open('/downloads/Ability to Focus - Book.pdf', '_blank')}
                 >
                   Download: Ability to Focus
                 </Button>
                 <Button 
                   className="w-full bg-purple-600 hover:bg-purple-700 text-sm"
-                  onClick={() => window.open('/api/downloads/mental-toughness', '_blank')}
+                  onClick={() => window.open('/downloads/Mental Toughness - Book.pdf', '_blank')}
                 >
                   Download: Mental Toughness
                 </Button>
@@ -508,6 +509,9 @@ export default function FreeDashboard() {
               >
                 ✕
               </Button>
+            </div>
+            <div className="px-4 pt-3">
+              <FloVoicePTT compact />
             </div>
             <div className="flex-1 min-h-0">
               <LandingChatStableV2 isInlineWidget={true} />

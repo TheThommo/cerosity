@@ -1,31 +1,65 @@
-import { Resend } from "resend";
+// Outbound transactional mail, via Postmark.
+//
+// Postmark's HTTP API is used directly rather than the SDK: one POST with three
+// headers is the whole integration, and it keeps a dependency out of the tree.
+//
+// Never log the reset URL. It carries the reset token, and a token in a log
+// file is a token anyone with log access can spend.
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const POSTMARK_ENDPOINT = "https://api.postmarkapp.com/email";
 const ADMIN_EMAIL = "mark.e.s.thompson@gmail.com";
 const FROM_EMAIL = "FLO <flo@cerosity.com>";
 
+/** Postmark separates transactional from bulk; coaching mail is transactional. */
+const MESSAGE_STREAM = process.env.POSTMARK_MESSAGE_STREAM || "outbound";
+
 /**
- * The Resend SDK resolves with `{ data, error }` — it does not throw on a
- * rejected send. Awaiting it inside a try/catch therefore proved nothing: an
- * unverified sending domain came back as a perfectly ordinary resolved promise,
- * and all three of these functions logged that the mail had gone out.
+ * The single place a message is handed to Postmark.
  *
- * Every send goes through here so that cannot happen again. Returns the Resend
- * message id, which is the only thing that actually evidences a send.
+ * Postmark signals failure two different ways and both have to be checked: a
+ * non-2xx status, and a 200 carrying a non-zero `ErrorCode`. Treating "the call
+ * returned" as "the mail was sent" is exactly how the previous provider hid an
+ * unverified sending domain behind a success log.
+ *
+ * Returns the Postmark MessageID, which is the only thing that evidences a send.
  */
 async function deliver(
   label: string,
-  payload: Parameters<typeof resend.emails.send>[0]
+  message: { to: string; subject: string; html: string }
 ): Promise<string> {
-  const { data, error } = await resend.emails.send(payload);
-
-  if (error) {
-    // Resend's own words. "The domain is not verified" is a different problem
-    // from a bad key or a rate limit, and the log is where that has to be legible.
-    throw new Error(`Resend rejected ${label}: ${error.name ?? "error"} — ${error.message}`);
+  const token = process.env.POSTMARK_SERVER_TOKEN;
+  if (!token) {
+    throw new Error(`POSTMARK_SERVER_TOKEN is not set — ${label} was not sent`);
   }
 
-  return data?.id ?? "(accepted, no id returned)";
+  const response = await fetch(POSTMARK_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "X-Postmark-Server-Token": token,
+    },
+    body: JSON.stringify({
+      From: FROM_EMAIL,
+      To: message.to,
+      Subject: message.subject,
+      HtmlBody: message.html,
+      MessageStream: MESSAGE_STREAM,
+    }),
+  });
+
+  const body: any = await response.json().catch(() => ({}));
+
+  if (!response.ok || (body?.ErrorCode ?? 0) !== 0) {
+    // Postmark's own words. "Signature not confirmed" is a different problem
+    // from a bad token or a rate limit, and the log is where that has to be
+    // legible enough to act on without guessing.
+    throw new Error(
+      `Postmark rejected ${label}: HTTP ${response.status} ErrorCode ${body?.ErrorCode ?? "?"} — ${body?.Message ?? "no message returned"}`
+    );
+  }
+
+  return body?.MessageID ?? "(accepted, no id returned)";
 }
 
 export async function sendLeadRegistrationEmail(lead: {
@@ -35,7 +69,6 @@ export async function sendLeadRegistrationEmail(lead: {
 }) {
   try {
     const id = await deliver("the registration email", {
-      from: FROM_EMAIL,
       to: lead.email,
       subject: "Welcome to Cerosity — Your Red2Blue Journey Starts Here",
       html: `
@@ -56,7 +89,7 @@ export async function sendLeadRegistrationEmail(lead: {
         </div>
       `,
     });
-    console.log(`[EMAIL] Registration email accepted by Resend for ${lead.email} (id ${id})`);
+    console.log(`[EMAIL] Registration email accepted by Postmark for ${lead.email} (id ${id})`);
   } catch (error: any) {
     console.error(`[EMAIL] Registration email NOT sent to ${lead.email}: ${error?.message || error}`);
   }
@@ -71,7 +104,6 @@ export async function sendLeadRegistrationEmail(lead: {
  */
 export async function sendPasswordResetEmail(to: string, resetUrl: string, firstName?: string | null) {
   const id = await deliver("the password reset email", {
-    from: FROM_EMAIL,
     to,
     subject: "Reset your Cerosity password",
     html: `
@@ -92,9 +124,8 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string, first
       </div>
     `,
   });
-  // Recipient and message id only — the URL carries the reset token, and a
-  // token in a log file is a token anyone with log access can spend.
-  console.log(`[EMAIL] Password reset accepted by Resend for ${to} (id ${id})`);
+  // Recipient and message id only — never the URL, which carries the token.
+  console.log(`[EMAIL] Password reset accepted by Postmark for ${to} (id ${id})`);
 }
 
 export async function sendAdminLeadNotification(lead: {
@@ -106,7 +137,6 @@ export async function sendAdminLeadNotification(lead: {
 }) {
   try {
     const id = await deliver("the admin lead notification", {
-      from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject: `New Cerosity Lead: ${lead.name || lead.email} (${lead.source})`,
       html: `
@@ -123,7 +153,7 @@ export async function sendAdminLeadNotification(lead: {
         </div>
       `,
     });
-    console.log(`[EMAIL] Admin notification accepted by Resend for ${lead.email} (id ${id})`);
+    console.log(`[EMAIL] Admin notification accepted by Postmark for ${lead.email} (id ${id})`);
   } catch (error: any) {
     console.error(`[EMAIL] Admin notification NOT sent for ${lead.email}: ${error?.message || error}`);
   }

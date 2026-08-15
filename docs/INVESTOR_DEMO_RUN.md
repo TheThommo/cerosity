@@ -1634,3 +1634,73 @@ machine is unauthorised — so the rejection reason is proven at its source (the
 that exact string into the log, rather than by quoting the log itself.
 
 To see it: Railway → deploy logs → grep `[AUTH] forgot-password failed`.
+
+---
+
+# Outbound email: Resend → Postmark
+
+Ran 2026-08-15. Resend was hitting limits, so transactional mail moved to
+Postmark. `server/email.ts` is the only module that sends mail, so this is the
+whole swap.
+
+## What changed
+
+Postmark's HTTP API is called directly with `fetch` rather than through the SDK
+— one POST with three headers is the entire integration, and it keeps a
+dependency out of the tree. **`resend` is removed from `package.json`**; there is
+no dead provider code and no lingering `RESEND_API_KEY` requirement.
+
+All three senders (password reset, lead welcome, admin lead notification) go
+through one `deliver()` helper.
+
+**Postmark signals failure two ways and both are checked**: a non-2xx status,
+and a 200 carrying a non-zero `ErrorCode`. Only checking the status is a
+variation of the bug that hid Resend's unverified domain behind a success log —
+so the helper throws unless `response.ok && ErrorCode === 0`, and the thrown
+message quotes Postmark's own `ErrorCode` and `Message`.
+
+Logs record the recipient and the returned `MessageID` only. **The reset URL is
+never logged** — it carries the token, and a token in a log file is a token
+anyone with log access can spend. `forgot-password`'s reply to the athlete is
+unchanged: one generic sentence, so it stays useless for enumeration.
+
+`FROM` stays `FLO <flo@cerosity.com>`.
+
+## Railway variables
+
+| Variable | Required | Notes |
+|---|---|---|
+| `POSTMARK_SERVER_TOKEN` | **yes** | Postmark → your Server → **API Tokens** → Server API token. Not the Account token. Never commit it |
+| `POSTMARK_MESSAGE_STREAM` | no | Defaults to `outbound`, Postmark's transactional stream. Only set it if you create a custom stream |
+| `RESEND_API_KEY` | no longer used | Safe to delete once this is deployed |
+
+## Mark's Postmark steps
+
+1. **Sender Signatures → Domains → Add Domain → `cerosity.com`.**
+2. Publish the DKIM `TXT` record and the Return-Path `CNAME` that Postmark
+   shows, in the DNS for `cerosity.com`.
+3. Back in Postmark, **Verify**. DKIM must read *Verified* before
+   `flo@cerosity.com` can send.
+4. Copy the **Server API token** into Railway as `POSTMARK_SERVER_TOKEN`.
+
+Until steps 3 and 4 are both done, mail will not go out — but it now fails
+*loudly*. Railway will show one of:
+
+```
+[AUTH] forgot-password failed for <email>: POSTMARK_SERVER_TOKEN is not set
+  — the password reset email was not sent
+[AUTH] forgot-password failed for <email>: Postmark rejected the password reset
+  email: HTTP 422 ErrorCode 400 — <Postmark's message>
+```
+
+and on success:
+
+```
+[EMAIL] Password reset accepted by Postmark for <email> (id <MessageID>)
+```
+
+## Google SSO
+
+Already removed from both sign-in surfaces earlier today (`aa4fdce`) and
+re-confirmed on this deploy: zero Google buttons or links on `/login` and
+`/signup`, server routes untouched and still answering 501.

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield } from "lucide-react";
 import { CerosityLogo } from "@/components/cerosity-logo";
+import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@shared/auth-rules";
 
 interface StableSignUpFormProps {
   onBack: () => void;
@@ -36,6 +37,12 @@ export function StableSignUpForm({ onBack, isPaidUser = false }: StableSignUpFor
     try {
       if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
         setError("Please fill in all required fields");
+        setIsLoading(false);
+        return;
+      }
+
+      if (formData.password.length < MIN_PASSWORD_LENGTH) {
+        setError(passwordTooShortMessage);
         setIsLoading(false);
         return;
       }

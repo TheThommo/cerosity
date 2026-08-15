@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FloChat } from "@/components/flo-chat";
 import { Footer } from "@/components/footer";
 import { StableSignUpForm } from "@/components/stable-signup-form";
+import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@shared/auth-rules";
 import { CerosityLogo } from "@/components/cerosity-logo";
 import Checkout from "./checkout";
 
@@ -763,6 +764,17 @@ function SignUpFormFields({ onBack }: { onBack: () => void }) {
       e.preventDefault();
       console.log('Form submission started');
       
+      // Same minimum the API enforces, so the form fails fast instead of
+      // bouncing off a 400.
+      if (formData.password.length < MIN_PASSWORD_LENGTH) {
+        toast({
+          title: "Password Too Short",
+          description: passwordTooShortMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Validate passwords match
       if (formData.password !== formData.confirmPassword) {
         toast({

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSchema, insertPreShotRoutineSchema, insertMentalSkillsXCheckSchema, insertControlCircleSchema, insertDailyMoodSchema, insertUserGoalSchema, type User } from "@shared/schema";
 import { hasFeatureAccess, isSubscriptionTier, tierAmountInCents, TIER_PRICING, type SubscriptionTier } from "@shared/entitlements";
+import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@shared/auth-rules";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback, hashPassword, verifyPassword } from "./auth";
 import { sendLeadRegistrationEmail, sendAdminLeadNotification, sendPasswordResetEmail } from "./email";
@@ -61,8 +62,44 @@ function hashResetToken(token: string): string {
 
 /** Long enough that a stolen link is the realistic attack, not a guessed one. */
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
-const MIN_PASSWORD_LENGTH = 8;
 const APP_BASE_URL = process.env.APP_BASE_URL || 'https://cerosity.com';
+
+/**
+ * Throttle for forgot-password. Unthrottled it is a mail cannon: anyone can
+ * point it at a known address and send that person a reset email as fast as a
+ * loop runs.
+ *
+ * In memory, and therefore per process. Railway runs a single instance today so
+ * this holds; if that ever becomes two, each gets its own allowance and the
+ * effective limit doubles. That is the trade for not adding Redis to an MVP.
+ *
+ * The email key is normalised so casing cannot buy extra attempts, and req.ip is
+ * the real client address because trust proxy is set further down.
+ */
+const FORGOT_WINDOW_MS = 15 * 60 * 1000;
+const FORGOT_MAX_PER_EMAIL = 5;
+const FORGOT_MAX_PER_IP = 20;
+const forgotAttempts = new Map<string, number[]>();
+
+/** Records this attempt and reports whether the caller has now gone over. */
+function forgotOverLimit(key: string, max: number): boolean {
+  const now = Date.now();
+  const recent = (forgotAttempts.get(key) ?? []).filter((at) => now - at < FORGOT_WINDOW_MS);
+  recent.push(now);
+  forgotAttempts.set(key, recent);
+
+  // Keys come from the request, so the map cannot be allowed to grow without
+  // bound. Anything with nothing left inside the window is dead weight.
+  // forEach rather than for..of: this tsconfig's target predates downlevel Map
+  // iteration, and a prune loop is not worth changing the build target over.
+  if (forgotAttempts.size > 5000) {
+    forgotAttempts.forEach((times, seen) => {
+      if (!times.some((at) => now - at < FORGOT_WINDOW_MS)) forgotAttempts.delete(seen);
+    });
+  }
+
+  return recent.length > max;
+}
 
 /**
  * The only fields HQ may write to a user. Anything else in the body is dropped —
@@ -267,6 +304,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       message: "If that email has a Cerosity account, a reset link is on its way.",
     };
 
+    // Both counters are recorded before either is judged, so a burst against one
+    // address still counts towards the address's own allowance and the caller's.
+    const overEmailLimit = email
+      ? forgotOverLimit(`email:${email.toLowerCase()}`, FORGOT_MAX_PER_EMAIL)
+      : false;
+    const overIpLimit = forgotOverLimit(`ip:${req.ip}`, FORGOT_MAX_PER_IP);
+
+    if (overEmailLimit || overIpLimit) {
+      // Same body as the happy path. Saying "too many requests" here would tell
+      // an attacker their guesses are landing on a real address.
+      console.warn(
+        `[AUTH] forgot-password throttled — ${overEmailLimit ? "email" : "ip"} limit, ${email || "(no email)"} from ${req.ip}`
+      );
+      return res.json(sameAnswerEitherWay);
+    }
+
     try {
       if (email.includes("@")) {
         const user = await storage.getUserByEmail(email);
@@ -308,7 +361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
         return res
           .status(400)
-          .json({ message: `Choose a password of at least ${MIN_PASSWORD_LENGTH} characters.` });
+          .json({ message: passwordTooShortMessage });
       }
 
       const user = await storage.getUserByPasswordResetTokenHash(hashResetToken(token));
@@ -356,7 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (newPassword.length < MIN_PASSWORD_LENGTH) {
         return res
           .status(400)
-          .json({ message: `Choose a password of at least ${MIN_PASSWORD_LENGTH} characters.` });
+          .json({ message: passwordTooShortMessage });
       }
 
       // Re-read rather than trusting the session copy: it carries no hash.
@@ -2679,7 +2732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // password back in this response. It is hashed on the way in and never
       // logged, so this response is the only place it exists in clear text.
       const supplied = typeof body.password === 'string' ? body.password : '';
-      const tempPassword = supplied.length >= 8 ? null : randomBytes(9).toString('base64url');
+      const tempPassword = supplied.length >= MIN_PASSWORD_LENGTH ? null : randomBytes(9).toString('base64url');
       const username = typeof body.username === 'string' && body.username.trim()
         ? body.username.trim()
         : await uniqueUsernameFromEmail(email);

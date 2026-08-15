@@ -4,6 +4,7 @@ import session from 'express-session';
 import connectPg from 'connect-pg-simple';
 import { Request, Response, NextFunction } from 'express';
 import { storage } from './storage';
+import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from '@shared/auth-rules';
 import { generateAIProfile } from './openai';
 import { debugLogger, withErrorLogging } from './debug';
 
@@ -236,6 +237,14 @@ export async function registerUser(userData: {
   // creates a free account; entitlement is granted by payment, never by the
   // client asking for it (audit A3).
 }) {
+  // Registration had no minimum at all, so an athlete could sign up with a
+  // password the change-password endpoint would then refuse. Thrown rather than
+  // returned: the register route already turns a throw into a 400 carrying this
+  // sentence, and both callers reach it.
+  if (typeof userData.password !== 'string' || userData.password.length < MIN_PASSWORD_LENGTH) {
+    throw new Error(passwordTooShortMessage);
+  }
+
   // Check if user already exists by username or email
   const existingUserByUsername = await storage.getUserByUsername(userData.username);
   if (existingUserByUsername) {

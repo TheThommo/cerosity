@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { CerosityLogo } from "@/components/cerosity-logo";
-
-const MIN_PASSWORD_LENGTH = 8;
+import { MIN_PASSWORD_LENGTH } from "@shared/auth-rules";
 
 /**
  * Choosing a new password from an emailed link.

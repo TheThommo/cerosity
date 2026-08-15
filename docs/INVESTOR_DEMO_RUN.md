@@ -1560,3 +1560,77 @@ Andy is user id 2, `andrew.hurt5@gmail.com`. **Nobody hand-set his password.**
 4. **Rate-limit `forgot-password`.** It is unthrottled — cheap to abuse as a
    mail cannon at a known address.
 5. **D1 — rotate the Gemini key.** Untouched again.
+
+---
+
+# Google SSO removed, Resend failures made real
+
+Ran 2026-08-15. Ship SHA **`aa4fdce`**. Smoke **9/9** on prod, 390x844.
+
+## Why reset mail never arrived
+
+The Resend SDK resolves with `{ data, error }` — it does not throw. All three
+senders in `server/email.ts` awaited it inside a `try/catch` and then logged
+success, so a rejected send and a delivered one produced identical logs. The
+password reset wrote its token, logged `[EMAIL] Password reset sent`, and
+nothing left the building.
+
+Confirmed against the Resend API, sending from `flo@cerosity.com`:
+
+```
+403 validation_error
+"The cerosity.com domain is not verified.
+ Please, add and verify your domain on https://resend.com/domains"
+```
+
+Every send now goes through one `deliver()` helper that inspects `error` and
+throws with Resend's own message. Logs carry the recipient and the returned
+message id only — never the reset URL, because a token in a log file is a token
+anyone with log access can spend. `forgot-password`'s reply to the athlete is
+unchanged: one generic sentence, so it stays useless for enumeration.
+
+**FROM stays `FLO <flo@cerosity.com>`.** Cerosity mail is not going out under
+another brand's address; the fix is verifying the domain.
+
+### The one step only Mark can do
+
+**Resend → Domains → add `cerosity.com` → publish the DNS records → verify.**
+Until then every Cerosity email fails, including the lead-capture mail that has
+been failing silently since it was written. Afterwards, `[AUTH] forgot-password
+failed` stops appearing in Railway and `[EMAIL] Password reset accepted by
+Resend for … (id …)` takes its place.
+
+## Google SSO
+
+OAuth was never configured, so `/api/auth/google` answers 501 — and the button
+sat *above* the email form on the sign-in card, reading as the primary way in.
+Removed from both the sign-in card and the sign-up form, along with the
+"or sign in with email" dividers. **Server routes untouched**: setting the two
+Railway variables is still all it would take to bring it back.
+
+## Smoke — 9/9 at `aa4fdce`
+
+| Check | Result |
+|---|---|
+| Sign-in: no Google control | **PASS** — 0 buttons, 0 links |
+| Sign-in: no "with Google" text | **PASS** |
+| Sign-in: no divider | **PASS** |
+| Sign-up: no Google control | **PASS** — 0 buttons, 0 links |
+| Sign-up: no "with Google" text | **PASS** |
+| Sign-up: no divider | **PASS** |
+| Sign-in keeps email form + Forgot password? | **PASS** — 1 password input, 1 link |
+| Server Google route still present, still 501 | **PASS** — `{"message":"Google SSO not configured"}` |
+| forgot-password still generic | **PASS** — 200, same sentence |
+
+Script: `docs/evidence/sso-and-email/google-removed-smoke.mjs`.
+
+## Delivery proof — what was and wasn't shown
+
+Triggered `forgot-password` at 07:59:43Z for an active test account. The token
+was written (60-minute expiry), the send was attempted, and the rejection is now
+logged. **I could not read the Railway log line back** — the Railway CLI on this
+machine is unauthorised — so the rejection reason is proven at its source (the
+403 above, from the Resend API directly) and by the code path that now carries
+that exact string into the log, rather than by quoting the log itself.
+
+To see it: Railway → deploy logs → grep `[AUTH] forgot-password failed`.

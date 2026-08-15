@@ -1440,3 +1440,123 @@ phone, readable here. Admin only: the athlete gets a 403 on this route.
   to a free account — the gate is not a blurred div.
 - **Nothing on that screen is faked.** Where a number could not be made real, the
   control was removed rather than filled with a placeholder.
+
+---
+
+# Auth recovery + foundations verify
+
+Ran 2026-08-15, unattended. Production, phone viewport 390x844.
+Ship SHA **`8888032`** (recovery) then **`e0b21ac`** (model helper).
+Auth recovery smoke **19/19**.
+
+## Part A — what was missing
+
+There was no way back into an account. No reset route, no reset-token
+columns, no "Forgot password?" anywhere, no change-password screen. The only
+recovery was someone editing the database by hand — and the admin PATCH
+allowlist (correctly) refuses to write a password, so even that was blocked.
+
+| Piece | Where |
+|---|---|
+| Migration `add_password_reset_fields` | Applied via the Supabase migration API, recorded in `migrations/0001_…` (drizzle push **not** used) |
+| `POST /api/auth/forgot-password` | One sentence for every input; token issued only for active accounts |
+| `POST /api/auth/reset-password` | Single-use, 60-minute token; bcrypt via `hashPassword` |
+| `POST /api/auth/change-password` | Auth required, current password required |
+| "Forgot password?" | Both landing sign-in forms |
+| `/forgot-password`, `/reset-password` | New public pages (recovery must work signed out) |
+| Change password | New card on `/profile` |
+
+### Design decisions
+
+**The token is never stored.** Only its SHA-256 digest goes in
+`password_reset_token_hash`, so a leaked database cannot be replayed into a
+reset. The digest and expiry are cleared in the same write that changes the
+password, which is what makes a link single-use.
+
+**forgot-password answers identically no matter what** — unknown address,
+deactivated account, Resend throwing. Anything that varied would turn the
+endpoint into a way of asking who has a Cerosity account. Failures go to the
+server log instead, which is the only place they are visible.
+
+**Deactivated athletes are skipped silently.** Login refuses them anyway, so a
+reset would only hand them a password that still cannot get them in.
+
+**An 8-character minimum applies to reset and change only.** Registration has
+never had one; adding it there would have changed an existing flow, so it is
+listed below as a recommendation rather than done quietly.
+
+## Part A — smoke, 19/19 at `8888032`
+
+| Check | Result |
+|---|---|
+| Identical answer for real vs unknown address | **PASS** — both 200, same sentence |
+| No leak on malformed input | **PASS** — same sentence |
+| "Forgot password?" on sign-in | **PASS** |
+| Confirmation reveals nothing | **PASS** — "Check your email" either way |
+| Password under 8 chars refused | **PASS** — 400 |
+| Never-issued token refused | **PASS** — 400 |
+| Expired token refused | **PASS** — 400 |
+| Emailed link sets a new password | **PASS** |
+| Same link cannot be used twice | **PASS** — 400 |
+| New password signs in | **PASS** — 200 |
+| Old password dead | **PASS** — 401 |
+| `/api/auth/me` carries no password or reset secrets | **PASS** — no matching keys |
+| change-password without current password | **PASS** — 400 |
+| change-password with current password | **PASS** — 200 |
+| change-password signed out | **PASS** — 401 |
+| Changed password signs in | **PASS** — 200 |
+| Admin PATCH drops a password field | **PASS** — 200, no password key |
+| Password an admin tried to set does not work | **PASS** — 401 |
+| Athlete's real password untouched by admin write | **PASS** — 200 |
+
+Script: `docs/evidence/auth-recovery/auth-recovery-smoke.mjs`.
+
+**The one leg not proven: delivery.** A script cannot read the athlete's inbox,
+so `SMOKE_RESET_TOKEN` stands in for the emailed link — the digest is staged on
+the row exactly as `forgot-password` writes it. Issuance is proven directly: a
+real request wrote a 64-hex SHA-256 digest with a 60-minute expiry. Whether
+Resend actually delivered is **not proven, and is at risk** — see below.
+
+## Part B — foundations
+
+| # | Claim | Verdict | Evidence |
+|---|---|---|---|
+| 1 | Postgres/Supabase, zero Airtable | **CONFIRMED** | `server/db.ts` is `pg` `Pool` + drizzle `node-postgres` on `DATABASE_URL`. `grep -rli airtable` over `server/ client/src shared/` returns nothing; no Airtable dependency in `package.json`. Nothing to migrate — there was never an Airtable |
+| 2 | Anthropic Claude primary, Gemini fallback, models from env | **CONFIRMED** | Prod health: `llmProvider: anthropic`, `llmModel: claude-sonnet-5`. `server/llm.ts` is the single site; `anthropicModel()` reads `ANTHROPIC_MODEL`/`FLO_MODEL`, `geminiModel()` reads `GEMINI_MODEL`; `primaryProvider()` prefers Anthropic whenever a key exists. One drift found and fixed (`e0b21ac`) |
+| 3 | Cerosity brain, VAPI as STT/TTS only, mobile voice wired | **CONFIRMED** | `server/vapi.ts` uses provider `custom-llm` and sends a model-only reconcile payload — no voice/transcriber overwrite. `FloVoicePTT` mounts on `/flo`, home, free-dashboard and the landing chat; `/api/public-config` serves a live VAPI public key and assistant id |
+
+### The one drift fixed in Part B
+
+`server/gemini.ts` had three call sites carrying their own
+`process.env.GEMINI_MODEL || "gemini-1.5-flash"`. Env-driven, so configurable,
+but the inline fallback had drifted a version behind `llm.ts`
+(`gemini-2.0-flash`) — the fallback path would quietly run a different model
+from the one the platform reports. They now call `geminiModel()`.
+
+## Andy's recovery path
+
+Andy is user id 2, `andrew.hurt5@gmail.com`. **Nobody hand-set his password.**
+
+1. **Reset email** — `cerosity.com/login` → "Forgot password?" → his address.
+   Link lasts 60 minutes and works once. *Subject to the Resend risk below.*
+2. **Google SSO** — his account email is a Gmail and the callback matches
+   existing users by email, so he would land straight in his own account. It
+   returns **501 Not configured** today: `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET` are unset on Railway. The button already exists in
+   the UI; setting those two variables lights it up.
+
+## For Mark
+
+1. **Verify `cerosity.com` in the Resend account Railway's key belongs to.**
+   The Resend key on file has only `buddees.ai` verified and shows zero
+   `cerosity.com` sends. If Railway holds that same key, every Cerosity email —
+   password resets *and* the existing lead-capture mail — is being rejected and
+   swallowed by the catch. Send a reset to yourself; if nothing arrives, that is
+   the cause.
+2. **Set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`** to give every athlete a
+   second way in that does not depend on email at all.
+3. **Consider a minimum password length at registration.** Reset and change
+   enforce 8; signup still accepts anything.
+4. **Rate-limit `forgot-password`.** It is unthrottled — cheap to abuse as a
+   mail cannon at a known address.
+5. **D1 — rotate the Gemini key.** Untouched again.

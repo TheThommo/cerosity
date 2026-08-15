@@ -1,0 +1,106 @@
+{
+  "ranAt": "2026-08-15T06:48:33.411Z",
+  "base": "https://cerosity.com",
+  "commit": "8888032",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "results": [
+    {
+      "step": "reset refuses a password under 8 characters",
+      "pass": true,
+      "detail": "HTTP 400 · Choose a password of at least 8 characters."
+    },
+    {
+      "step": "reset refuses a token that was never issued",
+      "pass": true,
+      "detail": "HTTP 400 · That reset link has expired or has already been used. Request a new one."
+    },
+    {
+      "step": "reset refuses a token past its 60-minute window",
+      "pass": true,
+      "detail": "HTTP 400 · That reset link has expired or has already been used. Request a new one."
+    },
+    {
+      "step": "the emailed link sets a new password",
+      "pass": true,
+      "detail": "reset page confirms"
+    },
+    {
+      "step": "the same link cannot be used twice",
+      "pass": true,
+      "detail": "HTTP 400 · That reset link has expired or has already been used. Request a new one."
+    },
+    {
+      "step": "the new password signs in",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "step": "the session payload carries no password or reset secrets",
+      "pass": true,
+      "detail": "password-ish keys in /api/auth/me: none"
+    },
+    {
+      "step": "the old password no longer works",
+      "pass": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "step": "change-password refuses without the current password",
+      "pass": true,
+      "detail": "HTTP 400 · That isn't your current password."
+    },
+    {
+      "step": "change-password accepts the current password",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "step": "change-password rejects a signed-out caller",
+      "pass": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "step": "the changed password signs in",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "step": "admin PATCH silently drops a password field",
+      "pass": true,
+      "detail": "HTTP 200, response has no password key"
+    },
+    {
+      "step": "the password an admin tried to set does not work",
+      "pass": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "step": "the athlete's real password is untouched by the admin write",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "step": "forgot-password answers identically for a real and an unknown address",
+      "pass": true,
+      "detail": "both HTTP 200 · \"If that email has a Cerosity account, a reset link is on its way.\""
+    },
+    {
+      "step": "forgot-password does not leak on malformed input either",
+      "pass": true,
+      "detail": "HTTP 200, same sentence"
+    },
+    {
+      "step": "sign-in form offers Forgot password?",
+      "pass": true,
+      "detail": "link present on /login"
+    },
+    {
+      "step": "requesting a link lands on a confirmation that reveals nothing",
+      "pass": true,
+      "detail": "shows 'Check your email' regardless of whether the account exists"
+    }
+  ]
+}

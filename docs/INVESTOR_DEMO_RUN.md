@@ -1704,3 +1704,42 @@ and on success:
 Already removed from both sign-in surfaces earlier today (`aa4fdce`) and
 re-confirmed on this deploy: zero Google buttons or links on `/login` and
 `/signup`, server routes untouched and still answering 501.
+
+---
+
+# Auth polish + test-user cleanup
+
+Ran 2026-08-15 unattended. Ship SHA `22c4e8f`. Full evidence:
+`docs/evidence/auth-polish/README.md`.
+
+## Rate limit on forgot-password
+
+| Scope | Limit | Window |
+|---|---|---|
+| Per normalised email | 5 | 15 min |
+| Per IP | 20 | 15 min |
+
+Over the limit the endpoint returns the **same generic body** as a normal
+request — "too many requests" would tell an attacker their guess landed on a
+real address — and only the server log records it (`[AUTH] forgot-password
+throttled`). Counters are in memory and therefore per process: Railway runs one
+instance, so these are the real limits; a second would double them.
+
+Proven at the database, since the response deliberately gives nothing away: a
+request past the limit left the reset digest and expiry byte-identical, meaning
+it never reached the token write.
+
+## Signup password minimum
+
+Registration had no minimum, so an athlete could sign up with three characters
+and then be refused that password when changing it. The minimum was a bare `8`
+in four places; it now lives once in `shared/auth-rules.ts`, is enforced in
+`registerUser` (both the public and admin create paths go through it), and both
+signup forms check it so the form fails fast instead of bouncing off a 400.
+
+## Test users removed
+
+Hard-deleted ids **34, 35** (auth-recovery fixtures) and **36** (this run's smoke
+fixture) — all `@cerosity-test.invalid`, all with zero child rows. Mark (1),
+Andy (2) and Sarah demo (33) untouched; those three are now the only rows in
+`users`.

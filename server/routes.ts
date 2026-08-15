@@ -7,8 +7,8 @@ import { storage } from "./storage";
 import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSchema, insertPreShotRoutineSchema, insertMentalSkillsXCheckSchema, insertControlCircleSchema, insertDailyMoodSchema, insertUserGoalSchema, type User } from "@shared/schema";
 import { hasFeatureAccess, isSubscriptionTier, tierAmountInCents, TIER_PRICING, type SubscriptionTier } from "@shared/entitlements";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
-import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback } from "./auth";
-import { sendLeadRegistrationEmail, sendAdminLeadNotification } from "./email";
+import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback, hashPassword, verifyPassword } from "./auth";
+import { sendLeadRegistrationEmail, sendAdminLeadNotification, sendPasswordResetEmail } from "./email";
 import { buildFloPrompt, buildLandingSalesDirective, clearBrainDocsCache, clearSportContextCache } from "./flo-prompt";
 import { formatAthleteContextForPrompt } from "./flo-athlete-context";
 import { applyAthleteFacts } from "./flo-memory";
@@ -18,7 +18,7 @@ import { debugLogger, withErrorLogging } from "./debug";
 import { handleVapiWebhook } from "./vapi";
 import multer from "multer";
 import * as pdfParse from "pdf-parse";
-import { randomBytes } from "crypto";
+import { randomBytes, createHash } from "crypto";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
@@ -40,11 +40,29 @@ debugLogger.success('stripe', 'Stripe initialized successfully');
 /** Roles HQ may assign. Console roles are derived from these (appRoleToConsoleRole). */
 const ADMIN_ASSIGNABLE_ROLES = ['student', 'coach', 'admin'];
 
-/** The admin user APIs return whole rows; the bcrypt hash is not theirs to hand out. */
-function stripPassword<T extends { password?: string }>(user: T): Omit<T, 'password'> {
-  const { password, ...rest } = user;
+/**
+ * The admin user APIs return whole rows; the bcrypt hash is not theirs to hand
+ * out, and neither is the password-reset digest — anyone holding that could
+ * finish a reset the athlete started and take the account.
+ */
+function stripPassword<T extends {
+  password?: string;
+  passwordResetTokenHash?: string | null;
+  passwordResetExpiresAt?: Date | null;
+}>(user: T): Omit<T, 'password' | 'passwordResetTokenHash' | 'passwordResetExpiresAt'> {
+  const { password, passwordResetTokenHash, passwordResetExpiresAt, ...rest } = user;
   return rest;
 }
+
+/** Reset tokens live in the athlete's inbox; the database only ever sees this. */
+function hashResetToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+/** Long enough that a stolen link is the realistic attack, not a guessed one. */
+const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
+const MIN_PASSWORD_LENGTH = 8;
+const APP_BASE_URL = process.env.APP_BASE_URL || 'https://cerosity.com';
 
 /**
  * The only fields HQ may write to a user. Anything else in the body is dropped —
@@ -187,9 +205,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           // Remove password from response
-          const { password, ...userWithoutPassword } = user;
-          console.log('User registered successfully:', userWithoutPassword.id);
-          res.json(userWithoutPassword);
+          const safeUser = stripPassword(user);
+          console.log('User registered successfully:', safeUser.id);
+          res.json(safeUser);
         });
       });
     } catch (error: any) {
@@ -234,6 +252,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ message: "Logged out successfully" });
     });
+  });
+
+  // ── Password recovery ─────────────────────────────────────────────
+
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    const email = typeof req.body?.email === "string" ? req.body.email.trim() : "";
+
+    // One answer for every input, whatever happens below. Anything that varies
+    // with whether the address exists turns this endpoint into a way of asking
+    // "does this person have a Cerosity account?" — including how long it takes,
+    // which is why the send is not awaited differently on either branch.
+    const sameAnswerEitherWay = {
+      message: "If that email has a Cerosity account, a reset link is on its way.",
+    };
+
+    try {
+      if (email.includes("@")) {
+        const user = await storage.getUserByEmail(email);
+
+        // A deactivated athlete is refused at login, so a reset would only hand
+        // them a password that still cannot get them in. Silent on purpose.
+        if (user && user.isActive !== false) {
+          const token = randomBytes(32).toString("hex");
+          await storage.updateUser(user.id, {
+            passwordResetTokenHash: hashResetToken(token),
+            passwordResetExpiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
+          });
+          await sendPasswordResetEmail(
+            user.email,
+            `${APP_BASE_URL}/reset-password?token=${token}`,
+            user.firstName
+          );
+        }
+      }
+    } catch (error) {
+      // The athlete is told the same thing regardless, so this log is the only
+      // place a broken Resend key or database write becomes visible.
+      console.error("[AUTH] forgot-password failed for", email, error);
+    }
+
+    res.json(sameAnswerEitherWay);
+  });
+
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, password } = req.body ?? {};
+
+      if (typeof token !== "string" || !token) {
+        return res.status(400).json({ message: "Reset token is required" });
+      }
+      if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
+        return res
+          .status(400)
+          .json({ message: `Choose a password of at least ${MIN_PASSWORD_LENGTH} characters.` });
+      }
+
+      const user = await storage.getUserByPasswordResetTokenHash(hashResetToken(token));
+      const expiresAt = user?.passwordResetExpiresAt;
+
+      // Expired, already spent, or never real — all the same sentence, so a
+      // guessed token learns nothing from the wording.
+      if (!user || !expiresAt || new Date(expiresAt).getTime() < Date.now()) {
+        return res.status(400).json({
+          message: "That reset link has expired or has already been used. Request a new one.",
+        });
+      }
+
+      if (user.isActive === false) {
+        return res
+          .status(403)
+          .json({ message: "This account has been deactivated. Contact Cerosity support." });
+      }
+
+      // Single use: the token is spent in the same write that changes the
+      // password, so a replay of the same link finds nothing to match.
+      await storage.updateUser(user.id, {
+        password: await hashPassword(password),
+        passwordResetTokenHash: null,
+        passwordResetExpiresAt: null,
+      });
+
+      console.log("[AUTH] password reset completed for user", user.id);
+      res.json({ message: "Password updated. You can sign in with it now." });
+    } catch (error) {
+      console.error("[AUTH] reset-password failed:", error);
+      res.status(500).json({ message: "Could not reset the password. Try again." });
+    }
+  });
+
+  app.post("/api/auth/change-password", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body ?? {};
+
+      if (typeof currentPassword !== "string" || typeof newPassword !== "string") {
+        return res
+          .status(400)
+          .json({ message: "Both your current and new password are required." });
+      }
+      if (newPassword.length < MIN_PASSWORD_LENGTH) {
+        return res
+          .status(400)
+          .json({ message: `Choose a password of at least ${MIN_PASSWORD_LENGTH} characters.` });
+      }
+
+      // Re-read rather than trusting the session copy: it carries no hash.
+      const user = await storage.getUser(req.user!.id);
+      if (!user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      if (!(await verifyPassword(currentPassword, user.password))) {
+        return res.status(400).json({ message: "That isn't your current password." });
+      }
+
+      // Any reset in flight is cancelled — if somebody else requested one, the
+      // athlete changing their password should invalidate it.
+      await storage.updateUser(user.id, {
+        password: await hashPassword(newPassword),
+        passwordResetTokenHash: null,
+        passwordResetExpiresAt: null,
+      });
+
+      console.log("[AUTH] password changed for user", user.id);
+      res.json({ message: "Password updated." });
+    } catch (error) {
+      console.error("[AUTH] change-password failed:", error);
+      res.status(500).json({ message: "Could not change the password. Try again." });
+    }
   });
 
   // Google OAuth — initiate
@@ -287,9 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "This account has been deactivated. Contact Cerosity support." });
       }
 
-      // Remove password from response
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      res.json(stripPassword(user));
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }
@@ -439,9 +583,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = updatedUser;
-      res.json(userWithoutPassword);
+      res.json(stripPassword(updatedUser));
     } catch (error) {
       res.status(500).json({ message: "Failed to update profile", error: (error as Error).message });
     }
@@ -2776,10 +2918,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastActivity: chatSessions.length > 0 ? chatSessions[0].updatedAt : null
       };
 
-      const { password, ...userWithoutPassword } = user;
-      
       const userDetails = {
-        user: userWithoutPassword,
+        user: stripPassword(user),
         recentMoods: moods.slice(0, 10),
         latestAssessment: assessments[0] || null,
         assessmentCount: assessments.length,

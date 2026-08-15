@@ -120,6 +120,7 @@ export interface IStorage {
   deleteUserGoal(id: number): Promise<void>;
 
   // FLO Chat Limitation operations
+  getUserByPasswordResetTokenHash(tokenHash: string): Promise<User | undefined>;
   getUserChatLimitations(userId: number): Promise<ChatLimitations>;
   incrementUserChatCount(userId: number): Promise<void>;
   createFloSubscription(subscription: InsertFloSubscription): Promise<FloSubscription>;
@@ -1259,6 +1260,19 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  /**
+   * Looked up by digest, never by the token itself — the raw token exists only
+   * in the athlete's inbox. Expiry and single-use are enforced by the caller,
+   * which clears both columns as soon as a token is spent.
+   */
+  async getUserByPasswordResetTokenHash(tokenHash: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.passwordResetTokenHash, tokenHash));
     return user || undefined;
   }
 

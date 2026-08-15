@@ -38,6 +38,39 @@ export async function sendLeadRegistrationEmail(lead: {
   }
 }
 
+/**
+ * Password reset link. Unlike the lead emails this one rethrows: the caller
+ * still answers the athlete with the same generic message either way, so the
+ * endpoint cannot be used to discover which addresses have accounts — but a
+ * send failure has to reach the logs, or a reset that never arrived looks
+ * identical to one that was never requested.
+ */
+export async function sendPasswordResetEmail(to: string, resetUrl: string, firstName?: string | null) {
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "Reset your Cerosity password",
+    html: `
+      <div style="font-family: -apple-system, sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b;">
+        <div style="background: linear-gradient(135deg, #2563eb, #4f46e5); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">Reset your password</h1>
+        </div>
+        <div style="padding: 32px; background: #f8fafc; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px;">
+          <p>Hey${firstName ? ` ${firstName}` : ''},</p>
+          <p>Someone asked to reset the password on your Cerosity account. Tap below to choose a new one.</p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${resetUrl}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Choose a new password</a>
+          </div>
+          <p style="color: #64748b; font-size: 14px;">This link works once and expires in 60 minutes.</p>
+          <p style="color: #64748b; font-size: 14px;">If you didn't ask for this, you can ignore this email — your password stays as it is.</p>
+          <p style="color: #94a3b8; font-size: 12px; word-break: break-all;">If the button doesn't work, paste this into your browser:<br>${resetUrl}</p>
+        </div>
+      </div>
+    `,
+  });
+  console.log(`[EMAIL] Password reset sent to ${to}`);
+}
+
 export async function sendAdminLeadNotification(lead: {
   name?: string | null;
   email: string;

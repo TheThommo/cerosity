@@ -319,10 +319,16 @@ export async function loginUser(email: string, password: string) {
     throw new Error('This account has been deactivated. Contact Cerosity support.');
   }
 
-  // Remove password from response
-  const { password: _, ...userWithoutPassword } = user;
-  console.log('Login successful for user:', userWithoutPassword.username);
-  return userWithoutPassword;
+  // Never leaves the server: the bcrypt hash, and the reset digest — the one
+  // secret that could be replayed into taking the account over.
+  const {
+    password: _,
+    passwordResetTokenHash: __,
+    passwordResetExpiresAt: ___,
+    ...userWithoutSecrets
+  } = user;
+  console.log('Login successful for user:', userWithoutSecrets.username);
+  return userWithoutSecrets;
 }
 
 // ── Google OAuth ──────────────────────────────────────────────────

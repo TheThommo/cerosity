@@ -21,6 +21,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { ChangePasswordCard } from "@/components/change-password-card";
 import type { UserGoal } from "@shared/schema";
 
 const goalFormSchema = z.object({
@@ -790,6 +791,8 @@ export default function Profile() {
             </div>
           </CardContent>
         </Card>
+
+        <ChangePasswordCard />
       </div>
     </div>
   );

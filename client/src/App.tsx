@@ -19,6 +19,8 @@ import CoachDashboard from "@/pages/coach-dashboard";
 import Profile from "@/pages/profile-new";
 import Learn from "@/pages/learn";
 import Flo from "@/pages/flo";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 import Lesson from "@/pages/lesson";
 import RecommendationsPage from "@/pages/recommendations";
 import Goals from "@/pages/goals";
@@ -79,6 +81,9 @@ function AppContent() {
               straight onto the relevant form (audit A5) */}
           <Route path="/login">{() => <Landing initialView="signin" />}</Route>
           <Route path="/signup">{() => <Landing initialView="signup" />}</Route>
+          {/* Recovery has to be reachable signed out — that is the whole point */}
+          <Route path="/forgot-password" component={ForgotPassword} />
+          <Route path="/reset-password" component={ResetPassword} />
           {/* Legal pages - accessible to everyone */}
           <Route path="/privacy-policy" component={PrivacyPolicy} />
           <Route path="/terms-of-service" component={TermsOfService} />

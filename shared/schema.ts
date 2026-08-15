@@ -34,6 +34,11 @@ export const users = pgTable("users", {
   // Soft deactivation: turning an athlete off keeps the person and their
   // coaching history but stops them signing in. Deleting is still a last resort.
   isActive: boolean("is_active").notNull().default(true),
+  // Password recovery. Only a SHA-256 digest of the emailed token is kept, so a
+  // leaked database cannot be turned into a password reset. Both columns are
+  // cleared the moment a token is spent.
+  passwordResetTokenHash: text("password_reset_token_hash"),
+  passwordResetExpiresAt: timestamp("password_reset_expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

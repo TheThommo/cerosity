@@ -288,8 +288,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       // The athlete is told the same thing regardless, so this log is the only
-      // place a broken Resend key or database write becomes visible.
-      console.error("[AUTH] forgot-password failed for", email, error);
+      // place a rejected send or a broken database write becomes visible. The
+      // message, not the object: this is what someone greps Railway for.
+      console.error(
+        `[AUTH] forgot-password failed for ${email}: ${(error as Error)?.message || error}`
+      );
     }
 
     res.json(sameAnswerEitherWay);

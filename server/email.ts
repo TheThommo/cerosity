@@ -4,13 +4,37 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_EMAIL = "mark.e.s.thompson@gmail.com";
 const FROM_EMAIL = "FLO <flo@cerosity.com>";
 
+/**
+ * The Resend SDK resolves with `{ data, error }` — it does not throw on a
+ * rejected send. Awaiting it inside a try/catch therefore proved nothing: an
+ * unverified sending domain came back as a perfectly ordinary resolved promise,
+ * and all three of these functions logged that the mail had gone out.
+ *
+ * Every send goes through here so that cannot happen again. Returns the Resend
+ * message id, which is the only thing that actually evidences a send.
+ */
+async function deliver(
+  label: string,
+  payload: Parameters<typeof resend.emails.send>[0]
+): Promise<string> {
+  const { data, error } = await resend.emails.send(payload);
+
+  if (error) {
+    // Resend's own words. "The domain is not verified" is a different problem
+    // from a bad key or a rate limit, and the log is where that has to be legible.
+    throw new Error(`Resend rejected ${label}: ${error.name ?? "error"} — ${error.message}`);
+  }
+
+  return data?.id ?? "(accepted, no id returned)";
+}
+
 export async function sendLeadRegistrationEmail(lead: {
   name?: string | null;
   email: string;
   source: string;
 }) {
   try {
-    await resend.emails.send({
+    const id = await deliver("the registration email", {
       from: FROM_EMAIL,
       to: lead.email,
       subject: "Welcome to Cerosity — Your Red2Blue Journey Starts Here",
@@ -32,9 +56,9 @@ export async function sendLeadRegistrationEmail(lead: {
         </div>
       `,
     });
-    console.log(`[EMAIL] Registration email sent to ${lead.email}`);
-  } catch (error) {
-    console.error(`[EMAIL] Failed to send registration email:`, error);
+    console.log(`[EMAIL] Registration email accepted by Resend for ${lead.email} (id ${id})`);
+  } catch (error: any) {
+    console.error(`[EMAIL] Registration email NOT sent to ${lead.email}: ${error?.message || error}`);
   }
 }
 
@@ -46,7 +70,7 @@ export async function sendLeadRegistrationEmail(lead: {
  * identical to one that was never requested.
  */
 export async function sendPasswordResetEmail(to: string, resetUrl: string, firstName?: string | null) {
-  await resend.emails.send({
+  const id = await deliver("the password reset email", {
     from: FROM_EMAIL,
     to,
     subject: "Reset your Cerosity password",
@@ -68,7 +92,9 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string, first
       </div>
     `,
   });
-  console.log(`[EMAIL] Password reset sent to ${to}`);
+  // Recipient and message id only — the URL carries the reset token, and a
+  // token in a log file is a token anyone with log access can spend.
+  console.log(`[EMAIL] Password reset accepted by Resend for ${to} (id ${id})`);
 }
 
 export async function sendAdminLeadNotification(lead: {
@@ -79,7 +105,7 @@ export async function sendAdminLeadNotification(lead: {
   businessName?: string | null;
 }) {
   try {
-    await resend.emails.send({
+    const id = await deliver("the admin lead notification", {
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       subject: `New Cerosity Lead: ${lead.name || lead.email} (${lead.source})`,
@@ -97,8 +123,8 @@ export async function sendAdminLeadNotification(lead: {
         </div>
       `,
     });
-    console.log(`[EMAIL] Admin notification sent for ${lead.email}`);
-  } catch (error) {
-    console.error(`[EMAIL] Failed to send admin notification:`, error);
+    console.log(`[EMAIL] Admin notification accepted by Resend for ${lead.email} (id ${id})`);
+  } catch (error: any) {
+    console.error(`[EMAIL] Admin notification NOT sent for ${lead.email}: ${error?.message || error}`);
   }
 }

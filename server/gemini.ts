@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { generateCoachingText, type LlmTurn } from "./llm";
+import { generateCoachingText, geminiModel, type LlmTurn } from "./llm";
 
 if (!process.env.GEMINI_API_KEY) {
   console.warn("[GEMINI] GEMINI_API_KEY not set — FLO chat will not work");
@@ -285,7 +285,7 @@ As Flo, the Red2Blue coach, provide analysis in JSON format with:
 Focus on practical, ${sport}-specific insights and simple language.`;
 
     const model = genAI.getGenerativeModel({ 
-      model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
+      model: geminiModel(),
       generationConfig: {
         maxOutputTokens: 800,
         temperature: 0.6,
@@ -350,7 +350,7 @@ Experience Level: ${sportExperience}
 
 Provide a comprehensive but concise profile highlighting their mental game strengths, areas for development, and personalized Red2Blue techniques that would be most effective for them.`;
 
-    const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: geminiModel() });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     
@@ -377,7 +377,7 @@ Available Practice Time: ${availableTime}
 
 Provide a structured plan with daily practices, weekly goals, and specific Red2Blue techniques to address their challenges. Use ${sport}-appropriate examples (e.g. ${sport === "golf" ? "pre-shot routine, course management" : "pre-performance routine"}). Format as JSON with daily_practices, weekly_goals, and monthly_milestones.`;
 
-    const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: geminiModel() });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();

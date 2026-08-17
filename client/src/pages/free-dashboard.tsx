@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
+import { TIER_PRICING } from "@shared/entitlements";
 
 export default function FreeDashboard() {
   const { user } = useAuth();
@@ -58,10 +59,11 @@ export default function FreeDashboard() {
   const handleUpgrade = async (tier: 'premium' | 'ultimate') => {
     setIsUpgrading(true);
     try {
-      const amount = tier === 'premium' ? 490 : 2190;
+      // No `amount` in the body. The server prices from TIER_PRICING and has
+      // deliberately ignored a client-supplied amount since audit A3/A6, so the
+      // stale 490/2190 sent here was misleading at best.
       const response = await apiRequest("POST", "/api/create-checkout-session", {
         tier,
-        amount,
         success_url: `${window.location.origin}/dashboard?upgrade=success&tier=${tier}`,
         cancel_url: `${window.location.origin}/dashboard?upgrade=cancelled`
       });
@@ -420,7 +422,11 @@ export default function FreeDashboard() {
               <div className="text-center">
                 <div className="bg-white rounded-lg p-6 shadow-lg border-2 border-blue-200">
                   <h4 className="text-xl font-bold text-gray-900 mb-2">Premium Access</h4>
-                  <div className="text-3xl font-bold text-blue-600 mb-2">$490</div>
+                  {/* From TIER_PRICING, not a literal. These cards read $490 and
+                      $2190 while the button beside them started a checkout for
+                      $590 and $2290 — the athlete was quoted one price and
+                      charged another on the same click. */}
+                  <div className="text-3xl font-bold text-blue-600 mb-2">${TIER_PRICING.premium.price}</div>
                   <p className="text-sm text-gray-500 mb-4">One-time payment • Lifetime access</p>
                   <Button 
                     className="w-full bg-blue-600 hover:bg-blue-700 mb-3"
@@ -443,7 +449,7 @@ export default function FreeDashboard() {
                     <Badge className="bg-purple-600">Human Coaching</Badge>
                   </div>
                   <h4 className="text-xl font-bold text-gray-900 mb-2 mt-2">Ultimate Access</h4>
-                  <div className="text-3xl font-bold text-purple-600 mb-2">$2190</div>
+                  <div className="text-3xl font-bold text-purple-600 mb-2">${TIER_PRICING.ultimate.price}</div>
                   <p className="text-sm text-gray-500 mb-3">One-time payment • Lifetime access</p>
                   <div className="bg-purple-50 p-3 rounded-lg mb-4">
                     <p className="text-xs font-medium text-purple-800 mb-2">Everything in Premium plus:</p>

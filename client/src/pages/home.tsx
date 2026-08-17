@@ -168,7 +168,8 @@ export default function Home() {
                       breathing techniques, focus strategies, or any mental game challenges you're facing.
                       {user?.subscriptionTier === 'ultimate' && (
                         <span className="block mt-2 text-purple-700 font-medium">
-                          💜 As an Ultimate member, I can also coordinate with your human coach to provide combined AI + human support!
+                          💜 As an Ultimate member you also have a human Red2Blue coach — send them a
+                          message or ask for a progress review from the Human Coaching page.
                         </span>
                       )}
                     </p>

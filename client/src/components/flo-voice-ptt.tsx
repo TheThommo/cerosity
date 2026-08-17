@@ -126,7 +126,20 @@ export function FloVoicePTT({ compact = false }: { compact?: boolean }) {
     }
     setCallStatus("connecting");
     try {
-      await vapiRef.current.start(VAPI_ASSISTANT_ID);
+      // Ask the server to vouch for who is calling. It only answers for a
+      // signed-in athlete, and the token is what lets the custom-LLM bridge
+      // attach their history to this call. Anonymous callers simply get no
+      // token and are coached without memory — never a reason to block a call.
+      let voiceToken: string | undefined;
+      try {
+        const res = await fetch("/api/flo/voice-token", { credentials: "include" });
+        if (res.ok) voiceToken = (await res.json()).token;
+      } catch { /* best-effort: proceed without memory */ }
+
+      await vapiRef.current.start(
+        VAPI_ASSISTANT_ID,
+        voiceToken ? { metadata: { voiceToken } } : undefined
+      );
     } catch (err: any) {
       console.error("[FLO-VOICE] Start error:", err);
       setCallStatus("idle");

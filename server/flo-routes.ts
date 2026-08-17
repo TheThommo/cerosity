@@ -11,7 +11,9 @@ import type { Express, Request, Response } from "express";
 import { buildFloPrompt } from "./flo-prompt";
 import { getCoachingResponse } from "./gemini";
 import { reconcileFloVapiAssistant, getVapiAssistant, getLastReconcileResult, FLO_VAPI_ASSISTANT_ID } from "./vapi";
-import { requireAuth, requireAdmin } from "./auth";
+import { requireAuth, requireAdmin, type AuthRequest } from "./auth";
+import { buildAthleteMemoryPack, buildReturningAthleteDirective } from "./flo-athlete-context";
+import { issueVoiceIdentityToken, verifyVoiceIdentityToken } from "./flo-voice-identity";
 
 function contentToText(content: any): string {
   if (typeof content === "string") return content;
@@ -56,13 +58,31 @@ export function registerFloVoiceRoutes(app: Express) {
         parts: [{ text: contentToText(m.content) }],
       }));
 
-      const sport =
-        body?.call?.metadata?.sport ||
-        body?.metadata?.sport ||
-        body?.call?.assistantOverrides?.metadata?.sport ||
-        "general";
+      const metadata =
+        body?.call?.metadata ||
+        body?.metadata ||
+        body?.call?.assistantOverrides?.metadata ||
+        {};
 
-      const systemPrompt = await buildFloPrompt({ forVoice: true, sport });
+      // The athlete is whoever the signed token proves — never whoever the
+      // payload claims. A missing or bad token means an anonymous call, which
+      // still gets coached, just without anyone's history attached to it.
+      const userId = verifyVoiceIdentityToken(metadata?.voiceToken);
+
+      const memory = userId ? await buildAthleteMemoryPack(userId) : null;
+      const sport = metadata?.sport || "general";
+
+      const systemPrompt = await buildFloPrompt({
+        forVoice: true,
+        sport,
+        athleteContext: memory?.context || undefined,
+        openerDirective: memory ? buildReturningAthleteDirective(memory) || undefined : undefined,
+      });
+
+      // Identity and section headings only — never the athlete's own words.
+      console.log(
+        `[VAPI-LLM] turn user=${userId ?? "anonymous"} memory=${memory?.context ? "attached" : "none"}`
+      );
       const coaching = await getCoachingResponse(latestUser || "", history, {
         sport,
         systemPromptOverride: systemPrompt,
@@ -128,6 +148,20 @@ export function registerFloVoiceRoutes(app: Express) {
         });
       }
       try { res.end(); } catch { /* noop */ }
+    }
+  });
+
+  // ── Voice identity ────────────────────────────────────────────────
+  // Minted only for an athlete who is already signed in here. The client hands
+  // it to VAPI as call metadata and the bridge above is its only consumer, so a
+  // spoken session can be tied to a real person without the bridge ever having
+  // to take the caller's word for who they are. Deliberately not logged.
+  app.get("/api/flo/voice-token", requireAuth, (req: AuthRequest, res: Response) => {
+    try {
+      res.json(issueVoiceIdentityToken(req.user!.id));
+    } catch {
+      // Signing is unavailable. Voice still works — it just won't remember them.
+      res.status(503).json({ message: "Voice identity unavailable" });
     }
   });
 

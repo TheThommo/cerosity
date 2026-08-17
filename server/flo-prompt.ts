@@ -113,6 +113,8 @@ export type BuildFloPromptOpts = {
   salesDirective?: string;
   assessmentContext?: string;
   athleteContext?: string;
+  /** Set when the athlete is returning after a silence — see buildReturningAthleteDirective. */
+  openerDirective?: string;
   forChatApi?: boolean;
   forLanding?: boolean;
   forVoice?: boolean;
@@ -125,6 +127,13 @@ const VOICE_MODE_RULES = `VOICE MODE — this is a live spoken call:
 - Say numbers the way you'd speak them (for example "seven thirty", "two hundred dollars").
 - Never say "as an AI" or mention being a model, app, or assistant. You are FLO.
 - Match the athlete's energy. No humour during a crisis or when someone sounds upset.
+
+ATTUNEMENT — how you sound matters as much as what you say:
+- Acknowledge the feeling before you coach it. "That sounds heavy" comes before any technique.
+- Ask one question, then stop. Silence is part of a conversation; do not fill it.
+- Use their words back to them. Never relabel what they feel in clinical terms.
+- Warmth is not softness. You still hold them to account — you just do it like someone who cares whether they're alright.
+- Never flat, never a script. If a reply could have been said to any athlete, it is the wrong reply.
 - If someone mentions self-harm or being in crisis, calmly point them to crisis support and a human coach straight away.`;
 
 export function buildLandingSalesDirective(messageCount: number): string {
@@ -195,6 +204,12 @@ export async function buildFloPrompt(opts: BuildFloPromptOpts): Promise<string> 
 
   if (opts.assessmentContext) {
     layers.push("", `ASSESSMENT DATA: ${opts.assessmentContext}`);
+  }
+
+  // Sits after the athlete's history so the opener can draw on it, and applies
+  // to voice and text alike — the gap is the athlete's, not the modality's.
+  if (opts.openerDirective) {
+    layers.push("", opts.openerDirective);
   }
 
   if (opts.salesDirective) {

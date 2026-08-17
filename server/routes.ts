@@ -12,7 +12,7 @@ import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdm
 import { sendLeadRegistrationEmail, sendAdminLeadNotification, sendPasswordResetEmail, sendCoachingRequestEmail } from "./email";
 import { PRIMARY_HUMAN_COACH } from "@shared/human-coach";
 import { buildFloPrompt, buildLandingSalesDirective, clearBrainDocsCache, clearSportContextCache } from "./flo-prompt";
-import { formatAthleteContextForPrompt } from "./flo-athlete-context";
+import { buildAthleteMemoryPack, buildReturningAthleteDirective } from "./flo-athlete-context";
 import { applyAthleteFacts } from "./flo-memory";
 import { primaryProvider, anthropicModel, geminiModel } from "./llm";
 import { recommendationEngine } from "./recommendationEngine";
@@ -2282,23 +2282,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const user = await storage.getUser(userId);
-      const latestAssessment = await storage.getLatestAssessment(userId);
       const sport = user?.sport ?? "golf";
 
-      const athleteProfile = await storage.getAthleteProfile(userId);
-      const goals = await storage.getUserGoals(userId);
-      const athleteContext = user ? formatAthleteContextForPrompt(user, athleteProfile, goals) : "";
-
-      let assessmentContext = "";
-      if (latestAssessment) {
-        assessmentContext = `Latest X-Check: Intensity ${latestAssessment.intensityScore ?? 0}/100, Decision Making ${latestAssessment.decisionMakingScore ?? 0}/100, Diversions ${latestAssessment.diversionsScore ?? 0}/100, Execution ${latestAssessment.executionScore ?? 0}/100, Total ${latestAssessment.totalScore ?? 0}/400`;
-      }
+      // The same pack the voice bridge builds — profile, goals, challenges,
+      // recent moods, X-Check, and where the last conversation got to. One
+      // builder, so text FLO and voice FLO remember the identical athlete.
+      const memory = await buildAthleteMemoryPack(userId);
 
       const systemPrompt = await buildFloPrompt({
         forChatApi: true,
         sport,
-        athleteContext: athleteContext || undefined,
-        assessmentContext: assessmentContext || undefined,
+        athleteContext: memory.context || undefined,
+        openerDirective: buildReturningAthleteDirective(memory) || undefined,
       });
 
       const formattedHistory = messages.slice(-12).map((msg: any) => ({

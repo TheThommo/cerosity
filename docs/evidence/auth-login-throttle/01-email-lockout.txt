@@ -1,0 +1,14 @@
+POST /api/auth/login — 11 failed attempts, same bogus address, 2026-08-17T05:13:24Z
+prod commit: e28f3d8
+
+attempt 1 -> HTTP 401 {"message":"Invalid email or password"}
+attempt 2 -> HTTP 401 {"message":"Invalid email or password"}
+attempt 3 -> HTTP 401 {"message":"Invalid email or password"}
+attempt 4 -> HTTP 401 {"message":"Invalid email or password"}
+attempt 5 -> HTTP 401 {"message":"Invalid email or password"}
+attempt 6 -> HTTP 401 {"message":"Invalid email or password"}
+attempt 7 -> HTTP 401 {"message":"Invalid email or password"}
+attempt 8 -> HTTP 401 {"message":"Invalid email or password"}
+attempt 9 -> HTTP 401 {"message":"Invalid email or password"}
+attempt 10 -> HTTP 401 {"message":"Invalid email or password"}
+attempt 11 -> HTTP 429 {"message":"Too many sign-in attempts. Wait 15 minutes and try again, or reset your password."}

@@ -1743,3 +1743,66 @@ Hard-deleted ids **34, 35** (auth-recovery fixtures) and **36** (this run's smok
 fixture) — all `@cerosity-test.invalid`, all with zero child rows. Mark (1),
 Andy (2) and Sarah demo (33) untouched; those three are now the only rows in
 `users`.
+
+---
+
+# Overnight run — 17 August 2026
+
+Commits `6fd5443`, `e28f3d8`, `6a192c7`, `cef6ff9`. Evidence under
+[`docs/evidence/human-coach/`](evidence/human-coach/README.md) and
+[`docs/evidence/auth-login-throttle/`](evidence/auth-login-throttle/README.md).
+
+## Human coach for the demo = Andrew Hurt. Marketplace later.
+
+The human-coaching page named **Mark Croxford** — a placeholder in JSX, backed by
+no row, no assignment and no inbox — and the three endpoints behind it answered
+"sent" without sending anything.
+
+The coach is now declared once in `shared/human-coach.ts`: **Andrew Hurt**,
+Certified Red2Blue Master Coach, notifications to `andrew.hurt5@gmail.com`.
+Requests are emailed to him through Postmark with Mark copied, and the three
+endpoints return Postmark's MessageID. A rejected send is a 502, not a silent
+success.
+
+**Say this in the demo:** human coaching is Ultimate-only, and the coach an
+entitled athlete reaches today is Andrew Hurt. A coach marketplace — geography,
+language, athlete preference — is deliberately not built. There is one real
+coach rather than a directory of invented ones.
+
+Andrew's account (id 2) was **not** touched: he is still `role: student`, so his
+curriculum and `/learn` access are unchanged. The coach profile is configuration,
+not a role change.
+
+Two things the page no longer claims: a five-star rating and "150+ Golfers
+Coached" (neither had a source), and a booked session — the button asks for one,
+and the copy says no time is held until they agree it together.
+
+## Four dashboard surfaces stopped answering 500
+
+- `/api/techniques`, `/api/scenarios` — `shared/schema.ts` declared a `sport`
+  column on both that was never migrated, so every select named a column
+  Postgres does not have. Declaration removed; both now answer `[]`.
+- `/api/insights`, `/api/recommendations` — ten `DatabaseStorage` methods threw
+  `Method not implemented`. The tables existed all along; the reads and writes
+  are now ordinary drizzle statements.
+
+The technique library is genuinely empty, so that page hides its four category
+tabs behind an honest empty state. Emergency Relief on the same page is
+self-contained and still works. **No invented curriculum.**
+
+## Login is throttled
+
+10 failed attempts per address and 30 per caller IP, both over 15 minutes,
+failures only. Proven at the row: attempt 11 returns 429. The unknown-address
+path now runs a decoy bcrypt compare so the clock no longer says which addresses
+have accounts.
+
+## Pricing quoted = pricing charged
+
+The free dashboard's upgrade cards read $490 / $2190 while the button beside
+each started a checkout for $590 / $2290. Both now come from `TIER_PRICING`.
+
+## PDFs — no action needed
+
+All three `/downloads/*.pdf` return 200. `ASSETS_PATH` stays unset: the only
+routes that need it (`/api/downloads/*`) have no callers.

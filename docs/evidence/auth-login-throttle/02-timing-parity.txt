@@ -1,0 +1,10 @@
+Timing: unknown address vs known address, wrong password (decoy-hash check)
+
+== nosuchuser-aug17@example.invalid ==
+  1.737687s
+  0.824929s
+  0.879574s
+== sarah.demo@cerosity.com ==
+  0.889841s
+  1.019471s
+  1.030107s

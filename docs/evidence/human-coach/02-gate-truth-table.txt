@@ -1,0 +1,7 @@
+tier       role      humanCoaching
+free       student   false
+flo        student   false
+premium    student   false
+ultimate   student   true
+free       admin     true
+free       coach     true

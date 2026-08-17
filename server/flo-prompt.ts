@@ -200,6 +200,19 @@ export async function buildFloPrompt(opts: BuildFloPromptOpts): Promise<string> 
       "- Never ask for something already recorded above. Asking a returning athlete their sport again is a failure.",
       "- If new information contradicts it, trust the newer thing and move on.",
     );
+  } else {
+    // No history was loaded for this speaker — anonymous, or a voice call whose
+    // identity token did not verify. Left unsaid, the model fills the silence:
+    // asked "what have I been working on", it will happily invent a pre-shot
+    // routine and a putting drill the athlete never mentioned. Memory FLO does
+    // not have must never be performed.
+    layers.push(
+      "",
+      "NO ATHLETE HISTORY:",
+      "- You have no recorded history for whoever you are speaking to.",
+      "- Never imply you remember them, and never invent past sessions, drills, challenges or progress.",
+      "- Asked what they have been working on, say plainly that you do not have it yet, then ask.",
+    );
   }
 
   if (opts.assessmentContext) {

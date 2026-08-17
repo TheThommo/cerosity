@@ -135,6 +135,18 @@ export function StableChat({ isInlineWidget = false }: { isInlineWidget?: boolea
     }
   }, [inputValue, sendMessage, isLoading]);
 
+  // Sending relied on implicit form submission, which is not dependable on
+  // mobile — a disabled default button suppresses it outright, and soft keyboards
+  // vary in whether they emit it at all. Send explicitly instead. Shift+Enter
+  // stays a newline, and isComposing keeps Enter out of IME candidate selection.
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
+    e.preventDefault();
+    if (inputValue.trim() && !isLoading) {
+      sendMessage(inputValue);
+    }
+  }, [inputValue, sendMessage, isLoading]);
+
   return (
     <Card className="w-full max-w-2xl mx-auto h-[650px] flex flex-col bg-white border border-gray-200 shadow-lg">
       {/* Header */}
@@ -211,6 +223,8 @@ export function StableChat({ isInlineWidget = false }: { isInlineWidget?: boolea
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            enterKeyHint="send"
             placeholder="Ask Flo about mental performance..."
             disabled={isLoading}
             className="flex-1"

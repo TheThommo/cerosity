@@ -251,6 +251,7 @@ function ChatComponent({ isInlineWidget = false }: LandingChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            enterKeyHint="send"
             placeholder={
               creditCount >= 5 
                 ? "Sign up to continue..."

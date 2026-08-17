@@ -171,6 +171,18 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
     [inputValue, sendMessage, isLoading, previewEnded]
   );
 
+  // Enter here depended on implicit form submission, which is not dependable on
+  // mobile — a disabled default button suppresses it outright, and soft keyboards
+  // vary in whether they emit it at all. Send explicitly instead.
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
+      e.preventDefault();
+      if (inputValue.trim() && !isLoading && !previewEnded) sendMessage(inputValue);
+    },
+    [inputValue, sendMessage, isLoading, previewEnded]
+  );
+
   const handleSignupClick = () => {
     if (onSignupRequest) {
       onSignupRequest();
@@ -282,6 +294,8 @@ export function FloChat({ isInlineWidget = false, onSignupRequest }: FloChatProp
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            enterKeyHint="send"
             placeholder={previewEnded ? "Create a free account to keep coaching with FLO" : "Talk to FLO..."}
             disabled={isLoading || previewEnded}
             className="flex-1 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-blue-500"

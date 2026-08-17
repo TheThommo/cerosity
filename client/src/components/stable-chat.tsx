@@ -148,9 +148,19 @@ export function StableChat({ isInlineWidget = false }: { isInlineWidget?: boolea
   }, [inputValue, sendMessage, isLoading]);
 
   return (
-    <Card className="w-full max-w-2xl mx-auto h-[650px] flex flex-col bg-white border border-gray-200 shadow-lg">
+    <Card className={cn(
+      "w-full flex flex-col bg-white",
+      // Inline: fill whatever the host gives it (the floating bubble's panel
+      // supplies its own frame and header). Standalone: the /flo page card.
+      isInlineWidget
+        ? "h-full max-w-none border-0 shadow-none rounded-none"
+        : "max-w-2xl mx-auto h-[650px] border border-gray-200 shadow-lg"
+    )}>
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-red-50">
+      <div className={cn(
+        "flex items-center gap-3 p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-red-50",
+        isInlineWidget && "hidden"
+      )}>
         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-red-500 rounded-full flex items-center justify-center">
           <MessageCircle className="w-5 h-5 text-white" />
         </div>

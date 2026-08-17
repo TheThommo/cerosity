@@ -8,6 +8,7 @@ import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary, NavigationErrorFallback } from "@/components/error-boundary";
+import { FloatingChat } from "@/components/floating-chat";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
@@ -184,6 +185,12 @@ function AppContent() {
         </main>
         <ErrorBoundary>
           <Footer />
+        </ErrorBoundary>
+
+        {/* FLO follows the athlete around the app. Renders nothing for signed-out
+            visitors, and Router() never reaches here on the HQ console host. */}
+        <ErrorBoundary>
+          <FloatingChat />
         </ErrorBoundary>
 
       </div>

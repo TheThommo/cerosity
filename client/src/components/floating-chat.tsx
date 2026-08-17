@@ -1,240 +1,218 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, X, Minimize2, Send, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation } from "wouter";
+import { MessageCircle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { StableChat } from "@/components/stable-chat";
+
+// FLO, reachable from anywhere in the athlete app.
+//
+// The panel hosts StableChat — the same component /flo renders — so the bubble
+// is a way in, not a second coach. It talks to /api/chat, resumes the athlete's
+// existing session and carries the same memory. Anything that reimplemented the
+// composer here would be a third brain with its own idea of who the athlete is.
+
+const BUBBLE_SIZE = 56;
+const EDGE_MARGIN = 12;
+/** Below this, a pointer that moved slightly is still a tap, not a drag. */
+const DRAG_THRESHOLD_PX = 6;
+const POSITION_KEY = "flo.bubble.position";
+
+type Point = { x: number; y: number };
+
+/** Real notch/home-indicator insets, read from the browser rather than guessed. */
+function safeAreaInsets() {
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:fixed;top:0;left:0;visibility:hidden;pointer-events:none;" +
+    "padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);";
+  document.body.appendChild(probe);
+  const style = getComputedStyle(probe);
+  const insets = {
+    top: parseFloat(style.paddingTop) || 0,
+    right: parseFloat(style.paddingRight) || 0,
+    bottom: parseFloat(style.paddingBottom) || 0,
+    left: parseFloat(style.paddingLeft) || 0,
+  };
+  probe.remove();
+  return insets;
+}
+
+/**
+ * Keep the bubble reachable. This runs on every load and every resize, so a
+ * position saved on a desktop monitor cannot strand the bubble off-screen on a
+ * phone — the "reset if off-screen" case is just a clamp that always applies.
+ */
+function clampToViewport(point: Point): Point {
+  const insets = safeAreaInsets();
+  const minX = EDGE_MARGIN + insets.left;
+  const minY = EDGE_MARGIN + insets.top;
+  const maxX = Math.max(minX, window.innerWidth - BUBBLE_SIZE - EDGE_MARGIN - insets.right);
+  const maxY = Math.max(minY, window.innerHeight - BUBBLE_SIZE - EDGE_MARGIN - insets.bottom);
+  return {
+    x: Math.min(Math.max(point.x, minX), maxX),
+    y: Math.min(Math.max(point.y, minY), maxY),
+  };
+}
+
+function defaultPosition(): Point {
+  const insets = safeAreaInsets();
+  return {
+    x: window.innerWidth - BUBBLE_SIZE - EDGE_MARGIN - insets.right,
+    y: window.innerHeight - BUBBLE_SIZE - EDGE_MARGIN - insets.bottom,
+  };
+}
+
+function loadPosition(): Point {
+  try {
+    const raw = localStorage.getItem(POSITION_KEY);
+    if (!raw) return defaultPosition();
+    const saved = JSON.parse(raw);
+    if (typeof saved?.x !== "number" || typeof saved?.y !== "number") return defaultPosition();
+    return clampToViewport(saved);
+  } catch {
+    return defaultPosition();
+  }
+}
+
+function savePosition(point: Point) {
+  try {
+    localStorage.setItem(POSITION_KEY, JSON.stringify(point));
+  } catch {
+    // Private mode or a full quota. The bubble still works, it just forgets.
+  }
+}
 
 export function FloatingChat() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [message, setMessage] = useState("");
-  const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [location] = useLocation();
+  const [position, setPosition] = useState<Point | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  if (!user) return null;
+  const dragRef = useRef<{
+    pointerId: number;
+    offsetX: number;
+    offsetY: number;
+    startX: number;
+    startY: number;
+    moved: boolean;
+  } | null>(null);
+  const positionRef = useRef<Point | null>(null);
 
-  const { data: sessions } = useQuery({
-    queryKey: [`/api/chat/sessions/${user.id}`],
-    enabled: isOpen,
-  });
+  // Measured after mount — window dimensions do not exist before it.
+  useEffect(() => {
+    setPosition(loadPosition());
+  }, []);
 
-  const currentSession = sessions?.[0];
-  const messages = currentSession?.messages || [];
+  useEffect(() => {
+    positionRef.current = position;
+  }, [position]);
 
-  const mutation = useMutation({
-    mutationFn: async (data: { message: string; sessionId?: number }) => {
-      const response = await apiRequest("POST", "/api/chat", {
-        userId: user.id,
-        message: data.message,
-        sessionId: data.sessionId || currentSessionId,
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setCurrentSessionId(data.session.id);
-      queryClient.invalidateQueries({ queryKey: [`/api/chat/sessions/${user.id}`] });
-      setMessage("");
-    },
-    onError: (error) => {
-      toast({
-        title: "Chat Error",
-        description: "Failed to send message. " + (error as Error).message,
-        variant: "destructive",
-      });
-    },
-  });
+  useEffect(() => {
+    const reclamp = () => setPosition((p) => (p ? clampToViewport(p) : p));
+    window.addEventListener("resize", reclamp);
+    window.addEventListener("orientationchange", reclamp);
+    return () => {
+      window.removeEventListener("resize", reclamp);
+      window.removeEventListener("orientationchange", reclamp);
+    };
+  }, []);
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
-    
-    mutation.mutate({
-      message: message.trim(),
-      sessionId: currentSessionId,
-    });
-  };
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    const current = positionRef.current;
+    if (!current) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = {
+      pointerId: e.pointerId,
+      offsetX: e.clientX - current.x,
+      offsetY: e.clientY - current.y,
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: false,
+    };
+  }, []);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+
+    if (!drag.moved) {
+      const travelled = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY);
+      if (travelled < DRAG_THRESHOLD_PX) return;
+      drag.moved = true;
+      setIsDragging(true);
     }
-  };
+
+    setPosition(clampToViewport({ x: e.clientX - drag.offsetX, y: e.clientY - drag.offsetY }));
+  }, []);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    dragRef.current = null;
+
+    if (drag.moved) {
+      setIsDragging(false);
+      if (positionRef.current) savePosition(positionRef.current);
+      return;
+    }
+    // Never moved: this was a tap.
+    setIsOpen((open) => !open);
+  }, []);
+
+  // Every hook is above this line — the guards below must never gate them.
+  // /flo already is the full chat; a second one floating over it would be two
+  // views of one conversation fighting each other.
+  if (!user || location === "/flo" || !position) return null;
 
   return (
     <>
-      {/* Chat Bubble */}
-      {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <div className="relative">
-            <Button
-              data-chat-button
-              onClick={() => setIsOpen(true)}
-              className="w-16 h-16 rounded-full bg-blue-600 hover:bg-blue-700 shadow-2xl transition-all duration-300 hover:scale-110 relative z-10"
-            >
-              <MessageCircle className="text-white" size={24} />
-            </Button>
-            
-            {/* Notification Badge */}
-            <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center z-20">
-              <span className="text-white text-xs font-bold">1</span>
+      {isOpen && (
+        <div className="fixed inset-x-0 bottom-0 z-50 sm:inset-x-auto sm:right-4 sm:bottom-24 sm:w-[380px]">
+          <div className="flex h-[70vh] flex-col overflow-hidden rounded-t-2xl border border-gray-200 bg-white shadow-2xl sm:h-[560px] sm:rounded-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-50 to-red-50 px-4 py-3">
+              <span className="font-semibold text-gray-900">Chat with FLO</span>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                aria-label="Close FLO chat"
+                className="rounded-full p-1 text-gray-500 transition-colors hover:bg-white/60 hover:text-gray-900"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            
-            {/* Pulse Animation */}
-            <div className="absolute inset-0 rounded-full bg-blue-600 opacity-30 animate-ping pointer-events-none"></div>
+            <div className="min-h-0 flex-1">
+              <StableChat isInlineWidget />
+            </div>
           </div>
         </div>
       )}
 
-      {/* Chat Window */}
-      {isOpen && (
-        <div className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
-          isMinimized ? 'w-80 h-16' : 'w-96 h-[500px]'
-        }`}>
-          <Card className="w-full h-full shadow-2xl border-blue-200 bg-white">
-            <CardHeader className="pb-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <MessageCircle size={16} />
-                  </div>
-                  <div>
-                    <CardTitle className="text-sm font-medium text-white">
-                      Flo - AI Coach
-                    </CardTitle>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span className="text-xs text-white/80">Online</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsMinimized(!isMinimized)}
-                    className="h-8 w-8 p-0 text-white hover:bg-white/20"
-                  >
-                    <Minimize2 size={14} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsOpen(false)}
-                    className="h-8 w-8 p-0 text-white hover:bg-white/20"
-                  >
-                    <X size={14} />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            
-            {!isMinimized && (
-              <CardContent className="p-0 h-[430px] flex flex-col">
-                {/* Welcome Message */}
-                <div className="p-4 bg-blue-50 border-b border-gray-200">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                      <MessageCircle className="text-white" size={14} />
-                    </div>
-                    <div>
-                      <p className="text-xs text-blue-800 leading-relaxed">
-                        <strong>Flo:</strong> Ready to transform pressure into peak performance? 
-                        Ask me about mental techniques, pressure situations, or any golf psychology challenges!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Chat Messages */}
-                <div className="flex-1 overflow-hidden">
-                  <ScrollArea className="h-full p-3">
-                    <div className="space-y-3">
-                      {messages.length === 0 ? (
-                        <div className="text-center py-4">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <MessageCircle className="text-blue-600" size={20} />
-                          </div>
-                          <p className="text-xs text-gray-600">
-                            Ask me about pressure situations, breathing techniques, or focus strategies!
-                          </p>
-                        </div>
-                      ) : (
-                        messages.map((msg: any, index: number) => (
-                          <div
-                            key={index}
-                            className={`flex items-start space-x-2 ${
-                              msg.role === "user" ? "justify-end" : ""
-                            }`}
-                          >
-                            {msg.role === "assistant" && (
-                              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-white text-xs font-bold">T</span>
-                              </div>
-                            )}
-                            
-                            <div
-                              className={`rounded-lg p-2 max-w-xs text-xs ${
-                                msg.role === "user"
-                                  ? "bg-blue-600 text-white rounded-tr-sm"
-                                  : "bg-gray-100 text-gray-800 rounded-tl-sm"
-                              }`}
-                            >
-                              <p>{msg.content}</p>
-                            </div>
-                            
-                            {msg.role === "user" && (
-                              <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-gray-600 text-xs font-bold">
-                                  {user.username?.[0]?.toUpperCase() || "U"}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </ScrollArea>
-                </div>
-                
-                {/* Chat Input */}
-                <div className="p-3 border-t border-gray-200">
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      data-chat-input
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Ask Flo anything..."
-                      className="flex-1 text-xs"
-                      disabled={mutation.isPending}
-                    />
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!message.trim() || mutation.isPending}
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700 p-2"
-                    >
-                      {mutation.isPending ? (
-                        <Loader2 className="animate-spin" size={14} />
-                      ) : (
-                        <Send size={14} />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            )}
-          </Card>
-        </div>
-      )}
+      <button
+        type="button"
+        aria-label="Chat with FLO"
+        aria-expanded={isOpen}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        style={{
+          left: position.x,
+          top: position.y,
+          width: BUBBLE_SIZE,
+          height: BUBBLE_SIZE,
+          // Without this a touch-drag scrolls the page instead of moving the bubble.
+          touchAction: "none",
+        }}
+        className={
+          "fixed z-40 flex items-center justify-center rounded-full bg-blue-600 text-white shadow-2xl " +
+          "transition-transform hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 " +
+          "focus-visible:ring-blue-500 focus-visible:ring-offset-2 " +
+          (isDragging ? "scale-105 cursor-grabbing" : "cursor-grab hover:scale-105")
+        }
+      >
+        {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+      </button>
     </>
   );
 }

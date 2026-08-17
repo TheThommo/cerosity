@@ -1806,3 +1806,86 @@ each started a checkout for $590 / $2290. Both now come from `TIER_PRICING`.
 
 All three `/downloads/*.pdf` return 200. `ASSETS_PATH` stays unset: the only
 routes that need it (`/api/downloads/*`) have no callers.
+
+---
+
+# Run — 17 August 2026: FLO memory, the bubble, and Enter
+
+Deployed SHA `9dd8b9e`, confirmed against `/api/health`.
+
+## What FLO now remembers, and where it comes from
+
+`buildAthleteMemoryPack(userId)` in `server/flo-athlete-context.ts` is the single
+read-side builder. **Text chat and the voice bridge call the same function**, so
+there is one coach, not two. Every source is a table that already existed — no
+migration, no `db:push`:
+
+| Source | Table | What reaches the prompt |
+| --- | --- | --- |
+| Identity | `users` | name, sport, bio |
+| Achievements & challenges | `athlete_profile` | titles, descriptions, priority |
+| Goals | `user_goals` | goal text, category, done/open |
+| **Feelings** | `daily_moods` | last 14 days, each with its date, score /100 and the athlete's own note |
+| Performance | `assessments` | latest X-Check, four scores + total |
+| Continuity | `chat_sessions` | last 8 turns of the most recent conversation |
+
+Two pre-existing storage quirks are worked around in the pack rather than
+patched in place: `DatabaseStorage.getUserMoods` builds a date cutoff it never
+applies to the query, and `getUserChatSessions` orders by `created_at` rather
+than `updated_at`. The pack filters the window and picks the newest session by
+activity itself.
+
+## Returning after silence
+
+The pack also returns `lastActivityAt`. Past 48 hours, `buildReturningAthleteDirective`
+adds a prompt directive telling FLO to open by asking how the named challenge
+actually went. It is a directive rather than client-side copy specifically so the
+voice path inherits it. With nothing on record it degrades to a warm check-in.
+
+## Voice identity — why a signed token
+
+The VAPI custom-LLM bridge is a public server-to-server callback with no cookie
+and no session. A `userId` read out of call metadata is an unauthenticated claim,
+so honouring one would let anyone who can POST to the bridge have FLO read a
+chosen athlete's moods and conversations back to them.
+
+Instead `GET /api/flo/voice-token` (auth required — returns **401** anonymously,
+verified on prod) mints a 1-hour HMAC token, and the bridge trusts only that.
+A missing, expired or forged token is not an error: it is an anonymous call,
+coached normally, with no history attached.
+
+## FLO no longer invents a past
+
+Smoking the bridge with a deliberately forged token — correctly refused, so no
+memory attached — surfaced a worse failure than forgetting. Asked what the caller
+had been working on, FLO answered with a pre-shot routine, three-footers under
+pressure and a grip-tightening cue. None of it came from anyone.
+
+Fixed in `9dd8b9e`: the absence of history is now stated in the prompt. Re-probed
+on production after deploy:
+
+> **forged token:** "I don't actually have any history on file for you — this is
+> our first conversation. So tell me, what's been going on out there?"
+>
+> **no token:** "I don't have anything from a last time — no record on my end.
+> So catch me up…"
+
+## Evidence
+
+- `docs/evidence/flo-ux/01-mobile-enter-sends.png` — 390×844, Enter alone sent the
+  message and FLO answered; the input cleared.
+- `docs/evidence/flo-ux/02-desktop-composer.png` — 1280×800, `enterkeyhint="send"`
+  live in the deployed DOM.
+
+## Not verified — needs a signed-in athlete
+
+The authenticated surfaces could not be exercised in this run: there were no
+credentials available, and creating an account or entering a password is outside
+what this session may do. Unproven end-to-end, in production:
+
+1. The bubble rendering, dragging, persisting its position and reopening the
+   athlete's real conversation. (Confirmed absent when signed out, as designed.)
+2. Memory recall across two turns plus a refresh — FLO citing a prior mood or
+   challenge unprompted.
+3. A valid voice token attaching memory to a spoken call. The refusal path is
+   proven; the accept path is not.

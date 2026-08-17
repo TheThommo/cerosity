@@ -100,7 +100,11 @@ export const techniques = pgTable("techniques", {
   instructions: text("instructions").notNull(),
   duration: integer("duration"), // in seconds
   difficulty: text("difficulty").notNull(), // beginner, intermediate, advanced
-  sport: text("sport").default("golf"), // optional: filter techniques by sport (null = all sports)
+  // No `sport` column here. One was declared and never migrated, so every
+  // `select` named a column Postgres did not have and /api/techniques answered
+  // 500 rather than an empty list. Nothing reads it — the sport an athlete
+  // plays lives on users.sport — so the declaration goes rather than the table
+  // gaining a column to satisfy it.
 });
 
 export const scenarios = pgTable("scenarios", {
@@ -109,7 +113,7 @@ export const scenarios = pgTable("scenarios", {
   description: text("description").notNull(),
   pressureLevel: text("pressure_level").notNull(), // low, medium, high
   category: text("category").notNull(), // e.g. golf-specific categories; sport-agnostic where applicable
-  sport: text("sport").default("golf"), // optional: filter scenarios by sport (null = all sports)
+  // Same phantom column as techniques above, with the same 500 behind it.
   redHeadTriggers: text("red_head_triggers").array(),
   blueHeadTechniques: text("blue_head_techniques").array(),
 });

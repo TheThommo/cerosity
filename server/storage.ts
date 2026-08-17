@@ -1589,45 +1589,98 @@ export class DatabaseStorage implements IStorage {
     return insight || undefined;
   }
 
-  // Placeholder methods for missing interface requirements
+  // These ten threw 'Method not implemented in DatabaseStorage', which meant
+  // /api/insights and /api/recommendations answered 500 to every caller — a
+  // dead card on the dashboard an investor would click. The tables they need
+  // (user_coaching_profiles, ai_recommendations, coaching_insights) have been
+  // in Postgres all along; only the reads and writes were missing. They are
+  // ordinary drizzle statements, so an athlete with nothing yet gets an empty
+  // list rather than an error, and one with history gets their own rows.
+
   async createUserCoachingProfile(profile: InsertUserCoachingProfile): Promise<UserCoachingProfile> {
-    throw new Error('Method not implemented in DatabaseStorage');
+    const [created] = await db.insert(userCoachingProfiles).values(profile).returning();
+    return created;
   }
 
   async getUserCoachingProfile(userId: number): Promise<UserCoachingProfile | undefined> {
-    throw new Error('Method not implemented in DatabaseStorage');
+    const [profile] = await db
+      .select()
+      .from(userCoachingProfiles)
+      .where(eq(userCoachingProfiles.userId, userId))
+      .limit(1);
+    return profile || undefined;
   }
 
   async updateUserCoachingProfile(userId: number, updates: Partial<UserCoachingProfile>): Promise<UserCoachingProfile> {
-    throw new Error('Method not implemented in DatabaseStorage');
+    const [updated] = await db
+      .update(userCoachingProfiles)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userCoachingProfiles.userId, userId))
+      .returning();
+    if (!updated) throw new Error(`No coaching profile for user ${userId}`);
+    return updated;
   }
 
   async createAiRecommendation(recommendation: InsertAiRecommendation): Promise<AiRecommendation> {
-    throw new Error('Method not implemented in DatabaseStorage');
+    const [created] = await db.insert(aiRecommendations).values(recommendation).returning();
+    return created;
   }
 
   async getUserRecommendations(userId: number, isActive?: boolean): Promise<AiRecommendation[]> {
-    throw new Error('Method not implemented in DatabaseStorage');
+    const where = isActive === undefined
+      ? eq(aiRecommendations.userId, userId)
+      : and(eq(aiRecommendations.userId, userId), eq(aiRecommendations.isActive, isActive));
+    return await db
+      .select()
+      .from(aiRecommendations)
+      .where(where)
+      .orderBy(desc(aiRecommendations.createdAt));
   }
 
   async updateRecommendationFeedback(id: number, feedback: number, comments?: string): Promise<AiRecommendation> {
-    throw new Error('Method not implemented in DatabaseStorage');
+    const [updated] = await db
+      .update(aiRecommendations)
+      .set({ userFeedback: feedback, feedbackComments: comments ?? null })
+      .where(eq(aiRecommendations.id, id))
+      .returning();
+    if (!updated) throw new Error(`No recommendation ${id}`);
+    return updated;
   }
 
   async markRecommendationApplied(id: number, effectivenessMeasure?: number): Promise<AiRecommendation> {
-    throw new Error('Method not implemented in DatabaseStorage');
+    const [updated] = await db
+      .update(aiRecommendations)
+      .set({ wasApplied: true, effectivenessMeasure: effectivenessMeasure ?? null })
+      .where(eq(aiRecommendations.id, id))
+      .returning();
+    if (!updated) throw new Error(`No recommendation ${id}`);
+    return updated;
   }
 
   async createCoachingInsight(insight: InsertCoachingInsight): Promise<CoachingInsight> {
-    throw new Error('Method not implemented in DatabaseStorage');
+    const [created] = await db.insert(coachingInsights).values(insight).returning();
+    return created;
   }
 
   async getUserInsights(userId: number, isAcknowledged?: boolean): Promise<CoachingInsight[]> {
-    throw new Error('Method not implemented in DatabaseStorage');
+    const where = isAcknowledged === undefined
+      ? eq(coachingInsights.userId, userId)
+      : and(eq(coachingInsights.userId, userId), eq(coachingInsights.isAcknowledged, isAcknowledged));
+    return await db
+      .select()
+      .from(coachingInsights)
+      .where(where)
+      .orderBy(desc(coachingInsights.createdAt));
   }
 
   async acknowledgeInsight(id: number): Promise<CoachingInsight> {
-    throw new Error('Method not implemented in DatabaseStorage');
+    const [updated] = await db
+      .update(coachingInsights)
+      .set({ isAcknowledged: true })
+      .where(eq(coachingInsights.id, id))
+      .returning();
+    if (!updated) throw new Error(`No insight ${id}`);
+    return updated;
   }
 
   async createEngagementMetric(metric: InsertUserEngagementMetric): Promise<UserEngagementMetric> {

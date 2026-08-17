@@ -16,8 +16,9 @@ import {
   Heart, 
   Share2, 
   Target, 
-  Compass, 
-  Anchor
+  Compass,
+  Anchor,
+  Brain
 } from "lucide-react";
 
 export default function Techniques() {
@@ -203,6 +204,23 @@ export default function Techniques() {
         {/* Technique Categories */}
         <div className="space-y-8">
           
+          {/* The technique library is empty in production. Four category tabs
+              over nothing reads as a broken page, so the browser is hidden until
+              there is something in it and the shortfall is stated. Emergency
+              Relief above is self-contained and still works. */}
+          {(!techniques || (techniques as any[]).length === 0) ? (
+            <div className="text-center py-12">
+              <Brain className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                The technique library is being built
+              </h3>
+              <p className="text-gray-600 max-w-md mx-auto">
+                Guided techniques aren't published yet. Emergency Relief above works now, and
+                FLO can talk you through any Red2Blue technique in the meantime.
+              </p>
+            </div>
+          ) : (
+          <>
           {/* Category Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {categories.map((category) => (
@@ -327,6 +345,8 @@ export default function Techniques() {
               </Card>
             </div>
           </div>
+          </>
+          )}
         </div>
 
 

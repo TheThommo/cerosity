@@ -66,40 +66,70 @@ const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 const APP_BASE_URL = process.env.APP_BASE_URL || 'https://cerosity.com';
 
 /**
- * Throttle for forgot-password. Unthrottled it is a mail cannon: anyone can
- * point it at a known address and send that person a reset email as fast as a
- * loop runs.
+ * Sliding-window counters for the two front-door endpoints that need one:
+ * forgot-password, which is otherwise a mail cannon anyone can point at a known
+ * address, and login, which is otherwise an unlimited guessing budget against
+ * every account on the platform.
  *
  * In memory, and therefore per process. Railway runs a single instance today so
  * this holds; if that ever becomes two, each gets its own allowance and the
  * effective limit doubles. That is the trade for not adding Redis to an MVP.
  *
- * The email key is normalised so casing cannot buy extra attempts, and req.ip is
+ * Email keys are normalised so casing cannot buy extra attempts, and req.ip is
  * the real client address because trust proxy is set further down.
  */
-const FORGOT_WINDOW_MS = 15 * 60 * 1000;
+const AUTH_WINDOW_MS = 15 * 60 * 1000;
 const FORGOT_MAX_PER_EMAIL = 5;
 const FORGOT_MAX_PER_IP = 20;
+/** Failed logins only — a correct password clears the address's tally. */
+const LOGIN_MAX_FAILURES_PER_EMAIL = 10;
+const LOGIN_MAX_FAILURES_PER_IP = 30;
 const forgotAttempts = new Map<string, number[]>();
+const loginFailures = new Map<string, number[]>();
+
+/** What is left inside the window, oldest first. */
+function withinWindow(store: Map<string, number[]>, key: string, now: number): number[] {
+  return (store.get(key) ?? []).filter((at) => now - at < AUTH_WINDOW_MS);
+}
+
+/**
+ * Keys come from the request, so a map cannot be allowed to grow without bound.
+ * Anything with nothing left inside the window is dead weight. forEach rather
+ * than for..of: this tsconfig's target predates downlevel Map iteration, and a
+ * prune loop is not worth changing the build target over.
+ */
+function pruneStore(store: Map<string, number[]>, now: number) {
+  if (store.size <= 5000) return;
+  store.forEach((times, seen) => {
+    if (!times.some((at) => now - at < AUTH_WINDOW_MS)) store.delete(seen);
+  });
+}
 
 /** Records this attempt and reports whether the caller has now gone over. */
 function forgotOverLimit(key: string, max: number): boolean {
   const now = Date.now();
-  const recent = (forgotAttempts.get(key) ?? []).filter((at) => now - at < FORGOT_WINDOW_MS);
+  const recent = withinWindow(forgotAttempts, key, now);
   recent.push(now);
   forgotAttempts.set(key, recent);
-
-  // Keys come from the request, so the map cannot be allowed to grow without
-  // bound. Anything with nothing left inside the window is dead weight.
-  // forEach rather than for..of: this tsconfig's target predates downlevel Map
-  // iteration, and a prune loop is not worth changing the build target over.
-  if (forgotAttempts.size > 5000) {
-    forgotAttempts.forEach((times, seen) => {
-      if (!times.some((at) => now - at < FORGOT_WINDOW_MS)) forgotAttempts.delete(seen);
-    });
-  }
-
+  pruneStore(forgotAttempts, now);
   return recent.length > max;
+}
+
+/**
+ * Read-only: asked before the password is checked, so a locked-out caller never
+ * reaches the database. Only failures are recorded, which is why this cannot be
+ * the same call as the one that counts.
+ */
+function loginLockedOut(key: string, max: number): boolean {
+  return withinWindow(loginFailures, key, Date.now()).length >= max;
+}
+
+function recordLoginFailure(key: string) {
+  const now = Date.now();
+  const recent = withinWindow(loginFailures, key, now);
+  recent.push(now);
+  loginFailures.set(key, recent);
+  pruneStore(loginFailures, now);
 }
 
 /**
@@ -260,9 +290,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/auth/login", async (req, res) => {
+    const { email, password } = req.body ?? {};
+    const emailKey = `email:${typeof email === "string" ? email.trim().toLowerCase() : ""}`;
+    const ipKey = `ip:${req.ip}`;
+
+    // Checked before the password is, so a credential-stuffing run costs one
+    // map lookup rather than a bcrypt comparison. The tally is per address and
+    // per caller: one is what stops a single account being ground down, the
+    // other is what stops a list being sprayed across many.
+    if (loginLockedOut(emailKey, LOGIN_MAX_FAILURES_PER_EMAIL) || loginLockedOut(ipKey, LOGIN_MAX_FAILURES_PER_IP)) {
+      console.warn(`[AUTH] login throttled — ${email || "(no email)"} from ${req.ip}`);
+      return res.status(429).json({
+        message: "Too many sign-in attempts. Wait 15 minutes and try again, or reset your password.",
+      });
+    }
+
     try {
-      const { email, password } = req.body;
       const user = await loginUser(email, password);
+
+      // A correct password ends the lockout for that address. The caller's own
+      // tally stays — a machine working through a list should not be able to
+      // clear it by signing into one account it does own.
+      loginFailures.delete(emailKey);
 
       // Same reason as register: rotate the id when privilege changes.
       req.session.regenerate((regenErr) => {
@@ -284,6 +333,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
     } catch (error: any) {
+      recordLoginFailure(emailKey);
+      recordLoginFailure(ipKey);
       res.status(401).json({ message: error.message });
     }
   });
@@ -2642,7 +2693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       res.json({
         success: true,
-        message: `Sent to ${PRIMARY_HUMAN_COACH.name}. ${PRIMARY_HUMAN_COACH.responseTarget.toLowerCase()}.`,
+        message: `Sent to ${PRIMARY_HUMAN_COACH.name}. Aiming to reply ${PRIMARY_HUMAN_COACH.responseTarget.toLowerCase()}.`,
         messageId,
       });
     } catch (error) {

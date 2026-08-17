@@ -220,6 +220,14 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword);
 }
 
+/**
+ * Something for bcrypt to chew on when the email matched no account, so a login
+ * against an unknown address costs the same wall-clock time as one against a
+ * real one. It guards nothing and its result is thrown away — the point is the
+ * ten rounds of work, not the answer — so a published test vector is fine here.
+ */
+const TIMING_DECOY_HASH = '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+
 export async function registerUser(userData: {
   username: string;
   firstName?: string;
@@ -308,6 +316,11 @@ export async function loginUser(email: string, password: string) {
   
   if (!user) {
     console.log('No user found with email:', email);
+    // A miss used to return before bcrypt ran, so an unknown address answered
+    // in a millisecond and a known one took a hundred — the same enumeration
+    // the identical error message was written to prevent, measured with a
+    // stopwatch instead of read off the screen. Burn the same time.
+    await verifyPassword(password ?? '', TIMING_DECOY_HASH);
     throw new Error('Invalid email or password');
   }
 

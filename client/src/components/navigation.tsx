@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { canAccessDashboard } from "@/lib/permissions";
+import { hasFeatureAccess } from "@shared/entitlements";
 
 export function Navigation() {
   const [location] = useLocation();
@@ -42,8 +43,10 @@ export function Navigation() {
       baseItems.push({ href: "/help", label: "Help", icon: HelpCircle });
     }
 
-    // Add Human Coaching for Ultimate subscribers
-    if (user?.subscriptionTier === 'ultimate') {
+    // Human Coaching, for whoever the server would actually let in. Comparing
+    // the tier string here let it drift from requireUltimate, which also admits
+    // admin and coach roles.
+    if (hasFeatureAccess((user?.subscriptionTier as any) ?? 'free', user?.role, 'humanCoaching')) {
       baseItems.push({ href: "/human-coaching", label: "Human Coaching", icon: MessageCircle });
     }
 

@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Response } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import Stripe from "stripe";
@@ -9,7 +9,8 @@ import { hasFeatureAccess, isSubscriptionTier, tierAmountInCents, TIER_PRICING, 
 import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@shared/auth-rules";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback, hashPassword, verifyPassword } from "./auth";
-import { sendLeadRegistrationEmail, sendAdminLeadNotification, sendPasswordResetEmail } from "./email";
+import { sendLeadRegistrationEmail, sendAdminLeadNotification, sendPasswordResetEmail, sendCoachingRequestEmail } from "./email";
+import { PRIMARY_HUMAN_COACH } from "@shared/human-coach";
 import { buildFloPrompt, buildLandingSalesDirective, clearBrainDocsCache, clearSportContextCache } from "./flo-prompt";
 import { formatAthleteContextForPrompt } from "./flo-athlete-context";
 import { applyAthleteFacts } from "./flo-memory";
@@ -134,6 +135,11 @@ function pickAdminUserUpdates(body: any): { updates: Partial<User> } | { error: 
     updates.email = body.email.trim();
   }
   return { updates };
+}
+
+/** How an athlete is introduced to their coach: their real name where we have one. */
+function athleteDisplayName(user: User): string {
+  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || user.email;
 }
 
 /** Usernames are unique and HQ shouldn't have to invent one. Derive from the email. */
@@ -2608,81 +2614,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Human Coaching API routes (Ultimate tier only)
-  app.post("/api/human-coaching/message", requireAuth, requireUltimate, async (req: AuthRequest, res) => {
+  // ── Human Coaching (Ultimate tier only) ───────────────────────────
+  //
+  // These three used to build an object, drop it on the floor and answer
+  // "sent". The request now leaves the building: it is emailed to the coach
+  // declared in shared/human-coach.ts, with Mark copied. A Postmark rejection
+  // is answered 502 rather than swallowed, because telling an athlete their
+  // message reached a coach when it did not is the same lie the old handlers
+  // told. There is no coaching-request table to write to, and adding schema for
+  // one coach and a handful of athletes would be schema for its own sake.
+
+  /** Shared by all three: same delivery, same failure answer, different subject. */
+  async function forwardToCoach(
+    req: AuthRequest,
+    res: Response,
+    kind: string,
+    body: string
+  ) {
     try {
-      const { message } = req.body;
-      const userId = req.user!.id;
-      
-      // In a real implementation, this would send the message to the coach
-      // For now, we'll just acknowledge receipt
-      const response = {
-        id: Date.now(),
-        userId,
-        message,
-        status: "sent",
-        timestamp: new Date(),
-        coachResponse: null
-      };
-      
-      res.json({ 
-        success: true, 
-        message: "Message sent to your coach. They will respond within 24 hours.",
-        data: response 
+      const messageId = await sendCoachingRequestEmail({
+        coachEmail: PRIMARY_HUMAN_COACH.notifyEmail,
+        coachName: PRIMARY_HUMAN_COACH.name,
+        kind,
+        athleteName: athleteDisplayName(req.user!),
+        athleteEmail: req.user!.email,
+        body,
+      });
+      res.json({
+        success: true,
+        message: `Sent to ${PRIMARY_HUMAN_COACH.name}. ${PRIMARY_HUMAN_COACH.responseTarget.toLowerCase()}.`,
+        messageId,
       });
     } catch (error) {
-      res.status(500).json({ message: "Failed to send message", error: (error as Error).message });
+      // The only place a rejected send becomes visible — the athlete gets a
+      // failure, not a reason. Message, not object: this is what gets grepped.
+      console.error(
+        `[COACHING] ${kind} for user ${req.user!.id} not delivered: ${(error as Error)?.message || error}`
+      );
+      res.status(502).json({ message: "That didn't reach your coach. Please try again." });
     }
+  }
+
+  app.post("/api/human-coaching/message", requireAuth, requireUltimate, async (req: AuthRequest, res) => {
+    const message = typeof req.body?.message === "string" ? req.body.message.trim() : "";
+    if (!message) {
+      return res.status(400).json({ message: "A message is required" });
+    }
+    await forwardToCoach(req, res, "Message from an athlete", message);
   });
 
   app.post("/api/human-coaching/progress-review", requireAuth, requireUltimate, async (req: AuthRequest, res) => {
-    try {
-      const { request } = req.body;
-      const userId = req.user!.id;
-      
-      // In a real implementation, this would trigger a coach review process
-      const response = {
-        id: Date.now(),
-        userId,
-        reviewRequest: request,
-        status: "pending",
-        timestamp: new Date(),
-        estimatedCompletion: new Date(Date.now() + 48 * 60 * 60 * 1000) // 48 hours
-      };
-      
-      res.json({ 
-        success: true, 
-        message: "Progress review request submitted. Your coach will provide feedback within 48 hours.",
-        data: response 
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to request review", error: (error as Error).message });
+    const request = typeof req.body?.request === "string" ? req.body.request.trim() : "";
+    if (!request) {
+      return res.status(400).json({ message: "Tell your coach what to review" });
     }
+    await forwardToCoach(req, res, "Progress review request", request);
   });
 
   app.post("/api/human-coaching/schedule-request", requireAuth, requireUltimate, async (req: AuthRequest, res) => {
-    try {
-      const { requestType } = req.body;
-      const userId = req.user!.id;
-      
-      // In a real implementation, this would integrate with a calendar booking system
-      const response = {
-        id: Date.now(),
-        userId,
-        requestType,
-        status: "pending",
-        timestamp: new Date(),
-        message: "Your coach will contact you within 24 hours to schedule your session."
-      };
-      
-      res.json({ 
-        success: true, 
-        message: "Session request sent. Your coach will contact you within 24 hours to schedule.",
-        data: response 
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to request session", error: (error as Error).message });
-    }
+    const note = typeof req.body?.note === "string" ? req.body.note.trim() : "";
+    // No calendar is consulted and no time is held. This is an ask, and the
+    // athlete is told exactly that on the button and in the toast.
+    await forwardToCoach(
+      req,
+      res,
+      "Session request",
+      note || "Asked to arrange a 1-on-1 session. No time proposed — please follow up directly."
+    );
   });
 
   // Admin API routes - properly secured with requireAuth and requireAdmin

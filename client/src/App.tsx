@@ -136,10 +136,10 @@ function AppContent() {
                 </>
               )}
               
-              {/* Ultimate only routes */}
-              {user?.subscriptionTier === 'ultimate' && (
-                <Route path="/human-coaching" component={HumanCoaching} />
-              )}
+              {/* Ultimate only routes. The page renders its own upgrade gate,
+                  so it stays mounted for everyone — a non-entitled athlete who
+                  types the URL gets the upgrade path instead of the 404 fallback. */}
+              <Route path="/human-coaching" component={HumanCoaching} />
               
               {/* Available to all authenticated users */}
               {/* Learning curriculum — visible to all tiers; free users see locked

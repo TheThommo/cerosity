@@ -25,7 +25,7 @@ const MESSAGE_STREAM = process.env.POSTMARK_MESSAGE_STREAM || "outbound";
  */
 async function deliver(
   label: string,
-  message: { to: string; subject: string; html: string }
+  message: { to: string; cc?: string; subject: string; html: string }
 ): Promise<string> {
   const token = process.env.POSTMARK_SERVER_TOKEN;
   if (!token) {
@@ -42,6 +42,7 @@ async function deliver(
     body: JSON.stringify({
       From: FROM_EMAIL,
       To: message.to,
+      ...(message.cc ? { Cc: message.cc } : {}),
       Subject: message.subject,
       HtmlBody: message.html,
       MessageStream: MESSAGE_STREAM,
@@ -126,6 +127,60 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string, first
   });
   // Recipient and message id only — never the URL, which carries the token.
   console.log(`[EMAIL] Password reset accepted by Postmark for ${to} (id ${id})`);
+}
+
+/**
+ * Athlete-authored text ends up inside an HTML body, so it is escaped rather
+ * than interpolated raw. The lead emails above only ever carry values the
+ * athlete typed into short form fields; this one carries a free-text message.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * A request from an entitled athlete to their human coach.
+ *
+ * This rethrows. The three human-coaching endpoints used to answer "sent" while
+ * doing nothing at all, and an unreported Postmark rejection would be the same
+ * lie wearing a different hat — the caller turns a throw into a non-200 so the
+ * athlete is told their message did not go.
+ */
+export async function sendCoachingRequestEmail(request: {
+  coachEmail: string;
+  coachName: string;
+  kind: string;
+  athleteName: string;
+  athleteEmail: string;
+  body: string;
+}): Promise<string> {
+  const id = await deliver("the coaching request", {
+    to: request.coachEmail,
+    // Mark sees every request while this is one coach and a handful of athletes.
+    cc: ADMIN_EMAIL,
+    subject: `Cerosity — ${request.kind} from ${request.athleteName}`,
+    html: `
+      <div style="font-family: -apple-system, sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b;">
+        <div style="background: linear-gradient(135deg, #2563eb, #4f46e5); padding: 24px; border-radius: 12px 12px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 20px;">${escapeHtml(request.kind)}</h1>
+        </div>
+        <div style="padding: 24px; background: #f8fafc; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px;">
+          <p>Hi ${escapeHtml(request.coachName)},</p>
+          <p><strong>${escapeHtml(request.athleteName)}</strong> (${escapeHtml(request.athleteEmail)}) has sent you a request through Cerosity.</p>
+          <div style="margin: 16px 0; padding: 16px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; white-space: pre-wrap;">${escapeHtml(request.body)}</div>
+          <p style="color: #64748b; font-size: 14px;">Reply straight to ${escapeHtml(request.athleteEmail)} — Cerosity does not host this conversation yet.</p>
+        </div>
+      </div>
+    `,
+  });
+  console.log(
+    `[EMAIL] Coaching request (${request.kind}) accepted by Postmark for ${request.coachEmail} (id ${id})`
+  );
+  return id;
 }
 
 export async function sendAdminLeadNotification(lead: {

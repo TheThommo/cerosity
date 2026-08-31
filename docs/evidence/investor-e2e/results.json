@@ -1,0 +1,88 @@
+{
+  "baseApex": "https://cerosity.com",
+  "base": "https://www.cerosity.com",
+  "ranAt": "2026-08-31T05:02:42.189Z",
+  "commit": "d35406b",
+  "sarahPwSet": false,
+  "course": "red2blue-foundation",
+  "results": [
+    {
+      "step": "0. Health check",
+      "pass": true,
+      "detail": "HTTP 200 · commit=d35406b · llm=anthropic/claude-sonnet-5 · base=https://www.cerosity.com"
+    },
+    {
+      "step": "A1. Landing shows brand + FLO",
+      "pass": true,
+      "detail": "brand=true FLO=true · A1-landing.png"
+    },
+    {
+      "step": "A2. Google button hidden",
+      "pass": true,
+      "detail": "landingGoogleVisible=false signInGoogleText=false · A2-no-google.png"
+    },
+    {
+      "step": "A3. Forgot password link present",
+      "pass": true,
+      "detail": "link=true · A3-forgot-link.png"
+    },
+    {
+      "step": "A4. Imogen Hall img src contains imogen-hall.png",
+      "pass": true,
+      "detail": "count=1 src=/endorsers/imogen-hall.png · A4-imogen.png"
+    },
+    {
+      "step": "A5. Forgot-password page loads",
+      "pass": true,
+      "detail": "url=https://www.cerosity.com/forgot-password · A5-forgot-page.png"
+    },
+    {
+      "step": "B1. Free signup → /learn",
+      "pass": true,
+      "detail": "url=https://www.cerosity.com/learn email=e2e.free.1788152522886@cerosity-test.invalid · B1-signup-learn.png"
+    },
+    {
+      "step": "B2. Only freePreview lessons unlocked",
+      "pass": true,
+      "detail": "HTTP 200 hasAccess=false unlocked=2/23 previews=welcome-to-red2blue,the-performance-line · B2-curriculum.png"
+    },
+    {
+      "step": "B3. Complete first unlocked free-preview",
+      "pass": true,
+      "detail": "lesson=welcome-to-red2blue status=completed · B3-completed-preview.png"
+    },
+    {
+      "step": "B4. Free: completing a preview does NOT unlock the next non-preview",
+      "pass": true,
+      "detail": "next=the-performance-triangle locked=true · after completing welcome-to-red2blue"
+    },
+    {
+      "step": "B4b. Free: POST progress on a locked lesson is refused (403)",
+      "pass": true,
+      "detail": "slug=the-performance-triangle HTTP 403"
+    },
+    {
+      "step": "B5. Locked lesson API withholds content",
+      "pass": true,
+      "detail": "slug=the-performance-triangle locked=true contentLen=0"
+    },
+    {
+      "step": "B6. Human coaching gated for free",
+      "pass": true,
+      "detail": "uiGated=true POST /message HTTP 403 · B6-human-coaching-gated.png"
+    },
+    {
+      "step": "C0. Sarah path",
+      "pass": false,
+      "detail": "SARAH_PW not set — section C skipped (counts as fail)"
+    },
+    {
+      "step": "D1. daily-mood route returns 401/403/200",
+      "pass": true,
+      "detail": "anon=401 authed=n/a"
+    }
+  ],
+  "passed": 14,
+  "failed": 1,
+  "allPassed": false
+}

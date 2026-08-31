@@ -3117,13 +3117,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ── LMS / Learning Curriculum ───────────────────────────────────
   // Read endpoints use requireAuth (not requirePremium) so free users can
-  // browse the curriculum and see locked lessons as an upsell. Access to
-  // lesson content + progress is gated per-lesson: full access via the
-  // "curriculum" entitlement, or individual lessons flagged isFreePreview.
-
-  // Access rules live in @shared/lms-access so they can be unit tested: free users
-  // get the free previews only, entitled users unlock lessons one at a time in
-  // sortOrder as they complete the one before.
+  // browse the curriculum and see locked lessons as an upsell. The rules for
+  // which lessons are actually open live in @shared/lms-access so they can be
+  // unit tested: free users get the isFreePreview lessons only, entitled users
+  // unlock lessons one at a time in sortOrder as they complete the one before.
   const completedIdsForCourse = async (userId: number, courseId: number) => {
     const progress = await storage.getLessonProgressForCourse(userId, courseId);
     return progress.filter((p) => p.status === "completed").map((p) => p.lessonId);

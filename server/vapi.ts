@@ -282,7 +282,7 @@ export async function deleteVapiAssistant(assistantId: string) {
 // buildFloPrompt() + the Cerosity LLM adapter (Claude Sonnet 5) — one brain.
 //
 // IMPORTANT (validated against the working manual PATCH, 2026-05-30):
-// - model.url MUST be the FULL path: https://cerosity.com/api/vapi/chat/completions
+// - model.url MUST be the FULL path: https://www.cerosity.com/api/vapi/chat/completions
 //   (VAPI calls this URL as-is; it does NOT append /chat/completions for us).
 // - This reconcile payload is intentionally MODEL-ONLY. It does not send voice,
 //   transcriber, firstMessage or server, so it can never overwrite the working
@@ -301,7 +301,7 @@ const FLO_VOICE_DELIVERY_SYSTEM =
   "You do not coach, reason, or decide anything yourself — you only voice what the server returns.";
 
 function publicBaseUrl(): string {
-  return (process.env.PUBLIC_BASE_URL || "https://cerosity.com").replace(/\/+$/, "");
+  return (process.env.PUBLIC_BASE_URL || "https://www.cerosity.com").replace(/\/+$/, "");
 }
 
 /** Full custom-LLM endpoint VAPI must call (the bridge in server/flo-routes.ts). */

@@ -83,7 +83,7 @@ export async function sendLeadRegistrationEmail(lead: {
             <p>Thanks for your interest in Cerosity. You've taken the first step toward mastering your mental game.</p>
             <p>FLO — your AI mental performance coach — is ready to help you shift from Red Head to Blue Head using the proven Red2Blue methodology.</p>
             <div style="text-align: center; margin: 24px 0;">
-              <a href="https://cerosity.com" style="display: inline-block; background: #2563eb; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Talk to FLO Now</a>
+              <a href="https://www.cerosity.com" style="display: inline-block; background: #2563eb; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Talk to FLO Now</a>
             </div>
             <p style="color: #64748b; font-size: 14px;">You're receiving this because you signed up via ${lead.source} on cerosity.com.</p>
           </div>

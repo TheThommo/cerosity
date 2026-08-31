@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import { normalizeEmail } from "@shared/email-address";
 import crypto from 'crypto';
 import session from 'express-session';
 import connectPg from 'connect-pg-simple';
@@ -11,7 +12,7 @@ import { debugLogger, withErrorLogging } from './debug';
 // ── Google OAuth Config ───────────────────────────────────────────
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
-const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://cerosity.com/api/auth/google/callback';
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://www.cerosity.com/api/auth/google/callback';
 
 export function isGoogleOAuthConfigured(): boolean {
   return !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
@@ -259,7 +260,10 @@ export async function registerUser(userData: {
     throw new Error('Username already exists');
   }
 
-  const existingUserByEmail = await storage.getUserByEmail(userData.email);
+  // Stored lowercased so the address an athlete types later always matches, and
+  // so "Bob@x.com" cannot register a second account alongside "bob@x.com".
+  const canonicalEmail = normalizeEmail(userData.email);
+  const existingUserByEmail = await storage.getUserByEmail(canonicalEmail);
   if (existingUserByEmail) {
     throw new Error('Email already exists');
   }
@@ -289,7 +293,7 @@ export async function registerUser(userData: {
     username: userData.username,
     firstName: userData.firstName || null,
     lastName: userData.lastName || null,
-    email: userData.email,
+    email: canonicalEmail,
     password: hashedPassword,
     dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : null,
     dexterity: userData.dexterity || null,
@@ -310,7 +314,7 @@ export async function registerUser(userData: {
 
 export async function loginUser(email: string, password: string) {
   console.log('Login attempt for email:', email);
-  const user = await storage.getUserByEmail(email);
+  const user = await storage.getUserByEmail(normalizeEmail(email));
   
   console.log('User found:', !!user, user ? 'with email: ' + user.email : 'not found');
   
@@ -430,7 +434,7 @@ export async function handleGoogleCallback(code: string, req: Request): Promise<
       username,
       firstName: profile.given_name || null,
       lastName: profile.family_name || null,
-      email: profile.email,
+      email: normalizeEmail(profile.email),
       password: hashedPassword,
       subscriptionTier: 'free',
       isSubscribed: false,

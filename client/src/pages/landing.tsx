@@ -335,7 +335,7 @@ export default function Landing({ initialView }: { initialView?: "signin" | "sig
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-blue-700 transition-colors">
-              <img src="/programmes/athlete.png" alt="Red2Blue Coach certification" className="w-full h-48 object-cover" />
+              <img src="/programmes/coach.png" alt="Red2Blue Coach certification" className="w-full h-48 object-cover" />
               <div className="p-8">
                 <Badge className="mb-4 bg-blue-500/10 text-blue-300 border-blue-500/20">For Coaches</Badge>
                 <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Coach</h3>
@@ -345,7 +345,7 @@ export default function Landing({ initialView }: { initialView?: "signin" | "sig
               </div>
             </div>
             <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 hover:border-indigo-700 transition-colors">
-              <img src="/programmes/coach.png" alt="Red2Blue Athlete programme" className="w-full h-48 object-cover" />
+              <img src="/programmes/athlete.png" alt="Red2Blue Athlete programme" className="w-full h-48 object-cover" />
               <div className="p-8">
                 <Badge className="mb-4 bg-indigo-500/10 text-indigo-300 border-indigo-500/20">For Athletes</Badge>
                 <h3 className="text-xl font-bold text-white mb-3">Become a Red2Blue Athlete</h3>

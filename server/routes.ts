@@ -6,6 +6,11 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { insertAssessmentSchema, insertChatSessionSchema, insertUserProgressSchema, insertPreShotRoutineSchema, insertMentalSkillsXCheckSchema, insertControlCircleSchema, insertDailyMoodSchema, insertUserGoalSchema, type User } from "@shared/schema";
 import { hasFeatureAccess, isSubscriptionTier, tierAmountInCents, TIER_PRICING, type SubscriptionTier } from "@shared/entitlements";
+import {
+  computeAccessibleLessonIds,
+  hasCurriculumEntitlement,
+  hasCompletedCourse,
+} from "@shared/lms-access";
 import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@shared/auth-rules";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback, hashPassword, verifyPassword } from "./auth";
@@ -3116,13 +3121,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // lesson content + progress is gated per-lesson: full access via the
   // "curriculum" entitlement, or individual lessons flagged isFreePreview.
 
-  const userHasCurriculumAccess = (user: { subscriptionTier?: string | null; role?: string | null }) =>
-    hasFeatureAccess((user.subscriptionTier as any) ?? "free", user.role, "curriculum");
-
-  const lessonIsAccessible = (
-    user: { subscriptionTier?: string | null; role?: string | null },
-    lesson: { isFreePreview: boolean }
-  ) => lesson.isFreePreview || userHasCurriculumAccess(user);
+  // Access rules live in @shared/lms-access so they can be unit tested: free users
+  // get the free previews only, entitled users unlock lessons one at a time in
+  // sortOrder as they complete the one before.
+  const completedIdsForCourse = async (userId: number, courseId: number) => {
+    const progress = await storage.getLessonProgressForCourse(userId, courseId);
+    return progress.filter((p) => p.status === "completed").map((p) => p.lessonId);
+  };
 
   // GET /api/learn/courses — list published courses with access + progress summary
   app.get("/api/learn/courses", requireAuth, async (req: AuthRequest, res) => {
@@ -3136,7 +3141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const completed = courseLessons.filter((l) => completedIds.has(l.id)).length;
         return {
           ...course,
-          hasAccess: userHasCurriculumAccess(user),
+          hasAccess: hasCurriculumEntitlement(user),
           lessonCount: courseLessons.length,
           completedCount: completed,
           percentComplete: courseLessons.length ? Math.round((completed / courseLessons.length) * 100) : 0,
@@ -3156,11 +3161,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!course || !course.isPublished) {
         return res.status(404).json({ message: "Course not found" });
       }
-      const hasAccess = userHasCurriculumAccess(user);
+      const hasAccess = hasCurriculumEntitlement(user);
       const modules = await storage.getModulesForCourse(course.id);
       const courseLessons = await storage.getLessonsForCourse(course.id);
       const progress = await storage.getLessonProgressForCourse(user.id, course.id);
       const statusByLesson = new Map(progress.map((p) => [p.lessonId, p.status]));
+      const completedIds = progress.filter((p) => p.status === "completed").map((p) => p.lessonId);
+      const accessibleIds = computeAccessibleLessonIds(user, courseLessons, completedIds);
 
       const modulesOut = modules.map((m) => ({
         id: m.id,
@@ -3180,7 +3187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             estimatedMinutes: l.estimatedMinutes,
             toolKey: l.toolKey,
             isFreePreview: l.isFreePreview,
-            locked: !lessonIsAccessible(user, l),
+            locked: !accessibleIds.has(l.id),
             status: statusByLesson.get(l.id) ?? "not_started",
           })),
       }));
@@ -3219,9 +3226,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const idx = courseLessons.findIndex((l) => l.id === lesson.id);
       const prev = idx > 0 ? courseLessons[idx - 1] : null;
       const next = idx >= 0 && idx < courseLessons.length - 1 ? courseLessons[idx + 1] : null;
-      const locked = !lessonIsAccessible(user, lesson);
-      const [progressRow] = (await storage.getLessonProgressForCourse(user.id, lesson.courseId))
-        .filter((p) => p.lessonId === lesson.id);
+      const lessonProgressRows = await storage.getLessonProgressForCourse(user.id, lesson.courseId);
+      const completedIds = lessonProgressRows.filter((p) => p.status === "completed").map((p) => p.lessonId);
+      const locked = !computeAccessibleLessonIds(user, courseLessons, completedIds).has(lesson.id);
+      const [progressRow] = lessonProgressRows.filter((p) => p.lessonId === lesson.id);
 
       res.json({
         lesson: {
@@ -3237,6 +3245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         course: course ? { id: course.id, slug: course.slug, title: course.title } : null,
         module: module ? { id: module.id, slug: module.slug, title: module.title } : null,
+        hasAccess: hasCurriculumEntitlement(user),
         locked,
         status: progressRow?.status ?? "not_started",
         prev: prev ? { slug: prev.slug, title: prev.title } : null,
@@ -3255,21 +3264,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (Number.isNaN(lessonId)) return res.status(400).json({ message: "Invalid lesson id" });
       const lesson = await storage.getLessonById(lessonId);
       if (!lesson || !lesson.isPublished) return res.status(404).json({ message: "Lesson not found" });
-      if (!lessonIsAccessible(user, lesson)) {
-        return res.status(403).json({ message: "Upgrade required to track this lesson" });
+      const courseLessons = await storage.getLessonsForCourse(lesson.courseId);
+      const completedBefore = await completedIdsForCourse(user.id, lesson.courseId);
+      if (!computeAccessibleLessonIds(user, courseLessons, completedBefore).has(lesson.id)) {
+        return res.status(403).json({
+          message: hasCurriculumEntitlement(user)
+            ? "Complete the previous lesson to unlock this one"
+            : "Upgrade required to track this lesson",
+        });
       }
       const status = req.body?.status === "completed" ? "completed" : "in_progress";
       const updated = await storage.upsertLessonProgress(user.id, lessonId, status);
 
-      // Recompute course progress; auto-issue certificate when every accessible lesson is done.
-      const courseLessons = await storage.getLessonsForCourse(lesson.courseId);
-      const accessibleLessons = courseLessons.filter((l) => lessonIsAccessible(user, l));
+      // Recompute course progress; the certificate needs every lesson in the course done.
       const progress = await storage.getLessonProgressForCourse(user.id, lesson.courseId);
       const completedIds = new Set(progress.filter((p) => p.status === "completed").map((p) => p.lessonId));
-      const allDone =
-        accessibleLessons.length > 0 &&
-        userHasCurriculumAccess(user) &&
-        accessibleLessons.every((l) => completedIds.has(l.id));
+      const allDone = hasCompletedCourse(user, courseLessons, completedIds);
 
       let certificate = await storage.getCertificate(user.id, lesson.courseId);
       if (allDone && !certificate) {

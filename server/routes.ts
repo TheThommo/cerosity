@@ -12,6 +12,8 @@ import {
   hasCompletedCourse,
 } from "@shared/lms-access";
 import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@shared/auth-rules";
+import { passwordResetUrl } from "@shared/app-urls";
+import { normalizeEmail } from "@shared/email-address";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback, hashPassword, verifyPassword } from "./auth";
 import { sendLeadRegistrationEmail, sendAdminLeadNotification, sendPasswordResetEmail, sendCoachingRequestEmail } from "./email";
@@ -68,7 +70,6 @@ function hashResetToken(token: string): string {
 
 /** Long enough that a stolen link is the realistic attack, not a guessed one. */
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
-const APP_BASE_URL = process.env.APP_BASE_URL || 'https://cerosity.com';
 
 /**
  * Sliding-window counters for the two front-door endpoints that need one:
@@ -167,7 +168,7 @@ function pickAdminUserUpdates(body: any): { updates: Partial<User> } | { error: 
     if (typeof body.email !== 'string' || !body.email.includes('@')) {
       return { error: 'Invalid email' };
     }
-    updates.email = body.email.trim();
+    updates.email = normalizeEmail(body.email);
   }
   return { updates };
 }
@@ -384,7 +385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       if (email.includes("@")) {
-        const user = await storage.getUserByEmail(email);
+        const user = await storage.getUserByEmail(normalizeEmail(email));
 
         // A deactivated athlete is refused at login, so a reset would only hand
         // them a password that still cannot get them in. Silent on purpose.
@@ -396,7 +397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           await sendPasswordResetEmail(
             user.email,
-            `${APP_BASE_URL}/reset-password?token=${token}`,
+            passwordResetUrl(token, process.env.APP_BASE_URL),
             user.firstName
           );
         }

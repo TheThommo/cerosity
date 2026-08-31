@@ -25,6 +25,7 @@ import {
 import { hasFeatureAccess, isSubscriptionTier, FREE_CHAT_MESSAGE_LIMIT, TIER_PRICING } from "@shared/entitlements";
 import { db, pool } from "./db";
 import { eq, desc, sql, and, asc, inArray } from "drizzle-orm";
+import { normalizeEmail } from "@shared/email-address";
 
 export interface IStorage {
   // User operations
@@ -452,7 +453,8 @@ export class MemStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     await this.ensureInitialized();
-    return Array.from(this.users.values()).find(user => user.email === email);
+    const wanted = normalizeEmail(email);
+    return Array.from(this.users.values()).find(user => normalizeEmail(user.email) === wanted);
   }
 
   async getAllUsers(): Promise<User[]> {
@@ -1259,7 +1261,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+    // Compared lowercased on both sides: an athlete who types their address in a
+    // different case than it was stored still reaches their own account.
+    const [user] = await db.select().from(users)
+      .where(sql`lower(${users.email}) = ${normalizeEmail(email)}`);
     return user || undefined;
   }
 

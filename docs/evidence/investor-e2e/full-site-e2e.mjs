@@ -13,7 +13,7 @@ mkdirSync(OUT, { recursive: true });
 
 const APEX = "https://cerosity.com";
 const COURSE = "red2blue-foundation";
-const SARAH_EMAIL = "sarah.demo@cerosity.com";
+const SARAH_EMAIL = "Sarah.guerra1981@gmail.com";
 const SARAH_PW = process.env.SARAH_PW || "";
 
 const stamp = Date.now();

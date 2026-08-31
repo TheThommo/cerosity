@@ -82,38 +82,50 @@ Against `https://www.cerosity.com` on commit `d35406b`. **14 passed / 1 failed.*
 | **B4b. Free: POST progress on a locked lesson is refused** | **PASS** | HTTP 403 — proves the gate is in the API, not the UI |
 | B5. Locked lesson API withholds content | PASS | contentLen=0 |
 | B6. Human coaching gated for free | PASS | POST /message HTTP 403 |
-| **C. Entitled sequential path** | **FAIL (blocked)** | `SARAH_PW` not present in the environment — see below |
+| **C. Entitled sequential path** | **PASS** (re-run on `124b2cf`) | See the entitled section below — this was blocked on the first run and has since been proven on production |
 | D1. daily-mood route returns 401/403/200 | PASS | anon=401 |
+
+---
+
+## Entitled sequential path — proven on production
+
+The first run could not exercise this: `SARAH_PW` was absent, the stored session cookie had
+expired, and minting an entitled user needs admin credentials. That blocker is now closed. The
+demo athlete's sign-in was rotated (see the credentials note below) and the suite was re-run
+against `https://www.cerosity.com` on commit `124b2cf` — **22 passed / 1 failed**.
+
+| Step | Result | Detail |
+|---|---|---|
+| C1. Entitled login (iPhone 13) → `/learn` | PASS | |
+| **C2. Lock flags follow the sequential rule** | **PASS** | `hasAccess=true`, open 9/23, completed 8, **violations=none** — the server's own `locked` flags match the rule for every one of the 23 lessons given this user's real history |
+| **C2b. Locked-ahead lesson withheld and refuses progress** | **PASS** | `control-of-attention-rituals` locked, `contentLen=0`, POST progress HTTP 403 |
+| **C3. Completing a lesson unlocks the next one** | **PASS** | 3 successive unlocks observed: `tool-recognition-radar→control-of-attention-rituals: locked→open`, `control-of-attention-rituals→where-pressure-comes-from: locked→open`, `where-pressure-comes-from→spotting-the-loop: locked→open`. Completed 8→11, 35%→48% |
+| C4. Lesson API exposes prev/next | PASS | |
+| C5–C8. FLO memory, bubble, human coaching | PASS | Unchanged by this work |
+
+Existing progress survived the rotation intact: the account still held its 8 prior completions
+before the walk began, and the 9 open lessons were exactly those 8 plus the next one in sequence.
+
+The remaining failure, **D1 (`daily-mood` route, anon=401 authed=404)**, is pre-existing — it
+failed the same way on the original pre-change run and is unrelated to lesson access.
 
 ---
 
 ## Residual risk
 
-**1. The entitled path is proven by unit test, not on production.** This is the brief's documented
-stop condition and it was hit. `SARAH_PW` is not set in this environment, the stored session
-cookie in `.tmp_sarah_jar` has expired (401), and the only way to mint a fresh entitled user is
-`POST /api/admin/users`, which needs admin credentials. Rather than mutate or guess any of
-Mark's, Andy's or Sarah's passwords, section C was left to fail loudly.
-
-The paid rules are covered by tests 3–7 above and by the same `computeAccessibleLessonIds` call
-that B4/B4b exercised live, so the code path itself is running in production — only the entitled
-branch of it is unwitnessed there.
-
-**To close this:** re-run with the password in the environment. The script now has the assertions
-ready — C2 checks the server's own lock flags against the sequential rule given whatever history
-the user already has, C2b proves a locked-ahead lesson is withheld and refuses progress with 403,
-and C3 completes the current lesson and watches its successor flip from locked to open.
-
-```bash
-SARAH_PW='…' node docs/evidence/investor-e2e/full-site-e2e.mjs
-```
-
-**2. Ordering assumption.** The sequence follows `getLessonsForCourse`, which sorts by `sortOrder`
+**1. Ordering assumption.** The sequence follows `getLessonsForCourse`, which sorts by `sortOrder`
 ASC across the whole course. The outline groups those lessons by module, so if `sortOrder` were
 ever scoped per-module instead of per-course, the API's order and the displayed order could
 diverge. It holds for the current 23-lesson course; worth pinning if modules are ever reordered.
 
-**3. Users mid-course keep more open than a clean sequential start would give them.** Preserving
+**2. Users mid-course keep more open than a clean sequential start would give them.** Preserving
 historical completions is deliberate — it avoids taking away lessons people have already done —
 but it means anyone with scattered completions from the all-open era sees each of those
 completions unlock its own successor. New users get a strictly sequential experience.
+
+**3. The demo athlete's sign-in address is case-sensitive.** `storage.getUserByEmail` matches with
+`eq(users.email, email)`, so the address must be typed with exactly the capitalisation stored in
+the row. The demo account was rotated to `Sarah.guerra1981@gmail.com` (capital **S**) and the
+E2E script now uses that address; an all-lowercase attempt returns 401. Worth normalising to
+lower-case on both write and lookup if real athletes ever self-register, but that is a separate
+change and out of scope here. No credential is stored in this repository.

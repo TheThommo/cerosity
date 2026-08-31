@@ -196,9 +196,13 @@ export default function Learn() {
                                     <Badge variant="outline" className="text-xs">Tool</Badge>
                                   )}
                                 </div>
-                                {lesson.summary && (
+                                {lesson.locked && data.hasAccess ? (
+                                  <p className="text-sm text-gray-400 truncate mt-0.5">
+                                    Complete the previous lesson to unlock
+                                  </p>
+                                ) : lesson.summary ? (
                                   <p className="text-sm text-gray-500 truncate mt-0.5">{lesson.summary}</p>
-                                )}
+                                ) : null}
                               </div>
                               <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0">
                                 <Icon size={14} />

@@ -38,6 +38,7 @@ type LessonResponse = {
   };
   course: { slug: string; title: string } | null;
   module: { slug: string; title: string } | null;
+  hasAccess: boolean;
   locked: boolean;
   status: "not_started" | "in_progress" | "completed";
   prev: { slug: string; title: string } | null;
@@ -218,6 +219,9 @@ export default function Lesson({ slug }: { slug: string }) {
   }
 
   const { lesson, locked, status, prev, next } = data;
+  // Locked for two different reasons: no entitlement (sell the upgrade), or the
+  // previous lesson in the sequence is not finished yet (no upsell, just guidance).
+  const lockedBySequence = locked && data.hasAccess;
   const completed = status === "completed";
 
   return (
@@ -247,13 +251,31 @@ export default function Lesson({ slug }: { slug: string }) {
               <CardContent className="py-10 text-center">
                 <Lock className="mx-auto text-amber-500 mb-4" size={40} />
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">{lesson.title}</h1>
-                <p className="text-gray-600 max-w-md mx-auto mb-6">
-                  This lesson is part of the full Red2Blue curriculum. Upgrade to Premium to unlock
-                  every session, all the tools, and your Foundation certificate.
-                </p>
-                <Link href="/">
-                  <Button className="bg-blue-600 hover:bg-blue-700">Unlock the full curriculum</Button>
-                </Link>
+                {lockedBySequence ? (
+                  <>
+                    <p className="text-gray-600 max-w-md mx-auto mb-6">
+                      Complete the previous lesson to unlock this one. The curriculum runs in order so
+                      each session builds on the one before it.
+                    </p>
+                    {prev && (
+                      <Link href={`/learn/lesson/${prev.slug}`}>
+                        <Button className="bg-blue-600 hover:bg-blue-700">
+                          Go to {prev.title}
+                        </Button>
+                      </Link>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-600 max-w-md mx-auto mb-6">
+                      This lesson is part of the full Red2Blue curriculum. Upgrade to Premium to unlock
+                      every session, all the tools, and your Foundation certificate.
+                    </p>
+                    <Link href="/">
+                      <Button className="bg-blue-600 hover:bg-blue-700">Unlock the full curriculum</Button>
+                    </Link>
+                  </>
+                )}
               </CardContent>
             </Card>
           ) : (

@@ -14,6 +14,7 @@ import {
 import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@shared/auth-rules";
 import { passwordResetUrl } from "@shared/app-urls";
 import { normalizeEmail } from "@shared/email-address";
+import { parseMoodEntryInput, MOOD_ENTRIES_DEFAULT_LIMIT, MOOD_ENTRIES_MAX_LIMIT } from "@shared/mood-entry";
 import { getCoachingResponse, analyzeAssessmentResults, generatePersonalizedPlan } from "./gemini";
 import { sessionConfig, requireAuth, requirePremium, requireUltimate, requireAdmin, requireCoach, requireOwnUserOrAdmin, registerUser, loginUser, AuthRequest, isGoogleOAuthConfigured, getGoogleAuthUrl, handleGoogleCallback, hashPassword, verifyPassword } from "./auth";
 import { sendLeadRegistrationEmail, sendAdminLeadNotification, sendPasswordResetEmail, sendCoachingRequestEmail } from "./email";
@@ -1953,6 +1954,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating daily mood:", error);
       res.status(500).json({ message: "Failed to update mood", error: (error as Error).message });
+    }
+  });
+
+  // Mood check-ins: five separately-rated factors per entry (shared/mood-entry.ts).
+  // The owner comes from the :userId the guard has already matched to the
+  // session; any userId in the body is dropped by the parser.
+  app.post("/api/mood-entries/:userId", requireAuth, requireOwnUserOrAdmin('userId'), async (req: AuthRequest, res) => {
+    try {
+      // Inside the try: Express 4 does not catch a rejected async handler, so a
+      // throw out here would be an unhandled rejection and take the process down.
+      const parsed = parseMoodEntryInput(req.body);
+      if (!parsed.ok) {
+        return res.status(400).json({ message: parsed.error });
+      }
+      const entry = await storage.createMoodEntry({ ...parsed.value, userId: parseInt(req.params.userId, 10) });
+      res.status(201).json(entry);
+    } catch (error) {
+      console.error("Error creating mood entry:", error);
+      res.status(500).json({ message: "Failed to save check-in" });
+    }
+  });
+
+  app.get("/api/mood-entries/:userId", requireAuth, requireOwnUserOrAdmin('userId'), async (req: AuthRequest, res) => {
+    const requested = parseInt(req.query.limit as string, 10);
+    const limit = Number.isNaN(requested) ? MOOD_ENTRIES_DEFAULT_LIMIT : Math.min(Math.max(requested, 1), MOOD_ENTRIES_MAX_LIMIT);
+    try {
+      const entries = await storage.getMoodEntries(parseInt(req.params.userId, 10), limit);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching mood entries:", error);
+      res.status(500).json({ message: "Failed to load check-ins" });
     }
   });
 

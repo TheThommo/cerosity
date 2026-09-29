@@ -1,5 +1,6 @@
 import { storage } from "./storage";
-import type { User, AthleteProfile, UserGoal, DailyMood, ChatSession } from "@shared/schema";
+import type { User, AthleteProfile, UserGoal, DailyMood, ChatSession, MoodEntry } from "@shared/schema";
+import { describeLatestCheckInForFlo } from "@shared/mood-entry";
 
 export function formatAthleteContextForPrompt(
   user: User,
@@ -180,18 +181,22 @@ export async function buildAthleteMemoryPack(userId: number): Promise<AthleteMem
 
   // Losing one signal must not cost the athlete the other five, so each source
   // is settled independently and a failure degrades to "not recorded".
-  const [profile, goals, moods, sessions, assessment] = await Promise.all([
+  const [profile, goals, moods, sessions, assessment, latestCheckIns] = await Promise.all([
     storage.getAthleteProfile(userId).catch(() => undefined),
     storage.getUserGoals(userId).catch(() => [] as UserGoal[]),
     storage.getUserMoods(userId, MOOD_WINDOW_DAYS).catch(() => [] as DailyMood[]),
     storage.getUserChatSessions(userId).catch(() => [] as ChatSession[]),
     storage.getLatestAssessment(userId).catch(() => undefined),
+    storage.getMoodEntries(userId, 1).catch(() => [] as MoodEntry[]),
   ]);
 
   const blocks: string[] = [];
 
   const profileBlock = formatAthleteContextForPrompt(user, profile, goals);
   if (profileBlock) blocks.push(profileBlock);
+
+  const checkInBlock = describeLatestCheckInForFlo(latestCheckIns[0]);
+  if (checkInBlock) blocks.push(checkInBlock);
 
   const window = recentMoods(moods);
   if (window.length) {

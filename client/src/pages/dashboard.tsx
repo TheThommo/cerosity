@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { BulletproofAIChat as AIChat } from "@/components/bulletproof-ai-chat";
 import { AssessmentCard } from "@/components/assessment-card";
 import { TechniqueCard } from "@/components/technique-card";
 import { ProgressChart } from "@/components/progress-chart";

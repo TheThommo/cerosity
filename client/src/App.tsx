@@ -8,7 +8,7 @@ import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary, NavigationErrorFallback } from "@/components/error-boundary";
-import { FloatingChat } from "@/components/floating-chat";
+import { FloatingChat, FloSheetProvider } from "@/components/floating-chat";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
@@ -102,6 +102,7 @@ function AppContent() {
 
   return (
     <ErrorBoundary>
+      <FloSheetProvider>
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <ErrorBoundary fallback={NavigationErrorFallback}>
           <Navigation />
@@ -194,6 +195,7 @@ function AppContent() {
         </ErrorBoundary>
 
       </div>
+      </FloSheetProvider>
     </ErrorBoundary>
   );
 }

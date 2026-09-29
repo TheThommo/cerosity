@@ -8,8 +8,7 @@ import { Progress } from "@/components/ui/progress";
 
 import { ResilienceGame } from "@/components/resilience-game";
 import { MoodIndicator } from "@/components/mood-indicator";
-import { StableChat } from "@/components/stable-chat";
-import { FloVoicePTT } from "@/components/flo-voice-ptt";
+import { useFloSheet } from "@/components/floating-chat";
 import { MoodTracker } from "@/components/mood-tracker";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
@@ -18,6 +17,8 @@ import { Link } from "wouter";
 export default function Home() {
   const { user } = useAuth();
   const userId = user?.id;
+  // FLO's chat lives in the shared panel (bubble / Ask FLO), not inline on this page.
+  const { setOpen: setFloOpen } = useFloSheet();
 
   const { data: latestAssessment } = useQuery({
     queryKey: [`/api/assessments/latest/${userId}`],
@@ -175,14 +176,7 @@ export default function Home() {
                     </p>
                     <Button 
                       className="bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => {
-                        // Scroll to the chat component
-                        const chatElement = document.querySelector('[data-chat-input]') as HTMLElement;
-                        if (chatElement) {
-                          chatElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                          setTimeout(() => chatElement.focus(), 300);
-                        }
-                      }}
+                      onClick={() => setFloOpen(true)}
                     >
                       <MessageCircle className="mr-2" size={16} />
                       Start Chatting with Flo
@@ -202,18 +196,7 @@ export default function Home() {
                       <Button 
                         variant="ghost" 
                         className="h-auto min-h-[80px] p-4 text-left bg-white hover:bg-blue-50 border border-gray-200 flex items-start"
-                        onClick={() => {
-                          const chatInput = document.querySelector('[data-chat-input]') as HTMLInputElement;
-                          if (chatInput) {
-                            chatInput.value = "I'm feeling nervous before my next round. How can I manage pre-round anxiety?";
-                            chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            setTimeout(() => {
-                              chatInput.focus();
-                              const chatButton = document.querySelector('[data-chat-button]') as HTMLElement;
-                              if (chatButton) chatButton.click();
-                            }, 300);
-                          }
-                        }}
+                        onClick={() => setFloOpen(true)}
                       >
                         <div className="w-full overflow-hidden">
                           <div className="font-medium text-gray-900 mb-1 text-sm">Pre-Round Nerves</div>
@@ -224,18 +207,7 @@ export default function Home() {
                       <Button 
                         variant="ghost" 
                         className="h-auto min-h-[80px] p-4 text-left bg-white hover:bg-blue-50 border border-gray-200 flex items-start"
-                        onClick={() => {
-                          const chatInput = document.querySelector('[data-chat-input]') as HTMLInputElement;
-                          if (chatInput) {
-                            chatInput.value = "I missed a short putt and got really frustrated. How do I recover quickly?";
-                            chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            setTimeout(() => {
-                              chatInput.focus();
-                              const chatButton = document.querySelector('[data-chat-button]') as HTMLElement;
-                              if (chatButton) chatButton.click();
-                            }, 300);
-                          }
-                        }}
+                        onClick={() => setFloOpen(true)}
                       >
                         <div className="w-full overflow-hidden">
                           <div className="font-medium text-gray-900 mb-1 text-sm">Bad Shot Recovery</div>
@@ -246,18 +218,7 @@ export default function Home() {
                       <Button 
                         variant="ghost" 
                         className="h-auto min-h-[80px] p-4 text-left bg-white hover:bg-blue-50 border border-gray-200 flex items-start"
-                        onClick={() => {
-                          const chatInput = document.querySelector('[data-chat-input]') as HTMLInputElement;
-                          if (chatInput) {
-                            chatInput.value = "Teach me a breathing technique I can use on the course to stay calm.";
-                            chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            setTimeout(() => {
-                              chatInput.focus();
-                              const chatButton = document.querySelector('[data-chat-button]') as HTMLElement;
-                              if (chatButton) chatButton.click();
-                            }, 300);
-                          }
-                        }}
+                        onClick={() => setFloOpen(true)}
                       >
                         <div className="w-full overflow-hidden">
                           <div className="font-medium text-gray-900 mb-1 text-sm">Breathing Techniques</div>
@@ -420,14 +381,6 @@ export default function Home() {
 
       {/* Interactive Features Section */}
       <div className="grid lg:grid-cols-2 gap-8 mt-8">
-        {/* Flo Chat Interface */}
-        <div>
-          <div className="mb-3">
-            <FloVoicePTT compact />
-          </div>
-          <StableChat />
-        </div>
-
         {/* Mental Resilience Mini-Game */}
         <div>
           <ResilienceGame />

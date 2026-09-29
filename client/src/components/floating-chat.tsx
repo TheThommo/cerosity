@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocation } from "wouter";
 import { MessageCircle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { StableChat } from "@/components/stable-chat";
+import { FloVoicePTT } from "@/components/flo-voice-ptt";
 
 // FLO, reachable from anywhere in the athlete app.
 //
@@ -10,9 +11,34 @@ import { StableChat } from "@/components/stable-chat";
 // is a way in, not a second coach. It talks to /api/chat, resumes the athlete's
 // existing session and carries the same memory. Anything that reimplemented the
 // composer here would be a third brain with its own idea of who the athlete is.
+//
+// The bubble and the bottom bar's "Ask FLO" open this one panel. Its open state
+// lives in FloSheetProvider so every entry point drives the same surface.
+
+type FloSheetState = {
+  isOpen: boolean;
+  setOpen: (open: boolean | ((open: boolean) => boolean)) => void;
+};
+
+const FloSheetContext = createContext<FloSheetState | null>(null);
+
+export function FloSheetProvider({ children }: { children: ReactNode }) {
+  const [isOpen, setOpen] = useState(false);
+  return <FloSheetContext.Provider value={{ isOpen, setOpen }}>{children}</FloSheetContext.Provider>;
+}
+
+export function useFloSheet(): FloSheetState {
+  const state = useContext(FloSheetContext);
+  if (!state) throw new Error("useFloSheet must be used inside FloSheetProvider");
+  return state;
+}
 
 const BUBBLE_SIZE = 56;
 const EDGE_MARGIN = 12;
+/** Below Tailwind's md breakpoint (hooks/use-mobile.tsx) the bottom bar is showing. */
+const MOBILE_MAX_WIDTH = 767;
+/** The bar is ~61px tall (navigation.tsx); keep this above it if the bar grows. */
+const MOBILE_BOTTOM_BAR_CLEARANCE = 72;
 /** Below this, a pointer that moved slightly is still a tap, not a drag. */
 const DRAG_THRESHOLD_PX = 6;
 const POSITION_KEY = "flo.bubble.position";
@@ -37,13 +63,20 @@ function safeAreaInsets() {
   return insets;
 }
 
+/** Safe area plus, on phones, room for the bottom bar (navigation.tsx) so the bubble never covers its tabs. */
+function bubbleInsets() {
+  const insets = safeAreaInsets();
+  if (window.innerWidth <= MOBILE_MAX_WIDTH) insets.bottom += MOBILE_BOTTOM_BAR_CLEARANCE;
+  return insets;
+}
+
 /**
  * Keep the bubble reachable. This runs on every load and every resize, so a
  * position saved on a desktop monitor cannot strand the bubble off-screen on a
  * phone — the "reset if off-screen" case is just a clamp that always applies.
  */
 function clampToViewport(point: Point): Point {
-  const insets = safeAreaInsets();
+  const insets = bubbleInsets();
   const minX = EDGE_MARGIN + insets.left;
   const minY = EDGE_MARGIN + insets.top;
   const maxX = Math.max(minX, window.innerWidth - BUBBLE_SIZE - EDGE_MARGIN - insets.right);
@@ -55,7 +88,7 @@ function clampToViewport(point: Point): Point {
 }
 
 function defaultPosition(): Point {
-  const insets = safeAreaInsets();
+  const insets = bubbleInsets();
   return {
     x: window.innerWidth - BUBBLE_SIZE - EDGE_MARGIN - insets.right,
     y: window.innerHeight - BUBBLE_SIZE - EDGE_MARGIN - insets.bottom,
@@ -86,7 +119,7 @@ export function FloatingChat() {
   const { user } = useAuth();
   const [location] = useLocation();
   const [position, setPosition] = useState<Point | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, setOpen: setIsOpen } = useFloSheet();
   const [isDragging, setIsDragging] = useState(false);
 
   const dragRef = useRef<{
@@ -117,6 +150,11 @@ export function FloatingChat() {
       window.removeEventListener("orientationchange", reclamp);
     };
   }, []);
+
+  // /flo is the full-page chat; a panel left open would reappear over the next page.
+  useEffect(() => {
+    if (location === "/flo") setIsOpen(false);
+  }, [location, setIsOpen]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     const current = positionRef.current;
@@ -158,7 +196,7 @@ export function FloatingChat() {
     }
     // Never moved: this was a tap.
     setIsOpen((open) => !open);
-  }, []);
+  }, [setIsOpen]);
 
   // Every hook is above this line — the guards below must never gate them.
   // /flo already is the full chat; a second one floating over it would be two
@@ -180,6 +218,10 @@ export function FloatingChat() {
               >
                 <X className="h-5 w-5" />
               </button>
+            </div>
+            {/* Voice + text, as on /flo — this panel is the phone's FLO surface. */}
+            <div className="border-b border-gray-100 px-4 py-2">
+              <FloVoicePTT compact />
             </div>
             <div className="min-h-0 flex-1">
               <StableChat isInlineWidget />

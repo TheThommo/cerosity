@@ -7,8 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Brain, FileText, MessageCircle, Star, ArrowRight, Lock, TrendingUp, Calendar, CheckCircle, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { LandingChatStableV2 } from "@/components/landing-chat-stable-v2";
-import { FloVoicePTT } from "@/components/flo-voice-ptt";
+import { useFloSheet } from "@/components/floating-chat";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -20,7 +19,8 @@ export default function FreeDashboard() {
   const { toast } = useToast();
   const [location] = useLocation();
   const [showUpgrade, setShowUpgrade] = useState(false);
-  const [showChat, setShowChat] = useState(false);
+  // FLO opens in the shared panel (bubble / Ask FLO) — one chat, not a second one here.
+  const { setOpen: setFloOpen } = useFloSheet();
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [showAssessmentSuccess, setShowAssessmentSuccess] = useState(false);
 
@@ -314,7 +314,7 @@ export default function FreeDashboard() {
               </p>
               <Button 
                 className="w-full bg-blue-600 hover:bg-blue-700" 
-                onClick={() => setShowChat(true)}
+                onClick={() => setFloOpen(true)}
               >
                 Start Chatting
               </Button>
@@ -491,7 +491,7 @@ export default function FreeDashboard() {
             <Button 
               size="lg" 
               variant="outline"
-              onClick={() => setShowChat(true)}
+              onClick={() => setFloOpen(true)}
             >
               Chat with Flo
             </Button>
@@ -501,30 +501,6 @@ export default function FreeDashboard() {
         </div>
       </div>
 
-      {/* Chat with Flo - Shows when user clicks Start Chatting */}
-      {showChat && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b bg-white">
-              <h3 className="text-lg font-semibold">Chat with Flo</h3>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowChat(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="px-4 pt-3">
-              <FloVoicePTT compact />
-            </div>
-            <div className="flex-1 min-h-0">
-              <LandingChatStableV2 isInlineWidget={true} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

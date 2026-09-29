@@ -9,10 +9,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { canAccessDashboard } from "@/lib/permissions";
 import { hasFeatureAccess } from "@shared/entitlements";
+import { useFloSheet } from "@/components/floating-chat";
+import { CheckInSheet } from "@/components/check-in-sheet";
 
 export function Navigation() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [checkInOpen, setCheckInOpen] = useState(false);
+  const { isOpen: isFloOpen, setOpen: setFloOpen } = useFloSheet();
   const { user } = useAuth();
 
   const handleLogout = async () => {
@@ -246,47 +250,50 @@ export function Navigation() {
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation — the three things an athlete does on a phone.
+          Everything else is in the menu. Ask FLO opens the same panel as the
+          bubble (no route change); on /flo the chat is already the page. On a
+          narrow phone the open panel covers this bar and is closed with its ✕. */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-40">
-        {/* Columns follow the item count: an admin sees six entries here, and a
-            fixed four-column grid wrapped them onto a second row. */}
-        <div
-          className="grid gap-1"
-          style={{ gridTemplateColumns: `repeat(${navItems.length + 1}, minmax(0, 1fr))` }}
-        >
-          {navItems.map((item) => {
-            const isActive = location === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex flex-col items-center justify-center min-w-0 min-h-[44px] py-3 px-1 transition-colors ${
-                  isActive ? "text-blue-primary" : "text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                <item.icon size={20} className="mb-1 shrink-0" />
-                <span className="w-full text-center text-[10px] leading-tight font-medium">
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
-
-          {/* AI Coach Quick Access — this was a <button> with no handler, so the
-              most prominent route into FLO on a phone did nothing at all. */}
+        <div className="grid grid-cols-3 gap-1">
           <Link
-            href="/flo"
-            className={`flex flex-col items-center justify-center min-w-0 min-h-[44px] py-3 px-1 transition-colors ${
-              location === "/flo" ? "text-blue-primary" : "text-gray-400 hover:text-gray-600"
-            }`}
+            href="/learn"
+            className={`${bottomTabClass} ${location.startsWith("/learn") ? "text-blue-primary" : "text-gray-400 hover:text-gray-600"}`}
+          >
+            <BookOpen size={20} className="mb-1 shrink-0" />
+            <span className={bottomTabLabelClass}>Curriculum</span>
+          </Link>
+
+          <button
+            type="button"
+            aria-expanded={isFloOpen}
+            onClick={() => {
+              if (location !== "/flo") setFloOpen((open) => !open);
+            }}
+            className={`${bottomTabClass} ${isFloOpen || location === "/flo" ? "text-blue-primary" : "text-gray-400 hover:text-gray-600"}`}
           >
             <MessageCircle size={20} className="mb-1 shrink-0" />
-            <span className="w-full text-center text-[10px] leading-tight font-medium">
-              Coach
-            </span>
-          </Link>
+            <span className={bottomTabLabelClass}>Ask FLO</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setFloOpen(false);
+              setCheckInOpen(true);
+            }}
+            className={`${bottomTabClass} ${checkInOpen ? "text-blue-primary" : "text-gray-400 hover:text-gray-600"}`}
+          >
+            <ClipboardCheck size={20} className="mb-1 shrink-0" />
+            <span className={bottomTabLabelClass}>Check-in</span>
+          </button>
         </div>
       </div>
+
+      <CheckInSheet open={checkInOpen} onOpenChange={setCheckInOpen} />
     </>
   );
 }
+
+const bottomTabClass = "flex flex-col items-center justify-center min-w-0 min-h-[44px] py-3 px-1 transition-colors";
+const bottomTabLabelClass = "w-full text-center text-[10px] leading-tight font-medium";

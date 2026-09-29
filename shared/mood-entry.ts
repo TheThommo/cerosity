@@ -94,3 +94,40 @@ export function parseMoodEntryInput(body: unknown, now: Date = new Date()): Pars
     value: { occurredAt, context: input.context as MoodContext, note, ...factors },
   };
 }
+
+/** Sport-neutral wording FLO sees for each context. The UI's labels ("Pre-round") stay in the UI. */
+const FLO_CONTEXT_WORDING: Record<MoodContext, string> = {
+  practice: "practice",
+  pre_event: "before an event",
+  post_event: "after an event",
+  check_in: "general check-in",
+};
+
+const FLO_NOTE_MAX_CHARS = 160;
+
+type CheckInForFlo = Pick<MoodEntryInput, "context" | "occurredAt" | "note"> & Record<MoodFactor, number>;
+
+/**
+ * The athlete's latest check-in as a few factual lines for FLO's memory pack.
+ * Empty string when there is none, so the pack leaves the section out rather
+ * than showing a heading with nothing under it.
+ */
+export function describeLatestCheckInForFlo(entry: CheckInForFlo | undefined): string {
+  if (!entry) return "";
+
+  const when = new Date(entry.occurredAt).toISOString().slice(0, 16).replace("T", " ");
+  const lines = [
+    `LATEST CHECK-IN (${when} UTC, ${FLO_CONTEXT_WORDING[entry.context]}): ` +
+      `confidence ${entry.confidence}, focus ${entry.focus}, energy ${entry.energy}, ` +
+      `stress ${entry.stress} (higher = more stressed), motivation ${entry.motivation} — each 0–100, self-rated.`,
+  ];
+
+  const note = entry.note?.replace(/\s+/g, " ").trim();
+  if (note) {
+    const clipped = note.length > FLO_NOTE_MAX_CHARS ? `${note.slice(0, FLO_NOTE_MAX_CHARS - 1)}…` : note;
+    lines.push(`Note: "${clipped}"`);
+  }
+
+  lines.push("Use it to ask how they are; do not diagnose from one check-in.");
+  return lines.join("\n");
+}

@@ -275,6 +275,23 @@ export const dailyMoods = pgTable("daily_moods", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Mood check-ins: five separately-rated factors per entry, many per day.
+// Replaces the single-number daily_moods for new writes; daily_moods is kept.
+// Input rules (ranges, contexts) live in shared/mood-entry.ts.
+export const moodEntries = pgTable("mood_entries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  context: text("context").$type<"practice" | "pre_event" | "post_event" | "check_in">().notNull(),
+  confidence: integer("confidence").notNull(), // 0-100
+  focus: integer("focus").notNull(), // 0-100
+  energy: integer("energy").notNull(), // 0-100
+  stress: integer("stress").notNull(), // 0-100, higher = more stressed
+  motivation: integer("motivation").notNull(), // 0-100
+  note: text("note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -403,6 +420,8 @@ export type PriorityPlanning = typeof priorityPlanning.$inferSelect;
 export type InsertPriorityPlanning = z.infer<typeof insertPriorityPlanningSchema>;
 export type CertificationProgress = typeof certificationProgress.$inferSelect;
 export type InsertCertificationProgress = z.infer<typeof insertCertificationProgressSchema>;
+export type MoodEntry = typeof moodEntries.$inferSelect;
+export type InsertMoodEntry = typeof moodEntries.$inferInsert;
 
 // Notifications table for coach check-ins and system alerts
 export const notifications = pgTable("notifications", {

@@ -20,7 +20,8 @@ import {
   type AthleteProfile, type InsertAthleteProfile,
   courses, courseModules, lessons, lessonProgress, courseCertificates,
   type Course, type CourseModule, type Lesson,
-  type LessonProgress, type CourseCertificate
+  type LessonProgress, type CourseCertificate,
+  moodEntries, type MoodEntry, type InsertMoodEntry
 } from "@shared/schema";
 import { hasFeatureAccess, isSubscriptionTier, FREE_CHAT_MESSAGE_LIMIT, TIER_PRICING } from "@shared/entitlements";
 import { db, pool } from "./db";
@@ -1573,6 +1574,21 @@ export class DatabaseStorage implements IStorage {
       .from(dailyMoods)
       .where(eq(dailyMoods.userId, userId))
       .orderBy(desc(dailyMoods.date));
+  }
+
+  async createMoodEntry(entry: InsertMoodEntry): Promise<MoodEntry> {
+    const [row] = await db.insert(moodEntries).values(entry).returning();
+    return row;
+  }
+
+  /** Newest first. */
+  async getMoodEntries(userId: number, limit: number): Promise<MoodEntry[]> {
+    return await db
+      .select()
+      .from(moodEntries)
+      .where(eq(moodEntries.userId, userId))
+      .orderBy(desc(moodEntries.occurredAt), desc(moodEntries.id))
+      .limit(limit);
   }
 
   // ── Ownership lookups (audit D3) ──────────────────────────────────

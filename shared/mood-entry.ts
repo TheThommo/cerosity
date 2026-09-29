@@ -22,6 +22,9 @@ export const MOOD_NOTE_MAX_LENGTH = 1000;
 export const MOOD_ENTRIES_DEFAULT_LIMIT = 30;
 export const MOOD_ENTRIES_MAX_LIMIT = 100;
 
+/** Below this many check-ins nothing is inferred; the athlete is asked to keep logging. */
+export const MOOD_ENTRIES_FOR_TREND = 5;
+
 export type MoodEntryInput = {
   occurredAt: Date;
   context: MoodContext;

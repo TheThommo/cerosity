@@ -1,0 +1,48 @@
+{
+  "base": "https://www.cerosity.com",
+  "label": "prod",
+  "mode": "public",
+  "ranAt": "2026-10-08T07:36:16.162Z",
+  "commit": "e25e269",
+  "chromeVersion": "154.0.8037.98",
+  "throwawayEmails": [],
+  "results": [
+    {
+      "id": "P0",
+      "name": "Health 200 with a commit",
+      "status": "PASS",
+      "detail": "HTTP 200 commit=e25e269"
+    },
+    {
+      "id": "P1",
+      "name": "Landing at 390px shows brand + FLO",
+      "status": "PASS",
+      "detail": "brand+FLO=true · landing-390.png"
+    },
+    {
+      "id": "P2",
+      "name": "Forgot-password page loads",
+      "status": "PASS",
+      "detail": "url=https://www.cerosity.com/forgot-password"
+    },
+    {
+      "id": "P3",
+      "name": "Anonymous: mood entries, chat, curriculum, progress, coaching all refuse",
+      "status": "PASS",
+      "detail": "GET mood-entries/1=401 POST mood-entries/1=401 POST chat=401 GET course=401 POST progress=401 POST coaching=401"
+    },
+    {
+      "id": "D1",
+      "name": "daily-mood refuses anonymous (old signed-in 404 not re-probed)",
+      "status": "PASS",
+      "detail": "anon HTTP 401"
+    }
+  ],
+  "pageErrors": [],
+  "consoleNoise": [
+    {
+      "msg": "error: Failed to load resource: the server responded with a status of 401 ()",
+      "count": 2
+    }
+  ]
+}

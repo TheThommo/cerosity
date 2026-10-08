@@ -1,0 +1,161 @@
+{
+  "base": "http://localhost:5055",
+  "label": "local",
+  "mode": "full",
+  "ranAt": "2026-10-08T07:35:45.997Z",
+  "commit": "unknown",
+  "chromeVersion": "154.0.8037.98",
+  "throwawayEmails": [
+    "fairn.demo.ada.1791444932051@cerosity-test.invalid",
+    "fairn.demo.bo.1791444932051@cerosity-test.invalid"
+  ],
+  "results": [
+    {
+      "id": "P0",
+      "name": "Health 200 with a commit",
+      "status": "PASS",
+      "detail": "HTTP 200 commit=unknown"
+    },
+    {
+      "id": "P1",
+      "name": "Landing at 390px shows brand + FLO",
+      "status": "PASS",
+      "detail": "brand+FLO=true · local-landing-390.png"
+    },
+    {
+      "id": "P2",
+      "name": "Forgot-password page loads",
+      "status": "PASS",
+      "detail": "url=http://localhost:5055/forgot-password"
+    },
+    {
+      "id": "P3",
+      "name": "Anonymous: mood entries, chat, curriculum, progress, coaching all refuse",
+      "status": "PASS",
+      "detail": "GET mood-entries/1=401 POST mood-entries/1=401 POST chat=401 GET course=401 POST progress=401 POST coaching=401"
+    },
+    {
+      "id": "D1",
+      "name": "daily-mood refuses anonymous (old signed-in 404 not re-probed)",
+      "status": "PASS",
+      "detail": "anon HTTP 401"
+    },
+    {
+      "id": "S1",
+      "name": "New free throwaway signs up → /learn",
+      "status": "PASS",
+      "detail": "email=fairn.demo.ada.1791444932051@cerosity-test.invalid url=http://localhost:5055/learn"
+    },
+    {
+      "id": "L1",
+      "name": "Free: only free-preview lessons open, at least one locked",
+      "status": "PASS",
+      "detail": "hasAccess=false open=2 locked=21 of 23"
+    },
+    {
+      "id": "L2",
+      "name": "Locked lesson API returns empty content",
+      "status": "PASS",
+      "detail": "slug=the-performance-triangle locked=true contentLen=0"
+    },
+    {
+      "id": "L3",
+      "name": "Curriculum page shows the free-preview banner and lock icons",
+      "status": "PASS",
+      "detail": "lockIcons=22 · local-curriculum-lock.png"
+    },
+    {
+      "id": "N1",
+      "name": "Bottom bar shows Curriculum, Ask FLO, Check-in",
+      "status": "PASS",
+      "detail": "visible=Curriculum, Ask FLO, Check-in on /learn"
+    },
+    {
+      "id": "F1",
+      "name": "Ask FLO (bar) opens the panel; path and history unchanged",
+      "status": "PASS",
+      "detail": "path /learn→/learn history 3→3 composers 0→1"
+    },
+    {
+      "id": "F2",
+      "name": "Close, then the bubble opens that same panel",
+      "status": "PASS",
+      "detail": "path /learn→/learn barAskFlo aria-expanded=true composers=1"
+    },
+    {
+      "id": "F3",
+      "name": "FLO answers \"I am going Red on the first tee.\" in the panel",
+      "status": "FAIL",
+      "detail": "POST /api/chat HTTP 503 replyChars=0 panelShows=\"I'm here to help with your mental game. Ask me about handling pressure, staying focused, or specific techniques like box\" · local-flo-panel.png"
+    },
+    {
+      "id": "F4",
+      "name": "Every Ask FLO control on /learn keeps the path (no jump to /flo)",
+      "status": "PASS",
+      "detail": "no separate Ask FLO link on /learn"
+    },
+    {
+      "id": "K1",
+      "name": "Check-in: set five values and save (201, sheet closes)",
+      "status": "PASS",
+      "detail": "set=72/64/38/21/87 POST HTTP 201"
+    },
+    {
+      "id": "K2",
+      "name": "After reload the Check-in sheet still shows the same five values",
+      "status": "PASS",
+      "detail": "afterReload=72/64/38/21/87 expected=72/64/38/21/87 · local-check-in-after-reload.png"
+    },
+    {
+      "id": "K3",
+      "name": "GET /api/mood-entries returns the saved values",
+      "status": "PASS",
+      "detail": "HTTP 200 rows=1 latest=72/64/38/21/87"
+    },
+    {
+      "id": "B3",
+      "name": "Free: completing a preview does not unlock the next paid lesson",
+      "status": "PASS",
+      "detail": "welcome-to-red2blue=completed · next paid the-performance-triangle locked=true"
+    },
+    {
+      "id": "B4",
+      "name": "Free: progress POST on a locked lesson is 403",
+      "status": "PASS",
+      "detail": "slug=the-performance-triangle HTTP 403"
+    },
+    {
+      "id": "B6",
+      "name": "Free: human coaching message is 403",
+      "status": "PASS",
+      "detail": "POST /api/human-coaching/message HTTP 403"
+    },
+    {
+      "id": "K4",
+      "name": "A second throwaway gets 403 on the first user's check-ins",
+      "status": "PASS",
+      "detail": "fairn.demo.bo.1791444932051@cerosity-test.invalid GET=403 POST=403"
+    },
+    {
+      "id": "E1",
+      "name": "No uncaught page exception during the demo taps",
+      "status": "PASS",
+      "detail": "0 uncaught exceptions"
+    }
+  ],
+  "pageErrors": [],
+  "consoleNoise": [
+    {
+      "msg": "error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "count": 4
+    },
+    {
+      "msg": "warning: You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.",
+      "count": 24
+    },
+    {
+      "msg": "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "count": 1
+    }
+  ]
+}

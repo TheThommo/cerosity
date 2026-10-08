@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   BookOpen, CheckCircle2, Circle, Lock, Wrench, Brain, Target,
-  PlayCircle, Award, ArrowRight, Clock, MessageCircle,
+  PlayCircle, Award, ArrowRight, Clock,
 } from "lucide-react";
 
 const COURSE_SLUG = "red2blue-foundation";
@@ -224,17 +224,6 @@ export default function Learn() {
           </div>
         </div>
       </div>
-
-      {/* A lesson is where an athlete is most likely to want to ask something,
-          so FLO stays one tap away. Sits above the mobile bottom nav. */}
-      <Link
-        href="/flo"
-        aria-label="Ask FLO"
-        className="fixed right-4 bottom-24 md:bottom-6 z-40 flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-colors"
-      >
-        <MessageCircle size={20} />
-        <span className="text-sm font-semibold">Ask FLO</span>
-      </Link>
     </div>
   );
 }
